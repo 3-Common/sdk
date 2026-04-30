@@ -1,0 +1,52 @@
+version: 2
+updates:
+  # GitHub Actions used by all workflows.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci
+
+  # Node SDK
+  - package-ecosystem: npm
+    directory: "/sdk-node"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - sdk-node
+    versioning-strategy: increase
+
+  # OpenAPI tooling at root (fetch script deps)
+  - package-ecosystem: npm
+    directory: "/openapi"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - openapi
+
+  # Python SDK
+  - package-ecosystem: pip
+    directory: "/sdk-python"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - sdk-python
+
+  # Go SDK
+  - package-ecosystem: gomod
+    directory: "/sdk-go"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - sdk-go

@@ -1,0 +1,1224 @@
+openapi: 3.0.3
+info:
+  title: 3Common API
+  description: Public REST API for the 3Common event management platform.
+  version: 0.0.1
+  contact:
+    name: 3Common Support
+    url: https://help.3common.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API key as Bearer token
+  schemas: {}
+paths:
+  /health/:
+    get:
+      summary: Health check
+      tags:
+        - System
+      description: Returns the server status, API version, and database connection state. No authentication required.
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ok
+                      - degraded
+                  version:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                    pattern: >-
+                      ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                  db:
+                    type: string
+                    enum:
+                      - connected
+                      - disconnected
+                required:
+                  - status
+                  - version
+                  - timestamp
+                  - db
+                additionalProperties: false
+  /v1/:
+    get:
+      summary: API info
+      tags:
+        - System
+      description: Returns basic information about the API. Requires a valid API key.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  api:
+                    type: string
+                  version:
+                    type: string
+                  docs:
+                    type: string
+                    description: URL to the interactive API documentation
+                required:
+                  - api
+                  - version
+                  - docs
+                additionalProperties: false
+        '401':
+          description: Missing or invalid API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+                description: Missing or invalid API key
+  /v1/events/:
+    get:
+      summary: List Events
+      tags:
+        - Events
+      description: >-
+        Lists the organizer's events, optionally filtered by status or searched by name/address. Sorted by start date
+        descending. Paginated.
+      parameters:
+        - schema:
+            default: 0
+            type: integer
+            minimum: 0
+            maximum: 9007199254740991
+          in: query
+          name: page
+          required: false
+          description: Page number (0-based, default 0)
+        - schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 50
+          in: query
+          name: pageSize
+          required: false
+          description: Items per page (default 20, max 50)
+        - schema:
+            type: string
+            enum:
+              - draft
+              - open
+              - closed
+              - unpublished
+              - cancelled
+              - postponed
+              - schedule
+          in: query
+          name: status
+          required: false
+          description: Filter by status; omit to include all
+        - schema:
+            type: string
+          in: query
+          name: search
+          required: false
+          description: Search events by name or address (case-insensitive partial match)
+        - schema:
+            type: string
+            format: date-time
+            pattern: >-
+              ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          in: query
+          name: startBefore
+          required: false
+          description: 'Only events starting on or before this date (ISO 8601). Example: 2025-06-01T00:00:00.000Z'
+        - schema:
+            type: string
+            format: date-time
+            pattern: >-
+              ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+          in: query
+          name: startAfter
+          required: false
+          description: 'Only events starting on or after this date (ISO 8601). Example: 2025-01-01T00:00:00.000Z'
+        - schema:
+            type: string
+          in: query
+          name: sortField
+          required: false
+          description: 'Field to sort by (default: start)'
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          in: query
+          name: sortDirection
+          required: false
+          description: 'Sort direction (default: desc)'
+        - schema:
+            type: string
+          in: query
+          name: filters
+          required: false
+          description: >-
+            JSON-encoded array of filter groups for advanced filtering.
+
+            Each group has "logic" ("and" | "or") and "conditions" (array of conditions or nested groups).
+
+            Each condition has "field", "operator", and optional "value".
+
+            Operators by type:
+
+            - Text: is_equal_to_any_of, is_not_equal_to_any_of, contains, contains_exactly
+
+            - Date: is_before, is_after, is_between (value: {start, end})
+
+            - Number: is_equal_to, is_not_equal_to, is_greater_than, is_greater_than_or_equal_to, is_less_than,
+            is_less_than_or_equal_to, is_between
+
+            - Select: is_any_of, is_none_of
+
+            - Common: is_empty, is_not_empty
+
+            Example:
+            [{"logic":"and","conditions":[{"field":"status","operator":"is_any_of","value":["open","closed"]},{"field":"ticketSum","operator":"is_greater_than","value":10}]}]
+        - schema:
+            type: string
+          in: query
+          name: fields
+          required: false
+          description: >-
+            Comma-separated list of fields to return. Valid: id, name, type, schedule, start, end, multiDayStartTimes,
+            multiDayEndTimes, status, itemsSold, revenueCents, minPriceCents, maxPriceCents, currency, timeZone,
+            isPublic, isVirtual, location, locationPlaceholder, virtualEventLink, venueName, image, images, tags,
+            customTags, isCancelled, createdAt, updatedAt. Omit for all fields.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        type:
+                          type: string
+                          description: '''event'', ''booking'', ''recurring'', or ''multiple'''
+                        description:
+                          description: Event description as HTML. Only present when descriptionBlocks is empty.
+                          type: string
+                        descriptionBlocks:
+                          description: >-
+                            Rich content blocks for the event description. If present and non-empty, clients should
+                            render these instead of the description field.
+
+                            Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content
+                            string.
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                enum:
+                                  - text
+                                  - image
+                                  - video
+                              content:
+                                type: string
+                              id:
+                                type: number
+                            required:
+                              - type
+                              - content
+                              - id
+                            additionalProperties: false
+                        schedule:
+                          type: string
+                          enum:
+                            - Single date
+                            - Multiple dates
+                        start:
+                          type: string
+                          format: date-time
+                          pattern: >-
+                            ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                          description: For single-date events the start time; for multi-date the first time slot.
+                        end:
+                          description: For single-date events the end time; for multi-date the last time slot.
+                          type: string
+                          format: date-time
+                          pattern: >-
+                            ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                        multiDayStartTimes:
+                          description: All start times for multi-day events
+                          type: array
+                          items:
+                            type: string
+                        multiDayEndTimes:
+                          description: All end times for multi-day events
+                          type: array
+                          items:
+                            type: string
+                        status:
+                          type: string
+                          enum:
+                            - draft
+                            - open
+                            - closed
+                            - unpublished
+                            - cancelled
+                            - postponed
+                            - schedule
+                          description: |-
+                            The status of an event.
+                            - draft: has not been published
+                            - open: published and ticket sales are open
+                            - closed: published, ticket sales are closed but the event will proceed as normal
+                            - unpublished: was previously published, but is no longer visible
+                            - cancelled: published, ticket sales closed, event is cancelled
+                            - postponed: published, ticket sales closed, event is postponed
+                            - schedule: not yet published, scheduled to be published in the future
+                        itemsSold:
+                          type: number
+                          description: Total tickets and products sold
+                        revenueCents:
+                          type: number
+                          description: Total event revenue, in cents
+                        minPriceCents:
+                          anyOf:
+                            - type: number
+                            - nullable: true
+                              enum:
+                                - null
+                          description: Minimum ticket/product price in cents. Does not contain fees.
+                        maxPriceCents:
+                          anyOf:
+                            - type: number
+                            - nullable: true
+                              enum:
+                                - null
+                          description: Maximum ticket/product price in cents. Does not contain fees.
+                        currency:
+                          type: string
+                          description: Currency code (e.g. USD, CAD)
+                        timeZone:
+                          description: IANA time zone (may be missing for pre-2024 events)
+                          type: string
+                        isPublic:
+                          type: boolean
+                          description: True if the event is public
+                        isVirtual:
+                          type: boolean
+                          description: True if the event is virtual
+                        location:
+                          description: Event location with address and coordinates
+                          type: object
+                          properties:
+                            address:
+                              type: string
+                            lat:
+                              type: number
+                            lng:
+                              type: number
+                          additionalProperties: false
+                        locationPlaceholder:
+                          description: Placeholder text to link to location
+                          type: string
+                        virtualEventLink:
+                          description: Link for virtual access
+                          type: string
+                        venueName:
+                          description: Name of the associated seating-chart venue
+                          type: string
+                        image:
+                          description: URL of the event's main image
+                          type: string
+                        images:
+                          description: Gallery images
+                          type: array
+                          items:
+                            type: string
+                        tags:
+                          description: Tag metadata
+                          type: array
+                          items:
+                            type: string
+                        customTags:
+                          description: Custom tag overlays
+                          type: array
+                          items:
+                            type: string
+                        contentBlocks:
+                          description: Structured content (FAQs, etc.)
+                          type: array
+                          items:
+                            type: object
+                            additionalProperties: {}
+                        language:
+                          description: Event language (e.g. 'en', 'fr')
+                          type: string
+                        isCancelled:
+                          description: Cancellation flag
+                          type: boolean
+                        redirectUrl:
+                          description: Post-checkout URL
+                          type: string
+                        customTerms:
+                          description: Custom checkout conditions
+                          type: object
+                          properties:
+                            hasCustomTerms:
+                              type: boolean
+                            type:
+                              type: string
+                              enum:
+                                - url
+                                - text
+                            url:
+                              type: string
+                            content:
+                              type: string
+                          additionalProperties: false
+                        createdAt:
+                          description: Creation timestamp
+                          type: string
+                          format: date-time
+                          pattern: >-
+                            ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                        updatedAt:
+                          description: Last update timestamp
+                          type: string
+                          format: date-time
+                          pattern: >-
+                            ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      additionalProperties: false
+                  hasMore:
+                    type: boolean
+                required:
+                  - data
+                  - hasMore
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+  /v1/events/{id}:
+    get:
+      summary: Get Event
+      tags:
+        - Events
+      description: Retrieves detailed information about a single event by ID.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: fields
+          required: false
+          description: >-
+            Comma-separated list of fields to return. Valid: id, name, type, description, descriptionBlocks, schedule,
+            start, end, multiDayStartTimes, multiDayEndTimes, status, itemsSold, revenueCents, minPriceCents,
+            maxPriceCents, currency, timeZone, isPublic, isVirtual, location, locationPlaceholder, virtualEventLink,
+            venueName, image, images, tags, customTags, contentBlocks, language, isCancelled, redirectUrl, customTerms,
+            createdAt, updatedAt. Omit for all fields.
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Event ID, discoverable via list_events
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      type:
+                        type: string
+                        description: '''event'', ''booking'', ''recurring'', or ''multiple'''
+                      description:
+                        description: Event description as HTML. Only present when descriptionBlocks is empty.
+                        type: string
+                      descriptionBlocks:
+                        description: >-
+                          Rich content blocks for the event description. If present and non-empty, clients should render
+                          these instead of the description field.
+
+                          Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - text
+                                - image
+                                - video
+                            content:
+                              type: string
+                            id:
+                              type: number
+                          required:
+                            - type
+                            - content
+                            - id
+                          additionalProperties: false
+                      schedule:
+                        type: string
+                        enum:
+                          - Single date
+                          - Multiple dates
+                      start:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                        description: For single-date events the start time; for multi-date the first time slot.
+                      end:
+                        description: For single-date events the end time; for multi-date the last time slot.
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      multiDayStartTimes:
+                        description: All start times for multi-day events
+                        type: array
+                        items:
+                          type: string
+                      multiDayEndTimes:
+                        description: All end times for multi-day events
+                        type: array
+                        items:
+                          type: string
+                      status:
+                        type: string
+                        enum:
+                          - draft
+                          - open
+                          - closed
+                          - unpublished
+                          - cancelled
+                          - postponed
+                          - schedule
+                        description: |-
+                          The status of an event.
+                          - draft: has not been published
+                          - open: published and ticket sales are open
+                          - closed: published, ticket sales are closed but the event will proceed as normal
+                          - unpublished: was previously published, but is no longer visible
+                          - cancelled: published, ticket sales closed, event is cancelled
+                          - postponed: published, ticket sales closed, event is postponed
+                          - schedule: not yet published, scheduled to be published in the future
+                      itemsSold:
+                        type: number
+                        description: Total tickets and products sold
+                      revenueCents:
+                        type: number
+                        description: Total event revenue, in cents
+                      minPriceCents:
+                        anyOf:
+                          - type: number
+                          - nullable: true
+                            enum:
+                              - null
+                        description: Minimum ticket/product price in cents. Does not contain fees.
+                      maxPriceCents:
+                        anyOf:
+                          - type: number
+                          - nullable: true
+                            enum:
+                              - null
+                        description: Maximum ticket/product price in cents. Does not contain fees.
+                      currency:
+                        type: string
+                        description: Currency code (e.g. USD, CAD)
+                      timeZone:
+                        description: IANA time zone (may be missing for pre-2024 events)
+                        type: string
+                      isPublic:
+                        type: boolean
+                        description: True if the event is public
+                      isVirtual:
+                        type: boolean
+                        description: True if the event is virtual
+                      location:
+                        description: Event location with address and coordinates
+                        type: object
+                        properties:
+                          address:
+                            type: string
+                          lat:
+                            type: number
+                          lng:
+                            type: number
+                        additionalProperties: false
+                      locationPlaceholder:
+                        description: Placeholder text to link to location
+                        type: string
+                      virtualEventLink:
+                        description: Link for virtual access
+                        type: string
+                      venueName:
+                        description: Name of the associated seating-chart venue
+                        type: string
+                      image:
+                        description: URL of the event's main image
+                        type: string
+                      images:
+                        description: Gallery images
+                        type: array
+                        items:
+                          type: string
+                      tags:
+                        description: Tag metadata
+                        type: array
+                        items:
+                          type: string
+                      customTags:
+                        description: Custom tag overlays
+                        type: array
+                        items:
+                          type: string
+                      contentBlocks:
+                        description: Structured content (FAQs, etc.)
+                        type: array
+                        items:
+                          type: object
+                          additionalProperties: {}
+                      language:
+                        description: Event language (e.g. 'en', 'fr')
+                        type: string
+                      isCancelled:
+                        description: Cancellation flag
+                        type: boolean
+                      redirectUrl:
+                        description: Post-checkout URL
+                        type: string
+                      customTerms:
+                        description: Custom checkout conditions
+                        type: object
+                        properties:
+                          hasCustomTerms:
+                            type: boolean
+                          type:
+                            type: string
+                            enum:
+                              - url
+                              - text
+                          url:
+                            type: string
+                          content:
+                            type: string
+                        additionalProperties: false
+                      createdAt:
+                        description: Creation timestamp
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      updatedAt:
+                        description: Last update timestamp
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                    additionalProperties: false
+                required:
+                  - data
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+    patch:
+      summary: Update Event
+      tags:
+        - Events
+      description: >-
+        Updates an event's basic fields. Only provided fields are changed. Does not update products, tickets, or order
+        forms.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: Event name
+                  type: string
+                description:
+                  description: Event description (HTML supported)
+                  type: string
+                descriptionBlocks:
+                  description: Rich content blocks for the event description
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - text
+                          - image
+                          - video
+                      content:
+                        type: string
+                      id:
+                        type: number
+                    required:
+                      - type
+                      - content
+                      - id
+                status:
+                  description: Event status (e.g. draft, open, closed, cancelled)
+                  type: string
+                  enum:
+                    - draft
+                    - open
+                    - closed
+                    - unpublished
+                    - cancelled
+                    - postponed
+                    - schedule
+                start:
+                  description: Start date/time in UTC
+                  type: string
+                  format: date-time
+                  pattern: >-
+                    ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                end:
+                  description: End date/time in UTC
+                  type: string
+                  format: date-time
+                  pattern: >-
+                    ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                hasEndDate:
+                  description: Whether the event has a specified end time
+                  type: boolean
+                privacy:
+                  description: Public events appear on discover; private are link-only
+                  type: string
+                  enum:
+                    - public
+                    - private
+                eventType:
+                  description: Virtual or in-person
+                  type: string
+                  enum:
+                    - virtual
+                    - inperson
+                virtualEventLink:
+                  description: Link to virtual event
+                  type: string
+                address:
+                  description: Event location address
+                  type: string
+                locationPlaceholder:
+                  description: Placeholder text when no address is set
+                  type: string
+                timeZone:
+                  description: IANA time zone (e.g. "America/New_York")
+                  type: string
+                collectEmails:
+                  description: Enable checkout; if false customers cannot order
+                  type: boolean
+                redirectUrl:
+                  description: URL to redirect to after checkout
+                  type: string
+                customTerms:
+                  description: Custom terms and conditions
+                  type: object
+                  properties:
+                    hasCustomTerms:
+                      type: boolean
+                    type:
+                      type: string
+                      enum:
+                        - url
+                        - text
+                    url:
+                      type: string
+                    content:
+                      type: string
+                  required:
+                    - hasCustomTerms
+                    - type
+                    - url
+                    - content
+                customTags:
+                  description: Custom tag overlays
+                  type: array
+                  items:
+                    type: string
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Event ID, discoverable via list_events
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      type:
+                        type: string
+                        description: '''event'', ''booking'', ''recurring'', or ''multiple'''
+                      description:
+                        description: Event description as HTML. Only present when descriptionBlocks is empty.
+                        type: string
+                      descriptionBlocks:
+                        description: >-
+                          Rich content blocks for the event description. If present and non-empty, clients should render
+                          these instead of the description field.
+
+                          Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              enum:
+                                - text
+                                - image
+                                - video
+                            content:
+                              type: string
+                            id:
+                              type: number
+                          required:
+                            - type
+                            - content
+                            - id
+                          additionalProperties: false
+                      schedule:
+                        type: string
+                        enum:
+                          - Single date
+                          - Multiple dates
+                      start:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                        description: For single-date events the start time; for multi-date the first time slot.
+                      end:
+                        description: For single-date events the end time; for multi-date the last time slot.
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      multiDayStartTimes:
+                        description: All start times for multi-day events
+                        type: array
+                        items:
+                          type: string
+                      multiDayEndTimes:
+                        description: All end times for multi-day events
+                        type: array
+                        items:
+                          type: string
+                      status:
+                        type: string
+                        enum:
+                          - draft
+                          - open
+                          - closed
+                          - unpublished
+                          - cancelled
+                          - postponed
+                          - schedule
+                        description: |-
+                          The status of an event.
+                          - draft: has not been published
+                          - open: published and ticket sales are open
+                          - closed: published, ticket sales are closed but the event will proceed as normal
+                          - unpublished: was previously published, but is no longer visible
+                          - cancelled: published, ticket sales closed, event is cancelled
+                          - postponed: published, ticket sales closed, event is postponed
+                          - schedule: not yet published, scheduled to be published in the future
+                      itemsSold:
+                        type: number
+                        description: Total tickets and products sold
+                      revenueCents:
+                        type: number
+                        description: Total event revenue, in cents
+                      minPriceCents:
+                        anyOf:
+                          - type: number
+                          - nullable: true
+                            enum:
+                              - null
+                        description: Minimum ticket/product price in cents. Does not contain fees.
+                      maxPriceCents:
+                        anyOf:
+                          - type: number
+                          - nullable: true
+                            enum:
+                              - null
+                        description: Maximum ticket/product price in cents. Does not contain fees.
+                      currency:
+                        type: string
+                        description: Currency code (e.g. USD, CAD)
+                      timeZone:
+                        description: IANA time zone (may be missing for pre-2024 events)
+                        type: string
+                      isPublic:
+                        type: boolean
+                        description: True if the event is public
+                      isVirtual:
+                        type: boolean
+                        description: True if the event is virtual
+                      location:
+                        description: Event location with address and coordinates
+                        type: object
+                        properties:
+                          address:
+                            type: string
+                          lat:
+                            type: number
+                          lng:
+                            type: number
+                        additionalProperties: false
+                      locationPlaceholder:
+                        description: Placeholder text to link to location
+                        type: string
+                      virtualEventLink:
+                        description: Link for virtual access
+                        type: string
+                      venueName:
+                        description: Name of the associated seating-chart venue
+                        type: string
+                      image:
+                        description: URL of the event's main image
+                        type: string
+                      images:
+                        description: Gallery images
+                        type: array
+                        items:
+                          type: string
+                      tags:
+                        description: Tag metadata
+                        type: array
+                        items:
+                          type: string
+                      customTags:
+                        description: Custom tag overlays
+                        type: array
+                        items:
+                          type: string
+                      contentBlocks:
+                        description: Structured content (FAQs, etc.)
+                        type: array
+                        items:
+                          type: object
+                          additionalProperties: {}
+                      language:
+                        description: Event language (e.g. 'en', 'fr')
+                        type: string
+                      isCancelled:
+                        description: Cancellation flag
+                        type: boolean
+                      redirectUrl:
+                        description: Post-checkout URL
+                        type: string
+                      customTerms:
+                        description: Custom checkout conditions
+                        type: object
+                        properties:
+                          hasCustomTerms:
+                            type: boolean
+                          type:
+                            type: string
+                            enum:
+                              - url
+                              - text
+                          url:
+                            type: string
+                          content:
+                            type: string
+                        additionalProperties: false
+                      createdAt:
+                        description: Creation timestamp
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      updatedAt:
+                        description: Last update timestamp
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                    additionalProperties: false
+                required:
+                  - data
+                additionalProperties: false
+        '400':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+security:
+  - bearerAuth: []
+tags:
+  - name: System
+    description: Health check and API information
+  - name: Events
+    description: Event management
+  - name: Products
+    description: Product management
+  - name: Orders
+    description: Order management
+  - name: Contacts
+    description: Contact/attendee management
+  - name: Webhooks
+    description: Webhook subscription management

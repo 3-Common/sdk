@@ -1,0 +1,64 @@
+name: OpenAPI sync
+
+on:
+  schedule:
+    # Daily at 06:00 UTC.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: openapi-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install fetch deps
+        working-directory: openapi
+        run: npm ci
+
+      - name: Typecheck fetch script
+        working-directory: openapi
+        run: npm run typecheck
+
+      - name: Fetch + bundle spec
+        working-directory: openapi
+        env:
+          OPENAPI_SOURCE_URL: ${{ vars.OPENAPI_SOURCE_URL || 'https://api.3common.com/docs/json' }}
+        run: npm run fetch
+
+      - name: Detect changes
+        id: diff
+        run: |
+          if git diff --quiet -- openapi/spec.json openapi/spec.yaml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/openapi-sync
+          commit-message: "chore(openapi): sync spec ${{ github.run_id }}"
+          title: "chore(openapi): sync spec"
+          body: |
+            Automated OpenAPI spec refresh from `${{ vars.OPENAPI_SOURCE_URL || 'https://api.3common.com/docs/json' }}`.
+
+            Review the diff and merge if changes are intentional. Codegen is run by per-language workflows on next push.
+          labels: |
+            openapi
+            automated
+          delete-branch: true
