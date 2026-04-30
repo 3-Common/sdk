@@ -15,7 +15,7 @@ jobs:
   validate-scenarios:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Placeholder
         run: |
           echo "Conformance scenario validation will run here. Current just place holder"
