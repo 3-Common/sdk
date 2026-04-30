@@ -1,0 +1,22 @@
+# Cross-language conformance tests.
+#
+# Each per-language workflow runs the conformance
+# scenarios under conformance/scenarios/*.yaml as part of its CI.
+
+name: Conformance
+
+on:
+  pull_request:
+    paths:
+      - "conformance/**"
+  workflow_dispatch:
+
+jobs:
+  validate-scenarios:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Placeholder
+        run: |
+          echo "Conformance scenario validation will run here. Current just place holder"
+          echo "Per-language SDKs run scenarios as part of their own CI workflows."

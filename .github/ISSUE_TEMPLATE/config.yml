@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/3-Common/sdk/blob/main/SECURITY.md
+    about: Report security issues privately — do NOT open a public issue.
+  - name: 3Common API support
+    url: https://help.3common.com
+    about: For questions about the 3Common API itself (not the SDK).

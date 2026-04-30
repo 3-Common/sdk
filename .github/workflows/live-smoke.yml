@@ -1,0 +1,51 @@
+# Maintainer-only pre-release smoke test against the production API.
+#
+# - Triggered manually (workflow_dispatch) or by the `live-smoke` label on a PR.
+# - Reads secrets.THREECOMMON_API_KEY (set ONLY in the upstream repo, never on forks).
+# - Runs <= 10 calls per SDK: list, retrieve, update on a known throwaway event,
+#   plus the four common error paths (401, 403, 404, 429).
+
+name: Live smoke (maintainer-only)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  guard:
+    # Only run on label trigger when the label is exactly `live-smoke` AND the PR
+    # comes from the upstream repo (not a fork).
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'live-smoke' && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [ -z "${{ secrets.THREECOMMON_API_KEY }}" ]; then
+            echo "::error::THREECOMMON_API_KEY secret not set in this repository."
+            exit 1
+          fi
+          echo "Guards passed; smoke run will be wired per-SDK in Phase 1c."
+
+  smoke-node:
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Node smoke calls (placeholder)."
+
+  smoke-python:
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Python smoke calls (placeholder)."
+
+  smoke-go:
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Go smoke calls (placeholder)."

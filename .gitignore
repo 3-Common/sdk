@@ -1,0 +1,57 @@
+.claude/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.npm/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.tox/
+.venv/
+venv/
+htmlcov/
+.coverage
+.coverage.*
+
+# Go
+vendor/
+*.exe
+*.test
+*.out
+go.work
+go.work.sum
+
+# Build artifacts
+docs/api/
+docs/_build/
+site/

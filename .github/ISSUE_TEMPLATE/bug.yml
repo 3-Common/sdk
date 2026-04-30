@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a defect in one of the SDKs.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill out the sections below.
+        For security vulnerabilities, do **not** open a public issue — see [SECURITY.md](../../SECURITY.md).
+
+  - type: dropdown
+    id: sdk
+    attributes:
+      label: Affected SDK
+      options:
+        - Node.js (@3-common/sdk)
+        - Python (threecommon)
+        - Go (github.com/3-Common/sdk/sdk-go)
+        - Cross-SDK / repo infrastructure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: SDK version
+      placeholder: "e.g. 0.1.2"
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime / language version
+      description: Node, Python, or Go version. Include the OS too.
+      placeholder: "e.g. Node 20.11.0 on macOS 26.3.1 arm64"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code snippet that reproduces the bug. Redact API keys.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack traces
+      description: Paste any relevant error messages. Redact API keys and request IDs you don't want public.
+      render: text

@@ -1,0 +1,39 @@
+# Release workflow.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "sdk-node@v*"
+      - "sdk-python@v*"
+      - "sdk-go/v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      sdk: ${{ steps.classify.outputs.sdk }}
+    steps:
+      - id: classify
+        run: |
+          ref="${GITHUB_REF#refs/tags/}"
+          case "$ref" in
+            sdk-node@v*)   echo "sdk=node" >> "$GITHUB_OUTPUT" ;;
+            sdk-python@v*) echo "sdk=python" >> "$GITHUB_OUTPUT" ;;
+            sdk-go/v*)     echo "sdk=go" >> "$GITHUB_OUTPUT" ;;
+            *)             echo "sdk=" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+  placeholder:
+    needs: detect
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Release flow for SDK: ${{ needs.detect.outputs.sdk }}"
+          echo "Implementation lands in Phase 1d (Node), Phase 2 (Python), Phase 3 (Go)."

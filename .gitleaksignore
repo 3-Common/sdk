@@ -1,0 +1,2 @@
+# Format: <fingerprint> per line.
+# Add false-positive fingerprints from gitleaks output as they arise.
