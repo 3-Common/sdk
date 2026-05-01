@@ -1,0 +1,16 @@
+src
+test
+node_modules
+coverage
+.changeset
+.eslintcache
+.vitest
+
+tsconfig*.json
+tsup.config.ts
+vitest.config.ts
+eslint.config.js
+.prettierrc.json
+.eslintignore
+
+*.tsbuildinfo

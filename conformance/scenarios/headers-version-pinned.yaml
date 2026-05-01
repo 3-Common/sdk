@@ -1,0 +1,20 @@
+name: pinned API version is sent on every request
+call:
+  resource: events
+  method: list
+  args: {}
+client:
+  apiVersion: '2025-12-31'
+expectedRequest:
+  method: GET
+  path: /v1/events
+  headers:
+    threecommon-version: '2025-12-31'
+mockResponse:
+  status: 200
+  body:
+    data: []
+    hasMore: false
+expectedResult:
+  data: []
+  hasMore: false

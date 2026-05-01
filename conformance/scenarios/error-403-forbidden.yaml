@@ -1,0 +1,32 @@
+name: 403 Forbidden — missing scope
+call:
+  resource: events
+  method: update
+  args:
+    id: evt_123
+    body:
+      name: New name
+client:
+  maxRetries: 0
+expectedRequest:
+  method: PATCH
+  path: /v1/events/evt_123
+mockResponse:
+  status: 403
+  headers:
+    x-request-id: req-403-001
+  body:
+    error:
+      code: forbidden
+      message: 'API key is missing required scope: events:write'
+      details:
+        requiredScopes:
+          - events:write
+expectedError:
+  type: ThreeCommonPermissionError
+  code: forbidden
+  httpStatus: 403
+  requestId: req-403-001
+  details:
+    requiredScopes:
+      - events:write

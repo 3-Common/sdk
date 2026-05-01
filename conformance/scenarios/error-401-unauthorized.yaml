@@ -1,0 +1,23 @@
+name: 401 Unauthorized — invalid API key
+call:
+  resource: events
+  method: list
+  args: {}
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/events
+mockResponse:
+  status: 401
+  headers:
+    x-request-id: req-401-001
+  body:
+    error:
+      code: unauthorized
+      message: Invalid or expired API key
+expectedError:
+  type: ThreeCommonAuthError
+  code: unauthorized
+  httpStatus: 401
+  requestId: req-401-001

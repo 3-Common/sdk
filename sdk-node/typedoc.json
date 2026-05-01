@@ -1,0 +1,30 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "tsconfig": "tsconfig.build.json",
+  "out": "docs/api",
+  "name": "@3-common/sdk",
+  "includeVersion": true,
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "navigationLinks": {
+    "GitHub": "https://github.com/3-Common/sdk",
+    "API docs": "https://api.3common.com/docs"
+  },
+  "blockTags": [
+    "@param",
+    "@returns",
+    "@throws",
+    "@example",
+    "@deprecated",
+    "@public",
+    "@internal",
+    "@description"
+  ],
+  "intentionallyNotExported": ["paths"],
+  "categorizeByGroup": true,
+  "githubPages": false,
+  "hideGenerator": false
+}

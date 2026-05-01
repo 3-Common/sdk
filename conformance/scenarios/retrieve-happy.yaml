@@ -1,0 +1,38 @@
+name: retrieve event — happy path
+call:
+  resource: events
+  method: retrieve
+  args:
+    id: evt_123
+    params:
+      fields: id,name,start
+expectedRequest:
+  method: GET
+  path: /v1/events/evt_123
+  query:
+    fields: id,name,start
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-retrieve-001
+  body:
+    data:
+      id: evt_123
+      name: Single event
+      type: event
+      schedule: Single date
+      start: '2026-05-01T18:00:00.000Z'
+      status: open
+      itemsSold: 0
+      revenueCents: 0
+      minPriceCents: null
+      maxPriceCents: null
+      currency: USD
+      isPublic: true
+      isVirtual: false
+expectedResult:
+  id: evt_123
+  name: Single event
+  status: open
