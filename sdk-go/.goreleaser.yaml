@@ -1,0 +1,69 @@
+version: 2
+
+project_name: sdk-go
+
+before:
+  hooks:
+    - go mod download
+    - go test -race ./...
+
+# No binaries — disable the "builds" step entirely.
+builds:
+  - skip: true
+
+# Source archive (tar.gz of the sdk-go subtree).
+source:
+  enabled: true
+  format: tar.gz
+  name_template: "{{ .ProjectName }}_{{ .Version }}_source"
+
+archives:
+  - id: source
+    formats: ["tar.gz"]
+    name_template: "{{ .ProjectName }}_{{ .Version }}"
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+sboms:
+  - id: source-sbom
+    artifacts: source
+    documents:
+      - "{{ .ProjectName }}_{{ .Version }}_sbom.cyclonedx.json"
+
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    output: true
+    args:
+      - sign-blob
+      - "--yes"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+    env:
+      - COSIGN_EXPERIMENTAL=1
+
+release:
+  github:
+    owner: 3-Common
+    name: sdk
+  prerelease: auto
+  draft: false
+  # Tag format is path-prefixed for Go modules in subdirectories.
+  name_template: "sdk-go {{ .Version }}"
+  footer: |
+    ## Install
+    ```
+    go get github.com/3-Common/sdk/sdk-go@{{ .Tag }}
+    ```
+
+    ## Verify the release
+    Cosign-verify the checksum file (keyless, transparency-log–backed):
+    ```
+    cosign verify-blob \
+      --certificate-identity-regexp="https://github.com/3-Common/sdk" \
+      --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+      --signature checksums.txt.sig \
+      checksums.txt
+    ```
