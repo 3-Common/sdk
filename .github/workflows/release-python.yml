@@ -1,0 +1,70 @@
+name: Release Python SDK
+
+on:
+  push:
+    tags:
+      - "sdk-python/v*"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: sdk-python
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.derive.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Derive version from tag
+        id: derive
+        run: |
+          # tag format: sdk-python/v0.X.Y → version 0.X.Y
+          tag="${GITHUB_REF#refs/tags/}"
+          version="${tag#sdk-python/v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Tag $tag → version $version"
+      - name: Install hatch
+        run: pip install hatch
+      - name: Build sdist + wheel
+        env:
+          VERSION_OVERRIDE: ${{ steps.derive.outputs.version }}
+        run: |
+          # Pin the version in pyproject for the build, then revert (in-CI only).
+          python -c "
+          import pathlib, re, os
+          version = os.environ['VERSION_OVERRIDE']
+          path = pathlib.Path('pyproject.toml')
+          text = path.read_text()
+          text = re.sub(r'^version = \".*\"$', f'version = \"{version}\"', text, count=1, flags=re.M)
+          path.write_text(text)
+          "
+          hatch build
+          ls -la dist/
+      - uses: actions/upload-artifact@v6
+        with:
+          name: dist
+          path: sdk-python/dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/threecommon
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: dist
+          path: sdk-python/dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: sdk-python/dist/
