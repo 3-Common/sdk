@@ -95,10 +95,15 @@ jobs:
       - name: Verify examples compile
         run: go build ./examples/...
 
-  # Secret scanning. Same pattern as the Node SDK workflow — using the gitleaks
-  # CLI directly avoids the paid org-license requirement on the GitHub Action.
+  # Secret scanning. Run from the repo root so the whole monorepo is scanned
+  # (not just sdk-go/), and so the downloaded binary + the scan command share
+  # a working directory. Using the gitleaks CLI directly avoids the paid
+  # org-license requirement on the GitHub Action.
   gitleaks:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -111,4 +116,3 @@ jobs:
           ./gitleaks version
       - name: Scan
         run: ./gitleaks detect --source . --no-banner --redact
-        working-directory: ${{ github.workspace }}
