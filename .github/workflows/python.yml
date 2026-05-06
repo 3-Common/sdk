@@ -112,8 +112,13 @@ jobs:
           ls -la dist/
           python -m zipfile -l dist/*.whl
 
+  # Run from the repo root so the whole monorepo is scanned (not just sdk-python/),
+  # and so the downloaded binary + the scan command share a working directory.
   gitleaks:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -126,4 +131,3 @@ jobs:
           ./gitleaks version
       - name: Scan
         run: ./gitleaks detect --source . --no-banner --redact
-        working-directory: ${{ github.workspace }}
