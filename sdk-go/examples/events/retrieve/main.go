@@ -22,6 +22,7 @@ func main() {
 	ev, err := api.Events.Retrieve(context.Background(), "evt_replace_with_real_id", &events.RetrieveParams{
 		Fields: "id,name,start,status",
 	})
+
 	if err != nil {
 		log.Fatal(err)
 	}
