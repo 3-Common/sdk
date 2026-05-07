@@ -32,7 +32,7 @@ export default defineConfig(
       },
     },
     rules: {
-      // Public-surface non-negotiables (per plan §1 quality bar).
+      // Public-surface non-negotiable.
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
