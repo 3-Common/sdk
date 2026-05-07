@@ -1,0 +1,42 @@
+name: list events — happy path
+call:
+  resource: events
+  method: list
+  args:
+    status: open
+    pageSize: 10
+expectedRequest:
+  method: GET
+  path: /v1/events
+  query:
+    status: open
+    pageSize: '10'
+  headers:
+    authorization: 'Bearer 3co_test'
+    threecommon-version: '2026-04-29'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-list-001
+  body:
+    data:
+      - id: evt_a
+        name: Happy event A
+        type: event
+        schedule: Single date
+        start: '2026-05-01T18:00:00.000Z'
+        status: open
+        itemsSold: 0
+        revenueCents: 0
+        minPriceCents: null
+        maxPriceCents: null
+        currency: USD
+        isPublic: true
+        isVirtual: false
+    hasMore: false
+expectedResult:
+  data:
+    - id: evt_a
+      name: Happy event A
+      status: open
+  hasMore: false

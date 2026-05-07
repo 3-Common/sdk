@@ -1,0 +1,29 @@
+name: 500 server error followed by successful retry
+call:
+  resource: events
+  method: list
+  args: {}
+client:
+  maxRetries: 1
+exchanges:
+  - request:
+      method: GET
+      path: /v1/events
+    response:
+      status: 500
+      body:
+        error:
+          code: internal_error
+          message: Transient server failure
+  - request:
+      method: GET
+      path: /v1/events
+    response:
+      status: 200
+      body:
+        data: []
+        hasMore: false
+expectedResult:
+  data: []
+  hasMore: false
+expectedCallCount: 2

@@ -1,0 +1,24 @@
+name: 404 Not Found — event missing
+call:
+  resource: events
+  method: retrieve
+  args:
+    id: evt_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/events/evt_missing
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-404-001
+  body:
+    error:
+      code: not_found
+      message: Event evt_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-404-001

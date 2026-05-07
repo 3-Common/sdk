@@ -1,0 +1,88 @@
+{
+  "name": "@3-common/sdk",
+  "version": "0.0.0",
+  "description": "Official Node.js / TypeScript client for the 3Common Public API.",
+  "keywords": [
+    "3common",
+    "sdk",
+    "api-client",
+    "typescript",
+    "events"
+  ],
+  "homepage": "https://github.com/3-Common/sdk/tree/main/sdk-node",
+  "bugs": {
+    "url": "https://github.com/3-Common/sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3-Common/sdk.git",
+    "directory": "sdk-node"
+  },
+  "license": "MIT",
+  "author": "3Common <support@3common.com>",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "typecheck:build": "tsc --noEmit -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:types": "tsd --files \"test/types/*.test-d.ts\"",
+    "generate:types": "openapi-typescript ../openapi/spec.yaml -o src/generated/types.ts",
+    "docs": "typedoc",
+    "docs:check": "typedoc --emit none --treatWarningsAsErrors",
+    "smoke": "tsx scripts/live-smoke.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.10",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^9.17.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import-x": "^4.6.1",
+    "eslint-plugin-tsdoc": "^0.4.0",
+    "eslint-plugin-unicorn": "^56.0.1",
+    "js-yaml": "^4.1.1",
+    "msw": "^2.7.0",
+    "openapi-typescript": "^7.4.4",
+    "prettier": "^3.4.2",
+    "tsd": "^0.31.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typedoc": "^0.28.19",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^2.1.8"
+  }
+}

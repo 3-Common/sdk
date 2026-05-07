@@ -1,0 +1,19 @@
+name: auto-paginate returns no items when first page is empty
+call:
+  resource: events
+  method: listAutoPaginate
+  args:
+    status: closed
+expectedRequest:
+  method: GET
+  path: /v1/events
+  query:
+    status: closed
+    page: '0'
+mockResponse:
+  status: 200
+  body:
+    data: []
+    hasMore: false
+expectedAutoPaginated: []
+expectedCallCount: 1

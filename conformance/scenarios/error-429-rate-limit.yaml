@@ -1,0 +1,25 @@
+name: 429 Rate limit with Retry-After header
+call:
+  resource: events
+  method: list
+  args: {}
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/events
+mockResponse:
+  status: 429
+  headers:
+    x-request-id: req-429-001
+    retry-after: '60'
+  body:
+    error:
+      code: rate_limit_exceeded
+      message: Too many requests
+expectedError:
+  type: ThreeCommonRateLimitError
+  code: rate_limit_exceeded
+  httpStatus: 429
+  requestId: req-429-001
+  retryAfterSeconds: 60

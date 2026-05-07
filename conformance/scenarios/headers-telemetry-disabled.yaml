@@ -1,0 +1,20 @@
+name: telemetry header is omitted when disabled
+call:
+  resource: events
+  method: list
+  args: {}
+client:
+  telemetry: false
+expectedRequest:
+  method: GET
+  path: /v1/events
+  headersAbsent:
+    - threecommon-client-telemetry
+mockResponse:
+  status: 200
+  body:
+    data: []
+    hasMore: false
+expectedResult:
+  data: []
+  hasMore: false

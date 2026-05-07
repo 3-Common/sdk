@@ -1,0 +1,36 @@
+name: update event — happy path
+call:
+  resource: events
+  method: update
+  args:
+    id: evt_123
+    body:
+      name: Renamed event
+expectedRequest:
+  method: PATCH
+  path: /v1/events/evt_123
+  body:
+    name: Renamed event
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: evt_123
+      name: Renamed event
+      type: event
+      schedule: Single date
+      start: '2026-05-01T18:00:00.000Z'
+      status: open
+      itemsSold: 0
+      revenueCents: 0
+      minPriceCents: null
+      maxPriceCents: null
+      currency: USD
+      isPublic: true
+      isVirtual: false
+expectedResult:
+  id: evt_123
+  name: Renamed event

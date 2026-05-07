@@ -2,8 +2,7 @@
 #
 # - Triggered manually (workflow_dispatch) or by the `live-smoke` label on a PR.
 # - Reads secrets.THREECOMMON_API_KEY (set ONLY in the upstream repo, never on forks).
-# - Runs <= 10 calls per SDK: list, retrieve, update on a known throwaway event,
-#   plus the four common error paths (401, 403, 404, 429).
+# - Runs <= 10 calls per SDK: happy path + four common error paths (401, 403, 404, 429).
 
 name: Live smoke (maintainer-only)
 
@@ -25,18 +24,34 @@ jobs:
       (github.event.label.name == 'live-smoke' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Verify secret is configured
+        run: |
           if [ -z "${{ secrets.THREECOMMON_API_KEY }}" ]; then
             echo "::error::THREECOMMON_API_KEY secret not set in this repository."
             exit 1
           fi
-          echo "Guards passed; smoke run will be wired per-SDK in Phase 1c."
+          echo "Guards passed."
 
   smoke-node:
     needs: guard
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk-node
     steps:
-      - run: echo "Node smoke calls (placeholder)."
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: sdk-node/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - name: Live smoke
+        env:
+          THREECOMMON_API_KEY: ${{ secrets.THREECOMMON_API_KEY }}
+          THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
+          SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
+        run: yarn smoke
 
   smoke-python:
     needs: guard

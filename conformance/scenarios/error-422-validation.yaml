@@ -1,0 +1,46 @@
+name: 422 Validation error
+call:
+  resource: events
+  method: update
+  args:
+    id: evt_123
+    body:
+      status: not-a-real-status
+client:
+  maxRetries: 0
+expectedRequest:
+  method: PATCH
+  path: /v1/events/evt_123
+mockResponse:
+  status: 422
+  headers:
+    x-request-id: req-422-001
+  body:
+    error:
+      code: validation_error
+      message: Field "status" is invalid
+      details:
+        field: status
+        accepted:
+          - draft
+          - open
+          - closed
+          - unpublished
+          - cancelled
+          - postponed
+          - schedule
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_error
+  httpStatus: 422
+  requestId: req-422-001
+  details:
+    field: status
+    accepted:
+      - draft
+      - open
+      - closed
+      - unpublished
+      - cancelled
+      - postponed
+      - schedule
