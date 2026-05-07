@@ -87,7 +87,7 @@ async function run(): Promise<SmokeResult[]> {
 
   // 4. 404 path — random ID that should not exist.
   try {
-    await client.events.retrieve('evt_smoke_test_nonexistent_xyz_999999')
+    await client.events.retrieve('000000000000000000000000')
     results.push({
       check: '404 path',
       status: 'fail',
