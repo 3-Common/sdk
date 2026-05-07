@@ -14,7 +14,7 @@ from threecommon import (
 def main() -> None:
     with ThreeCommon(api_key="3co_your_api_key_here") as client:
         try:
-            client.events.retrieve("evt_does_not_exist")
+            client.events.retrieve("000000000000000000000000")
         except NotFoundError as e:
             print(f"event not found — request_id={e.request_id}")
         except AuthError as e:

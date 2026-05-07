@@ -198,6 +198,8 @@ The project uses [`uv`](https://github.com/astral-sh/uv) for venv + dependency m
 
 ### Set up the dev environment
 
+macOS and Linux:
+
 ```bash
 # One-time: create a venv, activate, install runtime deps + dev tools
 uv venv --python 3.10 .venv
@@ -205,9 +207,26 @@ source .venv/bin/activate
 uv pip install -e ".[dev]"
 
 # Verify:
-pip list | grep threecommon          # should print: threecommon  0.0.0.dev0  /path/to/sdk-python
+uv pip list | grep threecommon       # should print: threecommon  0.0.0.dev0  /path/to/sdk-python
 pytest -q                            # all tests pass
 ```
+
+Windows:
+
+```powershell
+# One-time: create a venv, activate, install runtime deps + dev tools
+uv venv --python 3.10 .venv
+.\.venv\Scripts\activate.ps1
+uv pip install -e ".[dev]"
+
+# Verify:
+uv pip list | Select-String threecommon # should print: threecommon  0.0.0.dev0  \path\to\sdk-python
+pytest -q                               # all tests pass
+```
+
+If activation fails with an execution-policy error, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once and retry.
+
+Note: with the virtual environment active, all further bash snippets should work as-is in PowerShell on Windows, except where a separate PowerShell snippet is provided.
 
 ### Run tests
 
@@ -251,6 +270,8 @@ pyright src/threecommon scripts           # pyright with project config
 
 `src/threecommon/_generated/models.py` is produced from `../openapi/spec.yaml`. Re-run after every spec update:
 
+macOS and Linux:
+
 ```bash
 datamodel-codegen \
   --input ../openapi/spec.yaml \
@@ -263,9 +284,25 @@ datamodel-codegen \
   --reuse-model --openapi-scopes paths schemas parameters
 ```
 
+Windows:
+
+```powershell
+datamodel-codegen `
+  --input ..\openapi\spec.yaml `
+  --input-file-type openapi `
+  --output .\src\threecommon\_generated\models.py `
+  --output-model-type pydantic_v2.BaseModel `
+  --target-python-version 3.10 `
+  --use-standard-collections --use-union-operator --use-double-quotes `
+  --field-constraints --use-schema-description --capitalise-enum-members `
+  --reuse-model --openapi-scopes paths schemas parameters
+```
+
 The generated package is treated as a contract reference; customer-facing types are hand-curated under `src/threecommon/<resource>/types.py`.
 
 ### Live smoke (maintainer-only)
+
+macOS and Linux:
 
 ```bash
 THREECOMMON_API_KEY=3co_real_key \
@@ -273,12 +310,20 @@ SMOKE_EVENT_ID=evt_known \
 python scripts/livesmoke.py
 ```
 
+Windows:
+
+```powershell
+$env:THREECOMMON_API_KEY = "3co_real_key"
+$env:SMOKE_EVENT_ID = "evt_known"
+python .\scripts\livesmoke.py
+```
+
 Runs ≤ 10 real API calls and verifies the happy path + 401/404 error paths. Set `THREECOMMON_BASE_URL` to override the default `https://api.3common.com`.
 
 ### Build a wheel locally
 
 ```bash
-hatch build         # produces sdist + wheel under dist/
+uv build            # produces sdist + wheel under dist/
 ```
 
 ## Versioning

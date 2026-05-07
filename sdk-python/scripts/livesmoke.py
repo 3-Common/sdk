@@ -68,7 +68,7 @@ def _check_retrieve(client: ThreeCommon, known_event_id: str | None) -> _Result:
 
 def _check_404(client: ThreeCommon) -> _Result:
     try:
-        client.events.retrieve("evt_smoke_test_nonexistent_xyz_999999")
+        client.events.retrieve("000000000000000000000000")
     except NotFoundError as e:
         return _Result("404 path", "pass", f"code={e.code} request_id={e.request_id}")
     except APIError as e:
