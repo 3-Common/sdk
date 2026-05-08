@@ -95,7 +95,7 @@ func main() {
 	}
 
 	// 4. 404 path — random ID that should not exist.
-	if _, missErr := api.Events.Retrieve(ctx, "evt_smoke_test_nonexistent_xyz_999999", nil); missErr != nil {
+	if _, missErr := api.Events.Retrieve(ctx, "000000000000000000000000", nil); missErr != nil {
 		var nf *threecommon.NotFoundError
 		if errors.As(missErr, &nf) {
 			results = append(results, result{
