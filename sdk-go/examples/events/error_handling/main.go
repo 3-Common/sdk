@@ -20,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = api.Events.Retrieve(context.Background(), "evt_does_not_exist", nil)
+	_, err = api.Events.Retrieve(context.Background(), "000000000000000000000000", nil)
 	if err == nil {
 		fmt.Println("(no error)")
 		return
