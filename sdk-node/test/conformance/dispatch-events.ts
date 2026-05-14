@@ -6,7 +6,6 @@
 import type { ScenarioCall } from './scenario'
 import type { ThreeCommon } from '@/client'
 
-
 export function dispatchEvents(
   client: ThreeCommon,
   call: ScenarioCall,

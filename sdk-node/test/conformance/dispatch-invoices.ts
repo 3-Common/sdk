@@ -7,7 +7,6 @@ import { expectBody, expectString, type ScenarioCall } from './scenario'
 
 import type { ThreeCommon } from '@/client'
 
-
 export function dispatchInvoices(
   client: ThreeCommon,
   call: ScenarioCall,
@@ -23,9 +22,7 @@ export function dispatchInvoices(
     }
     case 'create': {
       const body = expectBody(args['body'], 'create')
-      return client.invoices.create(
-        body as unknown as Parameters<typeof client.invoices.create>[0],
-      )
+      return client.invoices.create(body as unknown as Parameters<typeof client.invoices.create>[0])
     }
     case 'update': {
       const id = expectString(args['id'], 'update')
