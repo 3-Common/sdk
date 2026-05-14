@@ -69,9 +69,7 @@ def test_list_nil_params(httpx_mock: HTTPXMock) -> None:
 
 
 def test_retrieve_uses_envelope(httpx_mock: HTTPXMock) -> None:
-    httpx_mock.add_response(
-        url="http://test.local/v1/invoices/inv_123", json={"data": SAMPLE}
-    )
+    httpx_mock.add_response(url="http://test.local/v1/invoices/inv_123", json={"data": SAMPLE})
     with _make_sync() as c:
         inv = c.invoices.retrieve("inv_123")
     assert inv.id == "inv_123"
@@ -111,9 +109,7 @@ def test_create_sends_body(httpx_mock: HTTPXMock) -> None:
         match_json={
             "customerId": "cnt_42",
             "currency": "USD",
-            "lineItems": [
-                {"description": "Consulting", "quantity": 1, "unitAmount": 50000}
-            ],
+            "lineItems": [{"description": "Consulting", "quantity": 1, "unitAmount": 50000}],
         },
         json={"data": SAMPLE},
     )

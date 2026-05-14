@@ -125,9 +125,7 @@ class InvoicesService:
     def void(self, invoice_id: str, body: VoidBody | None = None) -> Invoice:
         """Void an invoice. Permitted from ``draft`` or ``open``; paid invoices cannot be voided."""
         _require_id("void", invoice_id)
-        payload = (
-            body.model_dump(by_alias=True, exclude_none=True) if body is not None else {}
-        )
+        payload = body.model_dump(by_alias=True, exclude_none=True) if body is not None else {}
         response = self._http.request(
             Request(method="POST", path=_action_path(invoice_id, "void"), body=payload)
         )
@@ -205,9 +203,7 @@ class AsyncInvoicesService:
                 code="missing_body", message="invoices.create: body must be non-None"
             )
         payload = body.model_dump(by_alias=True, exclude_none=True)
-        response = await self._http.request(
-            Request(method="POST", path="/invoices", body=payload)
-        )
+        response = await self._http.request(Request(method="POST", path="/invoices", body=payload))
         return Invoice.model_validate(response["data"])
 
     async def update(self, invoice_id: str, body: UpdateBody) -> Invoice:
@@ -231,9 +227,7 @@ class AsyncInvoicesService:
 
     async def void(self, invoice_id: str, body: VoidBody | None = None) -> Invoice:
         _require_id("void", invoice_id)
-        payload = (
-            body.model_dump(by_alias=True, exclude_none=True) if body is not None else {}
-        )
+        payload = body.model_dump(by_alias=True, exclude_none=True) if body is not None else {}
         response = await self._http.request(
             Request(method="POST", path=_action_path(invoice_id, "void"), body=payload)
         )

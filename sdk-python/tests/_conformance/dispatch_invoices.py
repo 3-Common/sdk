@@ -121,9 +121,7 @@ async def dispatch_async(  # noqa: PLR0911
     if method == "create":
         return await client.invoices.create(build_create_body(args.get("body") or {}))
     if method == "update":
-        return await client.invoices.update(
-            args["id"], build_update_body(args.get("body") or {})
-        )
+        return await client.invoices.update(args["id"], build_update_body(args.get("body") or {}))
     if method == "finalize":
         return await client.invoices.finalize(args["id"])
     if method == "void":
@@ -141,7 +139,5 @@ async def dispatch_async(  # noqa: PLR0911
             ),
         )
     if method == "listAutoPaginate":
-        return [
-            inv async for inv in client.invoices.list_auto_paginate(build_list_params(args))
-        ]
+        return [inv async for inv in client.invoices.list_auto_paginate(build_list_params(args))]
     pytest.fail(f"unsupported invoice method: {method}")

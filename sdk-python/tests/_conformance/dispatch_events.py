@@ -45,9 +45,7 @@ def dispatch_sync(client: ThreeCommon, method: str, args: dict[str, Any]) -> Any
     pytest.fail(f"unsupported event method: {method}")
 
 
-async def dispatch_async(
-    client: AsyncThreeCommon, method: str, args: dict[str, Any]
-) -> Any:  # noqa: ANN401
+async def dispatch_async(client: AsyncThreeCommon, method: str, args: dict[str, Any]) -> Any:  # noqa: ANN401
     if method == "list":
         return await client.events.list(build_list_params(args))
     if method == "retrieve":

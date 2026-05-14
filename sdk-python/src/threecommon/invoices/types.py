@@ -91,9 +91,7 @@ class Invoice(_BaseModel):
     issued_at: str | None = Field(
         default=None, serialization_alias="issuedAt", validation_alias="issuedAt"
     )
-    due_at: str | None = Field(
-        default=None, serialization_alias="dueAt", validation_alias="dueAt"
-    )
+    due_at: str | None = Field(default=None, serialization_alias="dueAt", validation_alias="dueAt")
     paid_at: str | None = Field(
         default=None, serialization_alias="paidAt", validation_alias="paidAt"
     )
@@ -156,9 +154,7 @@ class CreateBody(_BaseModel):
         serialization_alias="lineItems", validation_alias="lineItems"
     )
     notes: str | None = None
-    due_at: str | None = Field(
-        default=None, serialization_alias="dueAt", validation_alias="dueAt"
-    )
+    due_at: str | None = Field(default=None, serialization_alias="dueAt", validation_alias="dueAt")
     subscription_id: str | None = Field(
         default=None, serialization_alias="subscriptionId", validation_alias="subscriptionId"
     )
@@ -180,9 +176,7 @@ class UpdateBody(_BaseModel):
         default=None, serialization_alias="lineItems", validation_alias="lineItems"
     )
     notes: str | None = None
-    due_at: str | None = Field(
-        default=None, serialization_alias="dueAt", validation_alias="dueAt"
-    )
+    due_at: str | None = Field(default=None, serialization_alias="dueAt", validation_alias="dueAt")
 
 
 class VoidBody(_BaseModel):
