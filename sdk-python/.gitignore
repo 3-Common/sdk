@@ -1,0 +1,32 @@
+# Build / dist
+build/
+dist/
+*.egg-info/
+src/threecommon/_version.py
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Type checkers
+.mypy_cache/
+.pyright/
+.ruff_cache/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Python bytecode
+__pycache__/
+*.py[cod]

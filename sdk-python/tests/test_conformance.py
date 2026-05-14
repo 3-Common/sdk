@@ -1,0 +1,328 @@
+"""Conformance harness — runs the shared YAML scenarios against the Python SDK.
+
+Every other SDK in this monorepo runs the same scenarios; identical pass/fail
+across languages is the contract.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+import pytest
+import yaml
+from pytest_httpx import HTTPXMock
+
+from threecommon import (
+    APIError,
+    AsyncThreeCommon,
+    AuthError,
+    ConflictError,
+    NotFoundError,
+    PermissionError,
+    RateLimitError,
+    ServerError,
+    ThreeCommon,
+    ValidationError,
+)
+from threecommon.events import ListParams, RetrieveParams, UpdateBody
+
+SCENARIOS_DIR = Path(__file__).resolve().parents[2] / "conformance" / "scenarios"
+
+
+@dataclass
+class _Scenario:
+    path: str
+    name: str
+    raw: dict[str, Any] = field(default_factory=dict)
+
+
+def _load_scenarios() -> list[_Scenario]:
+    if not SCENARIOS_DIR.exists():
+        msg = f"conformance scenarios dir not found: {SCENARIOS_DIR}"
+        raise FileNotFoundError(msg)
+    out: list[_Scenario] = []
+    for p in sorted(SCENARIOS_DIR.glob("*.yaml")):
+        raw = yaml.safe_load(p.read_text())
+        out.append(_Scenario(path=p.name, name=raw.get("name", p.name), raw=raw))
+    return out
+
+
+SCENARIOS = _load_scenarios()
+
+
+_TYPED_ERRORS: dict[str, type[APIError]] = {
+    "ThreeCommonAuthError": AuthError,
+    "ThreeCommonPermissionError": PermissionError,
+    "ThreeCommonNotFoundError": NotFoundError,
+    "ThreeCommonValidationError": ValidationError,
+    "ThreeCommonConflictError": ConflictError,
+    "ThreeCommonRateLimitError": RateLimitError,
+    "ThreeCommonServerError": ServerError,
+}
+
+
+def _stage_exchanges(httpx_mock: HTTPXMock, scenario: dict[str, Any]) -> list[dict[str, Any]]:
+    """Queue responses on pytest-httpx and return the expected-request shapes
+    so the caller can assert against them after the call.
+
+    """
+    exchanges = scenario.get("exchanges")
+    if not exchanges:
+        ex_req = scenario.get("expectedRequest", {})
+        mock = scenario.get("mockResponse")
+        if mock is None:
+            return []
+        exchanges = [{"request": ex_req, "response": mock}]
+
+    expected_requests: list[dict[str, Any]] = []
+    for ex in exchanges:
+        req = ex.get("request", {})
+        resp = ex.get("response", {})
+        kwargs: dict[str, Any] = {
+            "method": req.get("method", "GET"),
+            "status_code": resp.get("status", 200),
+        }
+        if resp.get("headers"):
+            kwargs["headers"] = resp["headers"]
+        body = resp.get("body")
+        if body is not None:
+            kwargs["json"] = body
+        httpx_mock.add_response(**kwargs)
+        expected_requests.append(req)
+    return expected_requests
+
+
+def _assert_request(want: dict[str, Any], actual_requests: list[Any], idx: int) -> None:
+    """Verify the idx-th captured request matches the expected shape."""
+    assert idx < len(actual_requests), f"missing request #{idx}"
+    actual = actual_requests[idx]
+    if "method" in want:
+        assert actual.method == want["method"], (
+            f"request[{idx}].method: want {want['method']}, got {actual.method}"
+        )
+    if "path" in want:
+        assert actual.url.path == want["path"], (
+            f"request[{idx}].path: want {want['path']}, got {actual.url.path}"
+        )
+    if "query" in want:
+        params = dict(actual.url.params)
+        for k, v in want["query"].items():
+            assert params.get(k) == str(v), (
+                f"request[{idx}].query[{k}]: want {v}, got {params.get(k)}"
+            )
+    if "headers" in want:
+        for k, v in want["headers"].items():
+            assert actual.headers.get(k) == v, (
+                f"request[{idx}].headers[{k}]: want {v}, got {actual.headers.get(k)}"
+            )
+    for absent in want.get("headersAbsent", []):
+        assert absent.lower() not in {h.lower() for h in actual.headers}, (
+            f"request[{idx}].headers[{absent}] should be absent"
+        )
+
+
+def _build_list_params(args: dict[str, Any]) -> ListParams | None:
+    if not args:
+        return None
+    payload: dict[str, Any] = {}
+    for key in ("status", "page", "page_size", "search", "fields", "filters"):
+        # Accept both snake_case and camelCase as the YAML uses both.
+        for src in (key, _camel(key)):
+            if src in args:
+                payload[key] = args[src]
+                break
+    if "pageSize" in args and "page_size" not in payload:
+        payload["page_size"] = args["pageSize"]
+    return ListParams.model_validate(payload) if payload else None
+
+
+def _camel(s: str) -> str:
+    parts = s.split("_")
+    return parts[0] + "".join(p.title() for p in parts[1:])
+
+
+def _dispatch_sync(client: ThreeCommon, call: dict[str, Any]) -> Any:  # noqa: ANN401
+    method = call["method"]
+    args = call.get("args", {}) or {}
+    if method == "list":
+        return client.events.list(_build_list_params(args))
+    if method == "retrieve":
+        params_raw = args.get("params")
+        params = RetrieveParams(fields=params_raw["fields"]) if params_raw else None
+        return client.events.retrieve(args["id"], params)
+    if method == "update":
+        body_raw = args.get("body", {}) or {}
+        return client.events.update(args["id"], UpdateBody(**body_raw))
+    if method == "listAutoPaginate":
+        return list(client.events.list_auto_paginate(_build_list_params(args)))
+    pytest.fail(f"unsupported method: {method}")
+
+
+def _assert_subset(want: Any, got: Any, prefix: str) -> None:  # noqa: ANN401
+    """Recursive subset match — every key in want must appear in got with same value."""
+    if isinstance(want, dict):
+        if not isinstance(got, dict):
+            pytest.fail(f"{prefix}: expected dict, got {type(got).__name__}")
+        for k, v in want.items():
+            assert k in got, f"{prefix}.{k}: missing"
+            _assert_subset(v, got[k], f"{prefix}.{k}")
+    elif isinstance(want, list):
+        if not isinstance(got, list):
+            pytest.fail(f"{prefix}: expected list, got {type(got).__name__}")
+        assert len(want) == len(got), f"{prefix}: length mismatch ({len(want)} vs {len(got)})"
+        for i, (w, g) in enumerate(zip(want, got, strict=False)):
+            _assert_subset(w, g, f"{prefix}[{i}]")
+    else:
+        assert want == got, f"{prefix}: {want!r} != {got!r}"
+
+
+def _assert_result(want: Any, got: Any) -> None:  # noqa: ANN401
+    """Validate scenario.expectedResult — convert pydantic models to dicts."""
+    if hasattr(got, "model_dump"):
+        got = got.model_dump(by_alias=True, exclude_none=False)
+    elif isinstance(got, list):
+        got = [
+            g.model_dump(by_alias=True, exclude_none=False) if hasattr(g, "model_dump") else g
+            for g in got
+        ]
+    _assert_subset(want, got, "result")
+
+
+def _assert_error(want: dict[str, Any], err: BaseException) -> None:
+    cls = _TYPED_ERRORS.get(want["type"])
+    assert cls is not None, f"unsupported expectedError.type {want['type']!r}"
+    assert isinstance(err, cls), f"expected {cls.__name__}, got {type(err).__name__}"
+    api = err if isinstance(err, APIError) else None
+    assert api is not None
+    if "code" in want:
+        assert api.code == want["code"]
+    if "httpStatus" in want:
+        assert api.http_status == want["httpStatus"]
+    if "requestId" in want:
+        assert api.request_id == want["requestId"]
+    if "retryAfterSeconds" in want and isinstance(api, RateLimitError):
+        assert api.retry_after_seconds == pytest.approx(want["retryAfterSeconds"])
+    if "details" in want and api.details is not None:
+        _assert_subset(want["details"], api.details, "details")
+
+
+@pytest.mark.parametrize("scenario", SCENARIOS, ids=lambda s: s.path)
+def test_conformance_sync(scenario: _Scenario, httpx_mock: HTTPXMock) -> None:
+    """Run every conformance scenario against the sync client."""
+    body = scenario.raw
+    expected_requests = _stage_exchanges(httpx_mock, body)
+
+    client_overrides = body.get("client", {}) or {}
+    client_kwargs: dict[str, Any] = {
+        "api_key": "3co_test",
+        "base_url": "http://test.local",
+    }
+    if "maxRetries" in client_overrides:
+        client_kwargs["max_retries"] = client_overrides["maxRetries"]
+    if "apiVersion" in client_overrides:
+        client_kwargs["api_version"] = client_overrides["apiVersion"]
+    if "telemetry" in client_overrides:
+        client_kwargs["telemetry"] = client_overrides["telemetry"]
+
+    client = ThreeCommon(**client_kwargs)
+    try:
+        if "expectedError" in body:
+            with pytest.raises(APIError) as exc_info:
+                _dispatch_sync(client, body["call"])
+            _assert_error(body["expectedError"], exc_info.value)
+        elif "expectedAutoPaginated" in body:
+            result = _dispatch_sync(client, body["call"])
+            _assert_result(body["expectedAutoPaginated"], result)
+        elif "expectedResult" in body:
+            result = _dispatch_sync(client, body["call"])
+            _assert_result(body["expectedResult"], result)
+        else:
+            _dispatch_sync(client, body["call"])  # smoke
+    finally:
+        client.close()
+
+    actual = httpx_mock.get_requests()
+    if "expectedCallCount" in body:
+        assert len(actual) == body["expectedCallCount"], (
+            f"expected {body['expectedCallCount']} calls, got {len(actual)}"
+        )
+    for i, want in enumerate(expected_requests):
+        if i < len(actual):
+            _assert_request(want, actual, i)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Async parity — re-run a subset against AsyncThreeCommon
+# ────────────────────────────────────────────────────────────────────────────
+
+
+_ASYNC_SCENARIOS = [
+    s
+    for s in SCENARIOS
+    if s.raw.get("call", {}).get("method") in {"list", "retrieve", "update", "listAutoPaginate"}
+]
+
+
+async def _dispatch_async(client: AsyncThreeCommon, call: dict[str, Any]) -> Any:  # noqa: ANN401
+    method = call["method"]
+    args = call.get("args", {}) or {}
+    if method == "list":
+        return await client.events.list(_build_list_params(args))
+    if method == "retrieve":
+        params_raw = args.get("params")
+        params = RetrieveParams(fields=params_raw["fields"]) if params_raw else None
+        return await client.events.retrieve(args["id"], params)
+    if method == "update":
+        body_raw = args.get("body", {}) or {}
+        return await client.events.update(args["id"], UpdateBody(**body_raw))
+    if method == "listAutoPaginate":
+        return [ev async for ev in client.events.list_auto_paginate(_build_list_params(args))]
+    pytest.fail(f"unsupported method: {method}")
+
+
+@pytest.mark.parametrize("scenario", _ASYNC_SCENARIOS, ids=lambda s: f"async-{s.path}")
+@pytest.mark.asyncio
+async def test_conformance_async(scenario: _Scenario, httpx_mock: HTTPXMock) -> None:
+    """Re-run every conformance scenario against the async client to verify parity."""
+    body = scenario.raw
+    expected_requests = _stage_exchanges(httpx_mock, body)
+
+    client_overrides = body.get("client", {}) or {}
+    client_kwargs: dict[str, Any] = {
+        "api_key": "3co_test",
+        "base_url": "http://test.local",
+    }
+    if "maxRetries" in client_overrides:
+        client_kwargs["max_retries"] = client_overrides["maxRetries"]
+    if "apiVersion" in client_overrides:
+        client_kwargs["api_version"] = client_overrides["apiVersion"]
+    if "telemetry" in client_overrides:
+        client_kwargs["telemetry"] = client_overrides["telemetry"]
+
+    client = AsyncThreeCommon(**client_kwargs)
+    try:
+        if "expectedError" in body:
+            with pytest.raises(APIError) as exc_info:
+                await _dispatch_async(client, body["call"])
+            _assert_error(body["expectedError"], exc_info.value)
+        elif "expectedAutoPaginated" in body:
+            result = await _dispatch_async(client, body["call"])
+            _assert_result(body["expectedAutoPaginated"], result)
+        elif "expectedResult" in body:
+            result = await _dispatch_async(client, body["call"])
+            _assert_result(body["expectedResult"], result)
+        else:
+            await _dispatch_async(client, body["call"])  # smoke
+    finally:
+        await client.aclose()
+
+    actual = httpx_mock.get_requests()
+    if "expectedCallCount" in body:
+        assert len(actual) == body["expectedCallCount"], (
+            f"expected {body['expectedCallCount']} calls, got {len(actual)}"
+        )
+    for i, want in enumerate(expected_requests):
+        if i < len(actual):
+            _assert_request(want, actual, i)

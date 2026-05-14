@@ -1,0 +1,194 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "threecommon"
+description = "Official Python client for the 3Common Public API."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "3Common", email = "support@3common.com" }]
+keywords = ["3common", "sdk", "api-client", "events"]
+requires-python = ">=3.10"
+version = "0.0.0.dev0"
+dependencies = [
+    "httpx>=0.27,<1.0",
+    "pydantic>=2.7,<3.0",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/3-Common/sdk/tree/main/sdk-python"
+Issues = "https://github.com/3-Common/sdk/issues"
+Repository = "https://github.com/3-Common/sdk"
+
+[project.optional-dependencies]
+dev = [
+    "datamodel-code-generator>=0.26",
+    "mypy>=1.13",
+    "pyright>=1.1.390",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "pytest-httpx>=0.34",
+    "pyyaml>=6.0",
+    "ruff>=0.8",
+    "types-pyyaml",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/threecommon",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/threecommon"]
+
+# ── Ruff ──────────────────────────────────────────────────────────────────────
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",       # pycodestyle
+    "F",            # pyflakes
+    "I",            # isort
+    "N",            # pep8-naming
+    "B",            # flake8-bugbear
+    "C4",           # flake8-comprehensions
+    "UP",           # pyupgrade
+    "SIM",          # simplify
+    "RUF",          # ruff-specific
+    "PT",           # pytest style
+    "ANN",          # missing type annotations
+    "TID",          # tidy imports
+    "PL",           # pylint
+    "FA",           # future annotations
+    "PIE",          # misc
+    "ASYNC",        # async lints
+    "S",            # bandit (security)
+    "TRY",          # tryceratops (better exceptions)
+    "ISC",          # implicit string concat
+]
+ignore = [
+    "ANN401",       # Allow Any for json payloads
+    "PLR0913",      # too-many-arguments — fine for client methods
+    "TRY003",       # long error messages outside exception class
+    "ISC001",       # implicit string concat (conflicts with formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",      # asserts allowed
+    "PLR2004",   # magic numbers allowed
+    "ANN",       # missing annotations allowed in tests
+    "PT004",     # fixture name leading underscore
+    "PT017",     # asserts on exception in except blocks (we use this pattern)
+    "FBT001",    # boolean-positional argument (parametrize uses these)
+    "FBT003",
+    "PLC0415",   # imports inside test functions allowed for type-shadowing tricks
+    "N813",      # camelcase import alias (test param shadowing)
+    "E501",      # long lines fine in tests; readability over pedantry
+    "RUF100",    # tolerate stale noqa from previous linter versions
+]
+"examples/**" = ["S105", "S106", "T201", "INP001"] # placeholder API keys + print() in examples
+"src/threecommon/_generated/**" = ["ALL"]           # generated code: do not lint
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+# ── Mypy ──────────────────────────────────────────────────────────────────────
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_explicit = false   # Pydantic + JSON parsing edges need Any
+extra_checks = true
+plugins = ["pydantic.mypy"]
+exclude = ['^src/threecommon/_generated/']
+
+[[tool.mypy.overrides]]
+module = "threecommon._generated.*"
+ignore_errors = true
+
+# ── Pyright ───────────────────────────────────────────────────────────────────
+
+[tool.pyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.10"
+venvPath = "."
+venv = ".venv"
+include = ["src", "tests"]
+exclude = [
+    "src/threecommon/_generated/**",
+    "**/__pycache__",
+    ".venv/**",
+]
+# `standard` mode + targeted upgrades: catch missing imports + unknown members
+# without drowning in Pydantic-v2 metaclass noise that mypy already accepts.
+reportMissingImports = "error"
+reportMissingTypeStubs = "warning"
+
+# ── Pytest ────────────────────────────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:pydantic._internal.*",
+]
+
+# ── Coverage ──────────────────────────────────────────────────────────────────
+
+[tool.coverage.run]
+source = ["src/threecommon"]
+branch = true
+omit = [
+    "src/threecommon/_generated/*",
+    "src/threecommon/_version.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@overload",
+]
