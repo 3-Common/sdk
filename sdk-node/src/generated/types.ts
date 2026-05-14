@@ -4,831 +4,4087 @@
  */
 
 export interface paths {
-  '/health/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Health check
-     * @description Returns the server status, API version, and database connection state. No authentication required.
-     */
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              /** @enum {string} */
-              status: 'ok' | 'degraded'
-              version: string
-              /** Format: date-time */
-              timestamp: string
-              /** @enum {string} */
-              db: 'connected' | 'disconnected'
-            }
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * API info
-     * @description Returns basic information about the API. Requires a valid API key.
-     */
-    get: {
-      parameters: {
-        query?: never
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              api: string
-              version: string
-              /** @description URL to the interactive API documentation */
-              docs: string
-            }
-          }
-        }
-        /** @description Missing or invalid API key */
-        401: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-              }
-            }
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/events/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * List Events
-     * @description Lists the organizer's events, optionally filtered by status or searched by name/address. Sorted by start date descending. Paginated.
-     */
-    get: {
-      parameters: {
-        query?: {
-          /** @description Page number (0-based, default 0) */
-          page?: number
-          /** @description Items per page (default 20, max 50) */
-          pageSize?: number
-          /** @description Filter by status; omit to include all */
-          status?:
-            | 'draft'
-            | 'open'
-            | 'closed'
-            | 'unpublished'
-            | 'cancelled'
-            | 'postponed'
-            | 'schedule'
-          /** @description Search events by name or address (case-insensitive partial match) */
-          search?: string
-          /** @description Only events starting on or before this date (ISO 8601). Example: 2025-06-01T00:00:00.000Z */
-          startBefore?: string
-          /** @description Only events starting on or after this date (ISO 8601). Example: 2025-01-01T00:00:00.000Z */
-          startAfter?: string
-          /** @description Field to sort by (default: start) */
-          sortField?: string
-          /** @description Sort direction (default: desc) */
-          sortDirection?: 'asc' | 'desc'
-          /**
-           * @description JSON-encoded array of filter groups for advanced filtering.
-           *     Each group has "logic" ("and" | "or") and "conditions" (array of conditions or nested groups).
-           *     Each condition has "field", "operator", and optional "value".
-           *     Operators by type:
-           *     - Text: is_equal_to_any_of, is_not_equal_to_any_of, contains, contains_exactly
-           *     - Date: is_before, is_after, is_between (value: {start, end})
-           *     - Number: is_equal_to, is_not_equal_to, is_greater_than, is_greater_than_or_equal_to, is_less_than, is_less_than_or_equal_to, is_between
-           *     - Select: is_any_of, is_none_of
-           *     - Common: is_empty, is_not_empty
-           *     Example: [{"logic":"and","conditions":[{"field":"status","operator":"is_any_of","value":["open","closed"]},{"field":"ticketSum","operator":"is_greater_than","value":10}]}]
-           */
-          filters?: string
-          /** @description Comma-separated list of fields to return. Valid: id, name, type, schedule, start, end, multiDayStartTimes, multiDayEndTimes, status, itemsSold, revenueCents, minPriceCents, maxPriceCents, currency, timeZone, isPublic, isVirtual, location, locationPlaceholder, virtualEventLink, venueName, image, images, tags, customTags, isCancelled, createdAt, updatedAt. Omit for all fields. */
-          fields?: string
-        }
-        header?: never
-        path?: never
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              data: {
-                id?: string
-                name?: string
-                /** @description 'event', 'booking', 'recurring', or 'multiple' */
-                type?: string
-                /** @description Event description as HTML. Only present when descriptionBlocks is empty. */
-                description?: string
-                /**
-                 * @description Rich content blocks for the event description. If present and non-empty, clients should render these instead of the description field.
-                 *     Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
-                 */
-                descriptionBlocks?: {
-                  /** @enum {string} */
-                  type: 'text' | 'image' | 'video'
-                  content: string
-                  id: number
-                }[]
-                /** @enum {string} */
-                schedule?: 'Single date' | 'Multiple dates'
-                /**
-                 * Format: date-time
-                 * @description For single-date events the start time; for multi-date the first time slot.
-                 */
-                start?: string
-                /**
-                 * Format: date-time
-                 * @description For single-date events the end time; for multi-date the last time slot.
-                 */
-                end?: string
-                /** @description All start times for multi-day events */
-                multiDayStartTimes?: string[]
-                /** @description All end times for multi-day events */
-                multiDayEndTimes?: string[]
-                /**
-                 * @description The status of an event.
-                 *     - draft: has not been published
-                 *     - open: published and ticket sales are open
-                 *     - closed: published, ticket sales are closed but the event will proceed as normal
-                 *     - unpublished: was previously published, but is no longer visible
-                 *     - cancelled: published, ticket sales closed, event is cancelled
-                 *     - postponed: published, ticket sales closed, event is postponed
-                 *     - schedule: not yet published, scheduled to be published in the future
-                 * @enum {string}
-                 */
-                status?:
-                  | 'draft'
-                  | 'open'
-                  | 'closed'
-                  | 'unpublished'
-                  | 'cancelled'
-                  | 'postponed'
-                  | 'schedule'
-                /** @description Total tickets and products sold */
-                itemsSold?: number
-                /** @description Total event revenue, in cents */
-                revenueCents?: number
-                /** @description Minimum ticket/product price in cents. Does not contain fees. */
-                minPriceCents?: number | null
-                /** @description Maximum ticket/product price in cents. Does not contain fees. */
-                maxPriceCents?: number | null
-                /** @description Currency code (e.g. USD, CAD) */
-                currency?: string
-                /** @description IANA time zone (may be missing for pre-2024 events) */
-                timeZone?: string
-                /** @description True if the event is public */
-                isPublic?: boolean
-                /** @description True if the event is virtual */
-                isVirtual?: boolean
-                /** @description Event location with address and coordinates */
-                location?: {
-                  address?: string
-                  lat?: number
-                  lng?: number
-                }
-                /** @description Placeholder text to link to location */
-                locationPlaceholder?: string
-                /** @description Link for virtual access */
-                virtualEventLink?: string
-                /** @description Name of the associated seating-chart venue */
-                venueName?: string
-                /** @description URL of the event's main image */
-                image?: string
-                /** @description Gallery images */
-                images?: string[]
-                /** @description Tag metadata */
-                tags?: string[]
-                /** @description Custom tag overlays */
-                customTags?: string[]
-                /** @description Structured content (FAQs, etc.) */
-                contentBlocks?: {
-                  [key: string]: unknown
-                }[]
-                /** @description Event language (e.g. 'en', 'fr') */
-                language?: string
-                /** @description Cancellation flag */
-                isCancelled?: boolean
-                /** @description Post-checkout URL */
-                redirectUrl?: string
-                /** @description Custom checkout conditions */
-                customTerms?: {
-                  hasCustomTerms?: boolean
-                  /** @enum {string} */
-                  type?: 'url' | 'text'
-                  url?: string
-                  content?: string
-                }
-                /**
-                 * Format: date-time
-                 * @description Creation timestamp
-                 */
-                createdAt?: string
-                /**
-                 * Format: date-time
-                 * @description Last update timestamp
-                 */
-                updatedAt?: string
-              }[]
-              hasMore: boolean
-            }
-          }
-        }
-        /** @description Default Response */
-        401: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        403: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/v1/events/{id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Event
-     * @description Retrieves detailed information about a single event by ID.
-     */
-    get: {
-      parameters: {
-        query?: {
-          /** @description Comma-separated list of fields to return. Valid: id, name, type, description, descriptionBlocks, schedule, start, end, multiDayStartTimes, multiDayEndTimes, status, itemsSold, revenueCents, minPriceCents, maxPriceCents, currency, timeZone, isPublic, isVirtual, location, locationPlaceholder, virtualEventLink, venueName, image, images, tags, customTags, contentBlocks, language, isCancelled, redirectUrl, customTerms, createdAt, updatedAt. Omit for all fields. */
-          fields?: string
-        }
-        header?: never
-        path: {
-          /** @description Event ID, discoverable via list_events */
-          id: string
-        }
-        cookie?: never
-      }
-      requestBody?: never
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              data: {
-                id?: string
-                name?: string
-                /** @description 'event', 'booking', 'recurring', or 'multiple' */
-                type?: string
-                /** @description Event description as HTML. Only present when descriptionBlocks is empty. */
-                description?: string
-                /**
-                 * @description Rich content blocks for the event description. If present and non-empty, clients should render these instead of the description field.
-                 *     Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
-                 */
-                descriptionBlocks?: {
-                  /** @enum {string} */
-                  type: 'text' | 'image' | 'video'
-                  content: string
-                  id: number
-                }[]
-                /** @enum {string} */
-                schedule?: 'Single date' | 'Multiple dates'
-                /**
-                 * Format: date-time
-                 * @description For single-date events the start time; for multi-date the first time slot.
-                 */
-                start?: string
-                /**
-                 * Format: date-time
-                 * @description For single-date events the end time; for multi-date the last time slot.
-                 */
-                end?: string
-                /** @description All start times for multi-day events */
-                multiDayStartTimes?: string[]
-                /** @description All end times for multi-day events */
-                multiDayEndTimes?: string[]
-                /**
-                 * @description The status of an event.
-                 *     - draft: has not been published
-                 *     - open: published and ticket sales are open
-                 *     - closed: published, ticket sales are closed but the event will proceed as normal
-                 *     - unpublished: was previously published, but is no longer visible
-                 *     - cancelled: published, ticket sales closed, event is cancelled
-                 *     - postponed: published, ticket sales closed, event is postponed
-                 *     - schedule: not yet published, scheduled to be published in the future
-                 * @enum {string}
-                 */
-                status?:
-                  | 'draft'
-                  | 'open'
-                  | 'closed'
-                  | 'unpublished'
-                  | 'cancelled'
-                  | 'postponed'
-                  | 'schedule'
-                /** @description Total tickets and products sold */
-                itemsSold?: number
-                /** @description Total event revenue, in cents */
-                revenueCents?: number
-                /** @description Minimum ticket/product price in cents. Does not contain fees. */
-                minPriceCents?: number | null
-                /** @description Maximum ticket/product price in cents. Does not contain fees. */
-                maxPriceCents?: number | null
-                /** @description Currency code (e.g. USD, CAD) */
-                currency?: string
-                /** @description IANA time zone (may be missing for pre-2024 events) */
-                timeZone?: string
-                /** @description True if the event is public */
-                isPublic?: boolean
-                /** @description True if the event is virtual */
-                isVirtual?: boolean
-                /** @description Event location with address and coordinates */
-                location?: {
-                  address?: string
-                  lat?: number
-                  lng?: number
-                }
-                /** @description Placeholder text to link to location */
-                locationPlaceholder?: string
-                /** @description Link for virtual access */
-                virtualEventLink?: string
-                /** @description Name of the associated seating-chart venue */
-                venueName?: string
-                /** @description URL of the event's main image */
-                image?: string
-                /** @description Gallery images */
-                images?: string[]
-                /** @description Tag metadata */
-                tags?: string[]
-                /** @description Custom tag overlays */
-                customTags?: string[]
-                /** @description Structured content (FAQs, etc.) */
-                contentBlocks?: {
-                  [key: string]: unknown
-                }[]
-                /** @description Event language (e.g. 'en', 'fr') */
-                language?: string
-                /** @description Cancellation flag */
-                isCancelled?: boolean
-                /** @description Post-checkout URL */
-                redirectUrl?: string
-                /** @description Custom checkout conditions */
-                customTerms?: {
-                  hasCustomTerms?: boolean
-                  /** @enum {string} */
-                  type?: 'url' | 'text'
-                  url?: string
-                  content?: string
-                }
-                /**
-                 * Format: date-time
-                 * @description Creation timestamp
-                 */
-                createdAt?: string
-                /**
-                 * Format: date-time
-                 * @description Last update timestamp
-                 */
-                updatedAt?: string
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        401: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        403: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        404: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-      }
-    }
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    /**
-     * Update Event
-     * @description Updates an event's basic fields. Only provided fields are changed. Does not update products, tickets, or order forms.
-     */
-    patch: {
-      parameters: {
-        query?: never
-        header?: never
-        path: {
-          /** @description Event ID, discoverable via list_events */
-          id: string
-        }
-        cookie?: never
-      }
-      requestBody: {
-        content: {
-          'application/json': {
-            /** @description Event name */
-            name?: string
-            /** @description Event description (HTML supported) */
-            description?: string
-            /** @description Rich content blocks for the event description */
-            descriptionBlocks?: {
-              /** @enum {string} */
-              type: 'text' | 'image' | 'video'
-              content: string
-              id: number
-            }[]
-            /**
-             * @description Event status (e.g. draft, open, closed, cancelled)
-             * @enum {string}
-             */
-            status?:
-              | 'draft'
-              | 'open'
-              | 'closed'
-              | 'unpublished'
-              | 'cancelled'
-              | 'postponed'
-              | 'schedule'
-            /**
-             * Format: date-time
-             * @description Start date/time in UTC
-             */
-            start?: string
-            /**
-             * Format: date-time
-             * @description End date/time in UTC
-             */
-            end?: string
-            /** @description Whether the event has a specified end time */
-            hasEndDate?: boolean
-            /**
-             * @description Public events appear on discover; private are link-only
-             * @enum {string}
-             */
-            privacy?: 'public' | 'private'
-            /**
-             * @description Virtual or in-person
-             * @enum {string}
-             */
-            eventType?: 'virtual' | 'inperson'
-            /** @description Link to virtual event */
-            virtualEventLink?: string
-            /** @description Event location address */
-            address?: string
-            /** @description Placeholder text when no address is set */
-            locationPlaceholder?: string
-            /** @description IANA time zone (e.g. "America/New_York") */
-            timeZone?: string
-            /** @description Enable checkout; if false customers cannot order */
-            collectEmails?: boolean
-            /** @description URL to redirect to after checkout */
-            redirectUrl?: string
-            /** @description Custom terms and conditions */
-            customTerms?: {
-              hasCustomTerms: boolean
-              /** @enum {string} */
-              type: 'url' | 'text'
-              url: string
-              content: string
-            }
-            /** @description Custom tag overlays */
-            customTags?: string[]
-          }
-        }
-      }
-      responses: {
-        /** @description Default Response */
-        200: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              data: {
-                id?: string
-                name?: string
-                /** @description 'event', 'booking', 'recurring', or 'multiple' */
-                type?: string
-                /** @description Event description as HTML. Only present when descriptionBlocks is empty. */
-                description?: string
-                /**
-                 * @description Rich content blocks for the event description. If present and non-empty, clients should render these instead of the description field.
-                 *     Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
-                 */
-                descriptionBlocks?: {
-                  /** @enum {string} */
-                  type: 'text' | 'image' | 'video'
-                  content: string
-                  id: number
-                }[]
-                /** @enum {string} */
-                schedule?: 'Single date' | 'Multiple dates'
-                /**
-                 * Format: date-time
-                 * @description For single-date events the start time; for multi-date the first time slot.
-                 */
-                start?: string
-                /**
-                 * Format: date-time
-                 * @description For single-date events the end time; for multi-date the last time slot.
-                 */
-                end?: string
-                /** @description All start times for multi-day events */
-                multiDayStartTimes?: string[]
-                /** @description All end times for multi-day events */
-                multiDayEndTimes?: string[]
-                /**
-                 * @description The status of an event.
-                 *     - draft: has not been published
-                 *     - open: published and ticket sales are open
-                 *     - closed: published, ticket sales are closed but the event will proceed as normal
-                 *     - unpublished: was previously published, but is no longer visible
-                 *     - cancelled: published, ticket sales closed, event is cancelled
-                 *     - postponed: published, ticket sales closed, event is postponed
-                 *     - schedule: not yet published, scheduled to be published in the future
-                 * @enum {string}
-                 */
-                status?:
-                  | 'draft'
-                  | 'open'
-                  | 'closed'
-                  | 'unpublished'
-                  | 'cancelled'
-                  | 'postponed'
-                  | 'schedule'
-                /** @description Total tickets and products sold */
-                itemsSold?: number
-                /** @description Total event revenue, in cents */
-                revenueCents?: number
-                /** @description Minimum ticket/product price in cents. Does not contain fees. */
-                minPriceCents?: number | null
-                /** @description Maximum ticket/product price in cents. Does not contain fees. */
-                maxPriceCents?: number | null
-                /** @description Currency code (e.g. USD, CAD) */
-                currency?: string
-                /** @description IANA time zone (may be missing for pre-2024 events) */
-                timeZone?: string
-                /** @description True if the event is public */
-                isPublic?: boolean
-                /** @description True if the event is virtual */
-                isVirtual?: boolean
-                /** @description Event location with address and coordinates */
-                location?: {
-                  address?: string
-                  lat?: number
-                  lng?: number
-                }
-                /** @description Placeholder text to link to location */
-                locationPlaceholder?: string
-                /** @description Link for virtual access */
-                virtualEventLink?: string
-                /** @description Name of the associated seating-chart venue */
-                venueName?: string
-                /** @description URL of the event's main image */
-                image?: string
-                /** @description Gallery images */
-                images?: string[]
-                /** @description Tag metadata */
-                tags?: string[]
-                /** @description Custom tag overlays */
-                customTags?: string[]
-                /** @description Structured content (FAQs, etc.) */
-                contentBlocks?: {
-                  [key: string]: unknown
-                }[]
-                /** @description Event language (e.g. 'en', 'fr') */
-                language?: string
-                /** @description Cancellation flag */
-                isCancelled?: boolean
-                /** @description Post-checkout URL */
-                redirectUrl?: string
-                /** @description Custom checkout conditions */
-                customTerms?: {
-                  hasCustomTerms?: boolean
-                  /** @enum {string} */
-                  type?: 'url' | 'text'
-                  url?: string
-                  content?: string
-                }
-                /**
-                 * Format: date-time
-                 * @description Creation timestamp
-                 */
-                createdAt?: string
-                /**
-                 * Format: date-time
-                 * @description Last update timestamp
-                 */
-                updatedAt?: string
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        400: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        401: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        403: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-        /** @description Default Response */
-        404: {
-          headers: {
-            [name: string]: unknown
-          }
-          content: {
-            'application/json': {
-              error: {
-                code: string
-                message: string
-                details?: unknown
-              }
-            }
-          }
-        }
-      }
-    }
-    trace?: never
-  }
+    "/health/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health check
+         * @description Returns the server status, API version, and database connection state. No authentication required.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "ok" | "degraded";
+                            version: string;
+                            /** Format: date-time */
+                            timestamp: string;
+                            /** @enum {string} */
+                            db: "connected" | "disconnected";
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * API info
+         * @description Returns basic information about the API. Requires a valid API key.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            api: string;
+                            version: string;
+                            /** @description URL to the interactive API documentation */
+                            docs: string;
+                        };
+                    };
+                };
+                /** @description Missing or invalid API key */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Events
+         * @description Lists the organizer's events, optionally filtered by status or searched by name/address. Sorted by start date descending. Paginated.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Page number (0-based, default 0) */
+                    page?: number;
+                    /** @description Items per page (default 20, max 100) */
+                    pageSize?: number;
+                    /** @description Filter by status; omit to include all */
+                    status?: "draft" | "open" | "closed" | "unpublished" | "cancelled" | "postponed" | "schedule";
+                    /** @description Search events by name or address (case-insensitive partial match) */
+                    search?: string;
+                    /** @description Only events starting on or before this date (ISO 8601). Example: 2025-06-01T00:00:00.000Z */
+                    startBefore?: string;
+                    /** @description Only events starting on or after this date (ISO 8601). Example: 2025-01-01T00:00:00.000Z */
+                    startAfter?: string;
+                    /** @description Field to sort by (default: start) */
+                    sortField?: string;
+                    /** @description Sort direction (default: desc) */
+                    sortDirection?: "asc" | "desc";
+                    /**
+                     * @description JSON-encoded array of filter groups for advanced filtering.
+                     *     Each group has "logic" ("and" | "or") and "conditions" (array of conditions or nested groups).
+                     *     Each condition has "field", "operator", and optional "value".
+                     *     Operators by type:
+                     *     - Text: is_equal_to_any_of, is_not_equal_to_any_of, contains, contains_exactly
+                     *     - Date: is_before, is_after, is_between (value: {start, end})
+                     *     - Number: is_equal_to, is_not_equal_to, is_greater_than, is_greater_than_or_equal_to, is_less_than, is_less_than_or_equal_to, is_between
+                     *     - Select: is_any_of, is_none_of
+                     *     - Common: is_empty, is_not_empty
+                     *     Example: [{"logic":"and","conditions":[{"field":"status","operator":"is_any_of","value":["open","closed"]},{"field":"ticketSum","operator":"is_greater_than","value":10}]}]
+                     */
+                    filters?: string;
+                    /** @description Comma-separated list of fields to return. Valid: id, name, type, schedule, start, end, multiDayStartTimes, multiDayEndTimes, status, itemsSold, revenueCents, minPriceCents, maxPriceCents, currency, timeZone, isPublic, isVirtual, location, locationPlaceholder, virtualEventLink, venueName, image, images, tags, customTags, isCancelled, createdAt, updatedAt. Omit for all fields. */
+                    fields?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                name?: string;
+                                /** @description 'event', 'booking', 'recurring', or 'multiple' */
+                                type?: string;
+                                /** @description Event description as HTML. Only present when descriptionBlocks is empty. */
+                                description?: string;
+                                /**
+                                 * @description Rich content blocks for the event description. If present and non-empty, clients should render these instead of the description field.
+                                 *     Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
+                                 */
+                                descriptionBlocks?: {
+                                    /** @enum {string} */
+                                    type: "text" | "image" | "video";
+                                    content: string;
+                                    id: number;
+                                }[];
+                                /** @enum {string} */
+                                schedule?: "Single date" | "Multiple dates";
+                                /**
+                                 * Format: date-time
+                                 * @description For single-date events the start time; for multi-date the first time slot.
+                                 */
+                                start?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description For single-date events the end time; for multi-date the last time slot.
+                                 */
+                                end?: string;
+                                /** @description All start times for multi-day events */
+                                multiDayStartTimes?: string[];
+                                /** @description All end times for multi-day events */
+                                multiDayEndTimes?: string[];
+                                /**
+                                 * @description The status of an event.
+                                 *     - draft: has not been published
+                                 *     - open: published and ticket sales are open
+                                 *     - closed: published, ticket sales are closed but the event will proceed as normal
+                                 *     - unpublished: was previously published, but is no longer visible
+                                 *     - cancelled: published, ticket sales closed, event is cancelled
+                                 *     - postponed: published, ticket sales closed, event is postponed
+                                 *     - schedule: not yet published, scheduled to be published in the future
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "closed" | "unpublished" | "cancelled" | "postponed" | "schedule";
+                                /** @description Total tickets and products sold */
+                                itemsSold?: number;
+                                /** @description Total event revenue, in cents */
+                                revenueCents?: number;
+                                /** @description Minimum ticket/product price in cents. Does not contain fees. */
+                                minPriceCents?: number | (null);
+                                /** @description Maximum ticket/product price in cents. Does not contain fees. */
+                                maxPriceCents?: number | (null);
+                                /** @description Currency code (e.g. USD, CAD) */
+                                currency?: string;
+                                /** @description IANA time zone (may be missing for pre-2024 events) */
+                                timeZone?: string;
+                                /** @description True if the event is public */
+                                isPublic?: boolean;
+                                /** @description True if the event is virtual */
+                                isVirtual?: boolean;
+                                /** @description Event location with address and coordinates */
+                                location?: {
+                                    address?: string;
+                                    lat?: number;
+                                    lng?: number;
+                                };
+                                /** @description Placeholder text to link to location */
+                                locationPlaceholder?: string;
+                                /** @description Link for virtual access */
+                                virtualEventLink?: string;
+                                /** @description Name of the associated seating-chart venue */
+                                venueName?: string;
+                                /** @description URL of the event's main image */
+                                image?: string;
+                                /** @description Gallery images */
+                                images?: string[];
+                                /** @description Tag metadata */
+                                tags?: string[];
+                                /** @description Custom tag overlays */
+                                customTags?: string[];
+                                /** @description Structured content (FAQs, etc.) */
+                                contentBlocks?: {
+                                    [key: string]: unknown;
+                                }[];
+                                /** @description Event language (e.g. 'en', 'fr') */
+                                language?: string;
+                                /** @description Cancellation flag */
+                                isCancelled?: boolean;
+                                /** @description Post-checkout URL */
+                                redirectUrl?: string;
+                                /** @description Custom checkout conditions */
+                                customTerms?: {
+                                    hasCustomTerms?: boolean;
+                                    /** @enum {string} */
+                                    type?: "url" | "text";
+                                    url?: string;
+                                    content?: string;
+                                };
+                                /**
+                                 * Format: date-time
+                                 * @description Creation timestamp
+                                 */
+                                createdAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Last update timestamp
+                                 */
+                                updatedAt?: string;
+                            }[];
+                            hasMore: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Event
+         * @description Retrieves detailed information about a single event by ID.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Comma-separated list of fields to return. Valid: id, name, type, description, descriptionBlocks, schedule, start, end, multiDayStartTimes, multiDayEndTimes, status, itemsSold, revenueCents, minPriceCents, maxPriceCents, currency, timeZone, isPublic, isVirtual, location, locationPlaceholder, virtualEventLink, venueName, image, images, tags, customTags, contentBlocks, language, isCancelled, redirectUrl, customTerms, createdAt, updatedAt. Omit for all fields. */
+                    fields?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Event ID, discoverable via list_events */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                name?: string;
+                                /** @description 'event', 'booking', 'recurring', or 'multiple' */
+                                type?: string;
+                                /** @description Event description as HTML. Only present when descriptionBlocks is empty. */
+                                description?: string;
+                                /**
+                                 * @description Rich content blocks for the event description. If present and non-empty, clients should render these instead of the description field.
+                                 *     Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
+                                 */
+                                descriptionBlocks?: {
+                                    /** @enum {string} */
+                                    type: "text" | "image" | "video";
+                                    content: string;
+                                    id: number;
+                                }[];
+                                /** @enum {string} */
+                                schedule?: "Single date" | "Multiple dates";
+                                /**
+                                 * Format: date-time
+                                 * @description For single-date events the start time; for multi-date the first time slot.
+                                 */
+                                start?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description For single-date events the end time; for multi-date the last time slot.
+                                 */
+                                end?: string;
+                                /** @description All start times for multi-day events */
+                                multiDayStartTimes?: string[];
+                                /** @description All end times for multi-day events */
+                                multiDayEndTimes?: string[];
+                                /**
+                                 * @description The status of an event.
+                                 *     - draft: has not been published
+                                 *     - open: published and ticket sales are open
+                                 *     - closed: published, ticket sales are closed but the event will proceed as normal
+                                 *     - unpublished: was previously published, but is no longer visible
+                                 *     - cancelled: published, ticket sales closed, event is cancelled
+                                 *     - postponed: published, ticket sales closed, event is postponed
+                                 *     - schedule: not yet published, scheduled to be published in the future
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "closed" | "unpublished" | "cancelled" | "postponed" | "schedule";
+                                /** @description Total tickets and products sold */
+                                itemsSold?: number;
+                                /** @description Total event revenue, in cents */
+                                revenueCents?: number;
+                                /** @description Minimum ticket/product price in cents. Does not contain fees. */
+                                minPriceCents?: number | (null);
+                                /** @description Maximum ticket/product price in cents. Does not contain fees. */
+                                maxPriceCents?: number | (null);
+                                /** @description Currency code (e.g. USD, CAD) */
+                                currency?: string;
+                                /** @description IANA time zone (may be missing for pre-2024 events) */
+                                timeZone?: string;
+                                /** @description True if the event is public */
+                                isPublic?: boolean;
+                                /** @description True if the event is virtual */
+                                isVirtual?: boolean;
+                                /** @description Event location with address and coordinates */
+                                location?: {
+                                    address?: string;
+                                    lat?: number;
+                                    lng?: number;
+                                };
+                                /** @description Placeholder text to link to location */
+                                locationPlaceholder?: string;
+                                /** @description Link for virtual access */
+                                virtualEventLink?: string;
+                                /** @description Name of the associated seating-chart venue */
+                                venueName?: string;
+                                /** @description URL of the event's main image */
+                                image?: string;
+                                /** @description Gallery images */
+                                images?: string[];
+                                /** @description Tag metadata */
+                                tags?: string[];
+                                /** @description Custom tag overlays */
+                                customTags?: string[];
+                                /** @description Structured content (FAQs, etc.) */
+                                contentBlocks?: {
+                                    [key: string]: unknown;
+                                }[];
+                                /** @description Event language (e.g. 'en', 'fr') */
+                                language?: string;
+                                /** @description Cancellation flag */
+                                isCancelled?: boolean;
+                                /** @description Post-checkout URL */
+                                redirectUrl?: string;
+                                /** @description Custom checkout conditions */
+                                customTerms?: {
+                                    hasCustomTerms?: boolean;
+                                    /** @enum {string} */
+                                    type?: "url" | "text";
+                                    url?: string;
+                                    content?: string;
+                                };
+                                /**
+                                 * Format: date-time
+                                 * @description Creation timestamp
+                                 */
+                                createdAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Last update timestamp
+                                 */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Event
+         * @description Updates an event's basic fields. Only provided fields are changed. Does not update products, tickets, or order forms.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Event ID, discoverable via list_events */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Event name */
+                        name?: string;
+                        /** @description Event description (HTML supported) */
+                        description?: string;
+                        /** @description Rich content blocks for the event description */
+                        descriptionBlocks?: {
+                            /** @enum {string} */
+                            type: "text" | "image" | "video";
+                            content: string;
+                            id: number;
+                        }[];
+                        /**
+                         * @description Event status (e.g. draft, open, closed, cancelled)
+                         * @enum {string}
+                         */
+                        status?: "draft" | "open" | "closed" | "unpublished" | "cancelled" | "postponed" | "schedule";
+                        /**
+                         * Format: date-time
+                         * @description Start date/time in UTC
+                         */
+                        start?: string;
+                        /**
+                         * Format: date-time
+                         * @description End date/time in UTC
+                         */
+                        end?: string;
+                        /** @description Whether the event has a specified end time */
+                        hasEndDate?: boolean;
+                        /**
+                         * @description Public events appear on discover; private are link-only
+                         * @enum {string}
+                         */
+                        privacy?: "public" | "private";
+                        /**
+                         * @description Virtual or in-person
+                         * @enum {string}
+                         */
+                        eventType?: "virtual" | "inperson";
+                        /** @description Link to virtual event */
+                        virtualEventLink?: string;
+                        /** @description Event location address */
+                        address?: string;
+                        /** @description Placeholder text when no address is set */
+                        locationPlaceholder?: string;
+                        /** @description IANA time zone (e.g. "America/New_York") */
+                        timeZone?: string;
+                        /** @description Enable checkout; if false customers cannot order */
+                        collectEmails?: boolean;
+                        /** @description URL to redirect to after checkout */
+                        redirectUrl?: string;
+                        /** @description Custom terms and conditions */
+                        customTerms?: {
+                            hasCustomTerms: boolean;
+                            /** @enum {string} */
+                            type: "url" | "text";
+                            url: string;
+                            content: string;
+                        };
+                        /** @description Custom tag overlays */
+                        customTags?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                name?: string;
+                                /** @description 'event', 'booking', 'recurring', or 'multiple' */
+                                type?: string;
+                                /** @description Event description as HTML. Only present when descriptionBlocks is empty. */
+                                description?: string;
+                                /**
+                                 * @description Rich content blocks for the event description. If present and non-empty, clients should render these instead of the description field.
+                                 *     Each block has a type (text: HTML content, image: URL, video: YouTube URL) and content string.
+                                 */
+                                descriptionBlocks?: {
+                                    /** @enum {string} */
+                                    type: "text" | "image" | "video";
+                                    content: string;
+                                    id: number;
+                                }[];
+                                /** @enum {string} */
+                                schedule?: "Single date" | "Multiple dates";
+                                /**
+                                 * Format: date-time
+                                 * @description For single-date events the start time; for multi-date the first time slot.
+                                 */
+                                start?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description For single-date events the end time; for multi-date the last time slot.
+                                 */
+                                end?: string;
+                                /** @description All start times for multi-day events */
+                                multiDayStartTimes?: string[];
+                                /** @description All end times for multi-day events */
+                                multiDayEndTimes?: string[];
+                                /**
+                                 * @description The status of an event.
+                                 *     - draft: has not been published
+                                 *     - open: published and ticket sales are open
+                                 *     - closed: published, ticket sales are closed but the event will proceed as normal
+                                 *     - unpublished: was previously published, but is no longer visible
+                                 *     - cancelled: published, ticket sales closed, event is cancelled
+                                 *     - postponed: published, ticket sales closed, event is postponed
+                                 *     - schedule: not yet published, scheduled to be published in the future
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "closed" | "unpublished" | "cancelled" | "postponed" | "schedule";
+                                /** @description Total tickets and products sold */
+                                itemsSold?: number;
+                                /** @description Total event revenue, in cents */
+                                revenueCents?: number;
+                                /** @description Minimum ticket/product price in cents. Does not contain fees. */
+                                minPriceCents?: number | (null);
+                                /** @description Maximum ticket/product price in cents. Does not contain fees. */
+                                maxPriceCents?: number | (null);
+                                /** @description Currency code (e.g. USD, CAD) */
+                                currency?: string;
+                                /** @description IANA time zone (may be missing for pre-2024 events) */
+                                timeZone?: string;
+                                /** @description True if the event is public */
+                                isPublic?: boolean;
+                                /** @description True if the event is virtual */
+                                isVirtual?: boolean;
+                                /** @description Event location with address and coordinates */
+                                location?: {
+                                    address?: string;
+                                    lat?: number;
+                                    lng?: number;
+                                };
+                                /** @description Placeholder text to link to location */
+                                locationPlaceholder?: string;
+                                /** @description Link for virtual access */
+                                virtualEventLink?: string;
+                                /** @description Name of the associated seating-chart venue */
+                                venueName?: string;
+                                /** @description URL of the event's main image */
+                                image?: string;
+                                /** @description Gallery images */
+                                images?: string[];
+                                /** @description Tag metadata */
+                                tags?: string[];
+                                /** @description Custom tag overlays */
+                                customTags?: string[];
+                                /** @description Structured content (FAQs, etc.) */
+                                contentBlocks?: {
+                                    [key: string]: unknown;
+                                }[];
+                                /** @description Event language (e.g. 'en', 'fr') */
+                                language?: string;
+                                /** @description Cancellation flag */
+                                isCancelled?: boolean;
+                                /** @description Post-checkout URL */
+                                redirectUrl?: string;
+                                /** @description Custom checkout conditions */
+                                customTerms?: {
+                                    hasCustomTerms?: boolean;
+                                    /** @enum {string} */
+                                    type?: "url" | "text";
+                                    url?: string;
+                                    content?: string;
+                                };
+                                /**
+                                 * Format: date-time
+                                 * @description Creation timestamp
+                                 */
+                                createdAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Last update timestamp
+                                 */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/invoices/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Invoices
+         * @description Lists the host's invoices, optionally filtered by status, recipient, or issue date. Sorted by issuedAt descending. Paginated.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Page number (0-based, default 0) */
+                    page?: number;
+                    /** @description Items per page (default 20, max 100) */
+                    pageSize?: number;
+                    /** @description Filter by status; omit to include all */
+                    status?: "draft" | "open" | "paid" | "void";
+                    /** @description Filter by recipient contact id */
+                    customerId?: string;
+                    /** @description Only invoices issued on or after this date (ISO 8601) */
+                    issuedAfter?: string;
+                    /** @description Only invoices issued on or before this date (ISO 8601) */
+                    issuedBefore?: string;
+                    /** @description Comma-separated list of fields to return. Valid: id, hostId, customerId, number, currency, subtotal, taxTotal, total, amountPaid, amountDue, status, issuedAt, dueAt, paidAt, voidedAt, subscriptionId, quoteId, createdAt, updatedAt. Omit for all fields. */
+                    fields?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "paid" | "void";
+                                notes?: string;
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            }[];
+                            hasMore: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create Invoice
+         * @description Creates a new draft invoice. Totals are computed from line items. The invoice must be finalized before it is issued to the customer.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description CRM contact id of the recipient */
+                        customerId: string;
+                        /**
+                         * @description Three-letter ISO code; all line amounts must be in this currency
+                         * @enum {string}
+                         */
+                        currency: "USD" | "CAD";
+                        /** @description At least one line item is required */
+                        lineItems: {
+                            /** @description Human-readable description shown on the invoice */
+                            description: string;
+                            /** @description Whole units billed */
+                            quantity: number;
+                            /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                            unitAmount: number;
+                            /** @description Optional reference to a Product in the catalog */
+                            productId?: string;
+                            /** @description Optional tax for this line, minor units */
+                            taxAmount?: number;
+                        }[];
+                        notes?: string;
+                        /**
+                         * Format: date-time
+                         * @description Optional payment due date
+                         */
+                        dueAt?: string;
+                        /** @description Set when generated by a billing Subscription */
+                        subscriptionId?: string;
+                        /** @description Set when accepted from a Quote */
+                        quoteId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "paid" | "void";
+                                notes?: string;
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/invoices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Invoice
+         * @description Retrieves a single invoice by id.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Comma-separated list of fields to return. Valid: id, hostId, customerId, number, currency, lineItems, payments, subtotal, taxTotal, total, amountPaid, amountDue, status, notes, issuedAt, dueAt, paidAt, voidedAt, subscriptionId, quoteId, createdAt, updatedAt. Omit for all fields. */
+                    fields?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Invoice id, discoverable via list_invoices */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "paid" | "void";
+                                notes?: string;
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Revise Invoice
+         * @description Edits a draft invoice. Only legal while in draft — use void plus create-new for finalized invoices. Totals recompute when line items change.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Invoice id, discoverable via list_invoices */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description New CRM contact id of the recipient */
+                        customerId?: string;
+                        /** @description Replacement line items; totals will be recomputed */
+                        lineItems?: {
+                            /** @description Human-readable description shown on the invoice */
+                            description: string;
+                            /** @description Whole units billed */
+                            quantity: number;
+                            /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                            unitAmount: number;
+                            /** @description Optional reference to a Product in the catalog */
+                            productId?: string;
+                            /** @description Optional tax for this line, minor units */
+                            taxAmount?: number;
+                        }[];
+                        notes?: string;
+                        /**
+                         * Format: date-time
+                         * @description Updated payment due date
+                         */
+                        dueAt?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "paid" | "void";
+                                notes?: string;
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/invoices/{id}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finalize Invoice
+         * @description Transitions a draft invoice to open, assigns a sequential number, and stamps issuedAt.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Invoice id, discoverable via list_invoices */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "paid" | "void";
+                                notes?: string;
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/invoices/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void Invoice
+         * @description Voids an invoice. Permitted from draft or open. Paid invoices cannot be voided.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Invoice id, discoverable via list_invoices */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Optional reason recorded on the invoice.voided event */
+                        reason?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "paid" | "void";
+                                notes?: string;
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/invoices/{id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark Invoice Paid
+         * @description Records a manual payment against an open invoice. Cumulative payments meeting the total transition the invoice to paid.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Invoice id, discoverable via list_invoices */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Payment amount in the invoice currency, minor units */
+                        payment: number;
+                        /** @description Caller-supplied dedupe key. Replaying the same key for the same invoice is a no-op. */
+                        idempotencyKey?: string;
+                        /** @description Free-form note recorded on the payment (e.g. payment method) */
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "paid" | "void";
+                                notes?: string;
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/newsletters/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Newsletters
+         * @description Lists the workspace's newsletters, optionally filtered by view (draft / past).
+         *     Paginated; returns recipient-stripped summaries so list payloads stay small.
+         *     Sorted by updatedAt descending.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter by view; omit to include drafts + sent + scheduled. */
+                    view?: "past" | "sent" | "scheduled" | "draft";
+                    /** @description Page number (0-based, default 0) */
+                    pageNumber?: number;
+                    /** @description Items per page (default 20, max 100) */
+                    pageSize?: number;
+                    /** @description Field to sort results by. Omit for default (updatedAt descending). */
+                    sortField?: "_id" | "subject" | "sent" | "date_sent" | "recipient_count" | "automatic" | "sync_event_recipients" | "data_version" | "createdAt" | "updatedAt";
+                    /** @description Sort direction. Defaults to desc when sortField is provided. */
+                    sortDirection?: "asc" | "desc";
+                    /**
+                     * @description JSON-encoded FilterGroup[] for custom filtering. Conditions
+                     *     referencing fields outside the persisted newsletter schema are
+                     *     silently ignored. ANDed with the 'view' filter when both are
+                     *     supplied.
+                     */
+                    filters?: string;
+                    /** @description Comma-separated list of fields to return. Valid: id, hostId, subject, sent, date_sent, recipient_count, reply_to_email, display_name, automatic, data_version, sync_event_recipients, createdAt, updatedAt, sparkpost_metrics, attachments. Omit for all fields. */
+                    fields?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                subject?: string;
+                                /** @description Rendered HTML — empty for drafts */
+                                body?: string;
+                                /** @description False for drafts, true for sent / scheduled */
+                                sent?: boolean;
+                                recipient_phonenumbers?: string[];
+                                event_refs?: string[];
+                                timeslot_refs?: string[];
+                                /** Format: date-time */
+                                date_sent?: string;
+                                footer_image?: string;
+                                reply_to_email?: string;
+                                automatic?: boolean;
+                                display_name?: string;
+                                /** @description Deprecated legacy content shape; new newsletters use viewport_data */
+                                content_blocks?: unknown[];
+                                /** @description Site-builder viewport_data — structured email content rendered to HTML by the send pipeline */
+                                viewport_data?: unknown;
+                                /**
+                                 * @description Content storage discriminator.
+                                 *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                                 *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                                 */
+                                data_version?: 0 | 1;
+                                sync_event_recipients?: boolean;
+                                recipient_count?: number;
+                                attachments?: {
+                                    /** @description Original filename */
+                                    name: string;
+                                    /** @description File size in bytes */
+                                    size: number;
+                                    /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                                    url: string;
+                                    /** @description MIME type */
+                                    type: string;
+                                    /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                                    uploading?: boolean;
+                                    /** @description Surfaced when an attachment upload failed */
+                                    uploadError?: string;
+                                    /** @description Firebase Storage path for deletion */
+                                    storagePath?: string;
+                                }[];
+                                sparkpost_metrics?: {
+                                    count_sent: number;
+                                    count_delivered: number;
+                                    count_opens: number;
+                                    count_clicks: number;
+                                    count_bounce: number;
+                                    count_unsubscribe: number;
+                                    /** @description Pre-formatted percentage, e.g. "2.3%" */
+                                    bounce_rate: string;
+                                    open_rate: string;
+                                    click_rate: string;
+                                    /** @description Revenue attributed via referral tracking, minor units */
+                                    revenue_generated?: number;
+                                    /** @description Epoch ms when these metrics were last fetched from Sparkpost */
+                                    fetched_at?: number;
+                                };
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt?: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt?: number;
+                            }[];
+                            hasMore: boolean;
+                            pageNumber: number;
+                            pageSize: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create Newsletter
+         * @description Creates a new newsletter (draft by default). Compose the email body
+         *     through 'viewport_data' (structured site-builder content) — do NOT
+         *     supply pre-rendered HTML; the send flow renders viewport_data into
+         *     HTML for you. Recipient emails with typo-looking domains (e.g.
+         *     gmial.com) are stripped before persistence.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        subject?: string;
+                        /** @description Pre-rendered HTML; usually omitted on create and populated on send */
+                        body?: string;
+                        /** @description Defaults to false. Set true only by the send flow. */
+                        sent?: boolean;
+                        recipient_emails?: string[];
+                        recipient_phonenumbers?: string[];
+                        event_refs?: string[];
+                        timeslot_refs?: string[];
+                        /**
+                         * Format: date-time
+                         * @description ISO timestamp. Set by the send flow or the scheduled-send pipeline.
+                         */
+                        date_sent?: string;
+                        footer_image?: string;
+                        reply_to_email?: string;
+                        /** @description Flag for newsletters generated by the automatic event-broadcast flow */
+                        automatic?: boolean;
+                        display_name?: string;
+                        content_blocks?: unknown[];
+                        viewport_data?: unknown;
+                        /**
+                         * @description Content storage discriminator.
+                         *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                         *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                         */
+                        data_version?: 0 | 1;
+                        sync_event_recipients?: boolean;
+                        attachments?: {
+                            /** @description Original filename */
+                            name: string;
+                            /** @description File size in bytes */
+                            size: number;
+                            /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                            url: string;
+                            /** @description MIME type */
+                            type: string;
+                            /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                            uploading?: boolean;
+                            /** @description Surfaced when an attachment upload failed */
+                            uploadError?: string;
+                            /** @description Firebase Storage path for deletion */
+                            storagePath?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                subject?: string;
+                                /** @description Rendered HTML — empty for drafts */
+                                body?: string;
+                                /** @description False for drafts, true for sent / scheduled */
+                                sent?: boolean;
+                                recipient_emails?: string[];
+                                recipient_phonenumbers?: string[];
+                                event_refs?: string[];
+                                timeslot_refs?: string[];
+                                /** Format: date-time */
+                                date_sent?: string;
+                                footer_image?: string;
+                                reply_to_email?: string;
+                                automatic?: boolean;
+                                display_name?: string;
+                                /** @description Deprecated legacy content shape; new newsletters use viewport_data */
+                                content_blocks?: unknown[];
+                                /** @description Site-builder viewport_data — structured email content rendered to HTML by the send pipeline */
+                                viewport_data?: unknown;
+                                /**
+                                 * @description Content storage discriminator.
+                                 *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                                 *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                                 */
+                                data_version?: 0 | 1;
+                                sync_event_recipients?: boolean;
+                                /** @description Set on summary projections from the paginated list endpoint */
+                                recipient_count?: number;
+                                attachments?: {
+                                    /** @description Original filename */
+                                    name: string;
+                                    /** @description File size in bytes */
+                                    size: number;
+                                    /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                                    url: string;
+                                    /** @description MIME type */
+                                    type: string;
+                                    /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                                    uploading?: boolean;
+                                    /** @description Surfaced when an attachment upload failed */
+                                    uploadError?: string;
+                                    /** @description Firebase Storage path for deletion */
+                                    storagePath?: string;
+                                }[];
+                                sparkpost_metrics?: {
+                                    count_sent: number;
+                                    count_delivered: number;
+                                    count_opens: number;
+                                    count_clicks: number;
+                                    count_bounce: number;
+                                    count_unsubscribe: number;
+                                    /** @description Pre-formatted percentage, e.g. "2.3%" */
+                                    bounce_rate: string;
+                                    open_rate: string;
+                                    click_rate: string;
+                                    /** @description Revenue attributed via referral tracking, minor units */
+                                    revenue_generated?: number;
+                                    /** @description Epoch ms when these metrics were last fetched from Sparkpost */
+                                    fetched_at?: number;
+                                };
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt?: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt?: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/newsletters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Newsletter
+         * @description Retrieves a single newsletter by id, including its full recipient list and attachments.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Comma-separated list of fields to return. Valid: id, hostId, subject, body, sent, recipient_emails, recipient_phonenumbers, event_refs, timeslot_refs, date_sent, footer_image, reply_to_email, automatic, display_name, content_blocks, viewport_data, data_version, sync_event_recipients, recipient_count, attachments, sparkpost_metrics, createdAt, updatedAt. Omit for all fields. */
+                    fields?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Newsletter id, discoverable via list_newsletters */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                subject?: string;
+                                /** @description Rendered HTML — empty for drafts */
+                                body?: string;
+                                /** @description False for drafts, true for sent / scheduled */
+                                sent?: boolean;
+                                recipient_emails?: string[];
+                                recipient_phonenumbers?: string[];
+                                event_refs?: string[];
+                                timeslot_refs?: string[];
+                                /** Format: date-time */
+                                date_sent?: string;
+                                footer_image?: string;
+                                reply_to_email?: string;
+                                automatic?: boolean;
+                                display_name?: string;
+                                /** @description Deprecated legacy content shape; new newsletters use viewport_data */
+                                content_blocks?: unknown[];
+                                /** @description Site-builder viewport_data — structured email content rendered to HTML by the send pipeline */
+                                viewport_data?: unknown;
+                                /**
+                                 * @description Content storage discriminator.
+                                 *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                                 *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                                 */
+                                data_version?: 0 | 1;
+                                sync_event_recipients?: boolean;
+                                /** @description Set on summary projections from the paginated list endpoint */
+                                recipient_count?: number;
+                                attachments?: {
+                                    /** @description Original filename */
+                                    name: string;
+                                    /** @description File size in bytes */
+                                    size: number;
+                                    /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                                    url: string;
+                                    /** @description MIME type */
+                                    type: string;
+                                    /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                                    uploading?: boolean;
+                                    /** @description Surfaced when an attachment upload failed */
+                                    uploadError?: string;
+                                    /** @description Firebase Storage path for deletion */
+                                    storagePath?: string;
+                                }[];
+                                sparkpost_metrics?: {
+                                    count_sent: number;
+                                    count_delivered: number;
+                                    count_opens: number;
+                                    count_clicks: number;
+                                    count_bounce: number;
+                                    count_unsubscribe: number;
+                                    /** @description Pre-formatted percentage, e.g. "2.3%" */
+                                    bounce_rate: string;
+                                    open_rate: string;
+                                    click_rate: string;
+                                    /** @description Revenue attributed via referral tracking, minor units */
+                                    revenue_generated?: number;
+                                    /** @description Epoch ms when these metrics were last fetched from Sparkpost */
+                                    fetched_at?: number;
+                                };
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt?: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt?: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete Newsletter
+         * @description Permanently deletes a newsletter. No soft-delete; the row is removed.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Newsletter id, discoverable via list_newsletters */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                deleted: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update Newsletter
+         * @description Updates a newsletter's fields. Only provided fields change. Edit the
+         *     email body via 'viewport_data' (structured site-builder content) —
+         *     do NOT supply pre-rendered HTML; the send flow renders viewport_data
+         *     on dispatch. If recipient_emails is supplied, typo-domain addresses
+         *     are stripped.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Newsletter id, discoverable via list_newsletters */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        subject?: string;
+                        /** @description Pre-rendered HTML; usually omitted on create and populated on send */
+                        body?: string;
+                        /** @description Defaults to false. Set true only by the send flow. */
+                        sent?: boolean;
+                        recipient_emails?: string[];
+                        recipient_phonenumbers?: string[];
+                        event_refs?: string[];
+                        timeslot_refs?: string[];
+                        /**
+                         * Format: date-time
+                         * @description ISO timestamp. Set by the send flow or the scheduled-send pipeline.
+                         */
+                        date_sent?: string;
+                        footer_image?: string;
+                        reply_to_email?: string;
+                        /** @description Flag for newsletters generated by the automatic event-broadcast flow */
+                        automatic?: boolean;
+                        display_name?: string;
+                        content_blocks?: unknown[];
+                        viewport_data?: unknown;
+                        /**
+                         * @description Content storage discriminator.
+                         *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                         *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                         */
+                        data_version?: 0 | 1;
+                        sync_event_recipients?: boolean;
+                        attachments?: {
+                            /** @description Original filename */
+                            name: string;
+                            /** @description File size in bytes */
+                            size: number;
+                            /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                            url: string;
+                            /** @description MIME type */
+                            type: string;
+                            /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                            uploading?: boolean;
+                            /** @description Surfaced when an attachment upload failed */
+                            uploadError?: string;
+                            /** @description Firebase Storage path for deletion */
+                            storagePath?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                subject?: string;
+                                /** @description Rendered HTML — empty for drafts */
+                                body?: string;
+                                /** @description False for drafts, true for sent / scheduled */
+                                sent?: boolean;
+                                recipient_emails?: string[];
+                                recipient_phonenumbers?: string[];
+                                event_refs?: string[];
+                                timeslot_refs?: string[];
+                                /** Format: date-time */
+                                date_sent?: string;
+                                footer_image?: string;
+                                reply_to_email?: string;
+                                automatic?: boolean;
+                                display_name?: string;
+                                /** @description Deprecated legacy content shape; new newsletters use viewport_data */
+                                content_blocks?: unknown[];
+                                /** @description Site-builder viewport_data — structured email content rendered to HTML by the send pipeline */
+                                viewport_data?: unknown;
+                                /**
+                                 * @description Content storage discriminator.
+                                 *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                                 *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                                 */
+                                data_version?: 0 | 1;
+                                sync_event_recipients?: boolean;
+                                /** @description Set on summary projections from the paginated list endpoint */
+                                recipient_count?: number;
+                                attachments?: {
+                                    /** @description Original filename */
+                                    name: string;
+                                    /** @description File size in bytes */
+                                    size: number;
+                                    /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                                    url: string;
+                                    /** @description MIME type */
+                                    type: string;
+                                    /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                                    uploading?: boolean;
+                                    /** @description Surfaced when an attachment upload failed */
+                                    uploadError?: string;
+                                    /** @description Firebase Storage path for deletion */
+                                    storagePath?: string;
+                                }[];
+                                sparkpost_metrics?: {
+                                    count_sent: number;
+                                    count_delivered: number;
+                                    count_opens: number;
+                                    count_clicks: number;
+                                    count_bounce: number;
+                                    count_unsubscribe: number;
+                                    /** @description Pre-formatted percentage, e.g. "2.3%" */
+                                    bounce_rate: string;
+                                    open_rate: string;
+                                    click_rate: string;
+                                    /** @description Revenue attributed via referral tracking, minor units */
+                                    revenue_generated?: number;
+                                    /** @description Epoch ms when these metrics were last fetched from Sparkpost */
+                                    fetched_at?: number;
+                                };
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt?: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt?: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/newsletters/{id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Newsletter
+         * @description Sends a newsletter through Sparkpost immediately. Stamps date_sent +
+         *     sent=true on the persisted document.
+         *     Seamless flow: call with just `id` once the draft has subject,
+         *     recipients, viewport_data, and reply_to_email set. The server pulls
+         *     those fields from the persisted doc and renders viewport_data →
+         *     HTML server-side if no body is already rendered. Only pass
+         *     subject/senderName/replyToEmail/recipients/html/attachments when you
+         *     explicitly need to override the persisted values for this one send.
+         *     The Sparkpost API must be configured server-side; calls return 503
+         *     when SPARKPOST_API_KEY is unset.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Newsletter id, discoverable via list_newsletters */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Pre-rendered HTML body. Usually omitted — the server renders
+                         *     viewport_data automatically if no body is persisted. Supply only
+                         *     when you need to override the persisted body for this one send.
+                         */
+                        html?: string;
+                        /** @description Override the persisted subject for this send. Newlines are stripped server-side. */
+                        subject?: string;
+                        /** @description Override the persisted display_name on the From line. */
+                        senderName?: string;
+                        /** @description Override the persisted reply_to_email. */
+                        replyToEmail?: string;
+                        /** @description Override the persisted recipient list. Typo-domain addresses are stripped server-side. */
+                        recipients?: string[];
+                        /** @description Override the persisted attachments. URLs are downloaded and base64-encoded before transmission to Sparkpost. */
+                        attachments?: {
+                            /** @description Original filename */
+                            name: string;
+                            /** @description File size in bytes */
+                            size: number;
+                            /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                            url: string;
+                            /** @description MIME type */
+                            type: string;
+                            /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                            uploading?: boolean;
+                            /** @description Surfaced when an attachment upload failed */
+                            uploadError?: string;
+                            /** @description Firebase Storage path for deletion */
+                            storagePath?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                hostId: string;
+                                subject: string;
+                                /** @description Rendered HTML — empty for drafts */
+                                body: string;
+                                /** @description False for drafts, true for sent / scheduled */
+                                sent: boolean;
+                                recipient_emails: string[];
+                                recipient_phonenumbers: string[];
+                                event_refs: string[];
+                                timeslot_refs?: string[];
+                                /** Format: date-time */
+                                date_sent?: string;
+                                footer_image: string;
+                                reply_to_email?: string;
+                                automatic?: boolean;
+                                display_name?: string;
+                                /** @description Deprecated legacy content shape; new newsletters use viewport_data */
+                                content_blocks?: unknown[];
+                                /** @description Site-builder viewport_data — structured email content rendered to HTML by the send pipeline */
+                                viewport_data?: unknown;
+                                /**
+                                 * @description Content storage discriminator.
+                                 *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                                 *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                                 */
+                                data_version?: 0 | 1;
+                                sync_event_recipients: boolean;
+                                /** @description Set on summary projections from the paginated list endpoint */
+                                recipient_count?: number;
+                                attachments?: {
+                                    /** @description Original filename */
+                                    name: string;
+                                    /** @description File size in bytes */
+                                    size: number;
+                                    /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                                    url: string;
+                                    /** @description MIME type */
+                                    type: string;
+                                    /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                                    uploading?: boolean;
+                                    /** @description Surfaced when an attachment upload failed */
+                                    uploadError?: string;
+                                    /** @description Firebase Storage path for deletion */
+                                    storagePath?: string;
+                                }[];
+                                sparkpost_metrics?: {
+                                    count_sent: number;
+                                    count_delivered: number;
+                                    count_opens: number;
+                                    count_clicks: number;
+                                    count_bounce: number;
+                                    count_unsubscribe: number;
+                                    /** @description Pre-formatted percentage, e.g. "2.3%" */
+                                    bounce_rate: string;
+                                    open_rate: string;
+                                    click_rate: string;
+                                    /** @description Revenue attributed via referral tracking, minor units */
+                                    revenue_generated?: number;
+                                    /** @description Epoch ms when these metrics were last fetched from Sparkpost */
+                                    fetched_at?: number;
+                                };
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/newsletters/{id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Schedule Newsletter
+         * @description Schedules a newsletter for future delivery. Stamps sent=true,
+         *     date_sent=<sendAt>, and a server-rendered body on the newsletter,
+         *     then enqueues a Firestore trigger row that fires the actual
+         *     Sparkpost transmission at sendAt. Does NOT call Sparkpost itself —
+         *     that happens at fire time.
+         *     Preconditions checked before scheduling:
+         *     - Newsletter exists and is owned by the caller's workspace
+         *     - sendAt is strictly in the future
+         *     - Newsletter has a non-empty subject
+         *     - Newsletter has at least one recipient
+         *     - Newsletter has viewport_data (or a previously-rendered body)
+         *     — the server renders viewport_data to HTML and persists it as
+         *     body for the trigger to consume.
+         *     For immediate transmission, use send_newsletter instead.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Newsletter id, discoverable via list_newsletters */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: date-time
+                         * @description ISO timestamp for delivery. Must be strictly in the future. The
+                         *     newsletter must already have a subject, at least one recipient, and
+                         *     viewport_data (the send pipeline renders it to HTML automatically).
+                         */
+                        sendAt: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                hostId: string;
+                                subject: string;
+                                /** @description Rendered HTML — empty for drafts */
+                                body: string;
+                                /** @description False for drafts, true for sent / scheduled */
+                                sent: boolean;
+                                recipient_emails: string[];
+                                recipient_phonenumbers: string[];
+                                event_refs: string[];
+                                timeslot_refs?: string[];
+                                /** Format: date-time */
+                                date_sent?: string;
+                                footer_image: string;
+                                reply_to_email?: string;
+                                automatic?: boolean;
+                                display_name?: string;
+                                /** @description Deprecated legacy content shape; new newsletters use viewport_data */
+                                content_blocks?: unknown[];
+                                /** @description Site-builder viewport_data — structured email content rendered to HTML by the send pipeline */
+                                viewport_data?: unknown;
+                                /**
+                                 * @description Content storage discriminator.
+                                 *     - 0 (CONTENT_BLOCKS, deprecated): legacy content_blocks array
+                                 *     - 1 (VIEWPORT_DATA): site-builder viewport_data shape
+                                 */
+                                data_version?: 0 | 1;
+                                sync_event_recipients: boolean;
+                                /** @description Set on summary projections from the paginated list endpoint */
+                                recipient_count?: number;
+                                attachments?: {
+                                    /** @description Original filename */
+                                    name: string;
+                                    /** @description File size in bytes */
+                                    size: number;
+                                    /** @description Publicly fetchable URL (Firebase Storage download URL in practice) */
+                                    url: string;
+                                    /** @description MIME type */
+                                    type: string;
+                                    /** @description True while the attachment upload is in progress; false or omit once it finishes */
+                                    uploading?: boolean;
+                                    /** @description Surfaced when an attachment upload failed */
+                                    uploadError?: string;
+                                    /** @description Firebase Storage path for deletion */
+                                    storagePath?: string;
+                                }[];
+                                sparkpost_metrics?: {
+                                    count_sent: number;
+                                    count_delivered: number;
+                                    count_opens: number;
+                                    count_clicks: number;
+                                    count_bounce: number;
+                                    count_unsubscribe: number;
+                                    /** @description Pre-formatted percentage, e.g. "2.3%" */
+                                    bounce_rate: string;
+                                    open_rate: string;
+                                    click_rate: string;
+                                    /** @description Revenue attributed via referral tracking, minor units */
+                                    revenue_generated?: number;
+                                    /** @description Epoch ms when these metrics were last fetched from Sparkpost */
+                                    fetched_at?: number;
+                                };
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/newsletters/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Newsletter Email Events
+         * @description Lists Sparkpost bounce or open events for a sent newsletter. Returns
+         *     one cursor-paginated page. Events outside the (date_sent - 1 day, now
+         *     + 1 day) window aren't returned even if Sparkpost has them.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /**
+                     * @description Sparkpost event class to fetch.
+                     *     - bounce: hard/soft bounce, with reason + error code
+                     *     - open: unique open events
+                     */
+                    event: "bounce" | "open";
+                    /** @description Sparkpost cursor token; omit for the first page */
+                    cursor?: string;
+                    /** @description Items per page (default 50, max 100) */
+                    pageSize?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description Newsletter id, discoverable via list_newsletters */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                recipient: string;
+                                event_type: string;
+                                timestamp: string;
+                                bounce_class?: string;
+                                error_code?: string;
+                                reason?: string;
+                                user_agent?: string;
+                                ip?: string;
+                                click_tracking?: boolean;
+                            }[];
+                            hasMore: boolean;
+                            cursor: string;
+                            nextCursor: string | (null);
+                            pageSize: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/referals/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Referals
+         * @description Lists the workspace's referal links with view / revenue / ticket
+         *     totals per row.
+         *     Render rows using these precomputed fields — don't reformat the
+         *     raw ones:
+         *     - 'display_name'   — name column. Never show 'label' directly.
+         *     - 'category_label' — kind column. e.g. "Newsletter tracking link",
+         *     "Event tracking link", "Meta Pixel".
+         *     - 'event_name'     — event title when the referal points at an event.
+         *     - 'newsletter_subject' — newsletter subject (newsletter referals only).
+         *     Optional filters: event_id, type, newsletter_tracking_links.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Narrow to one event */
+                    event_id?: string;
+                    /** @description Narrow to one referal type */
+                    type?: "user" | "event" | "facebook-pixel";
+                    /**
+                     * @description true → only newsletter-generated referals.
+                     *     false → only manual referals.
+                     *     omit → both.
+                     */
+                    newsletter_tracking_links?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                hostId: string;
+                                label: string;
+                                /**
+                                 * @description Referal kind.
+                                 *     - user: generic per-host link (rare today)
+                                 *     - event: tied to one event id; revenue join keys off these
+                                 *     - facebook-pixel: fb pixel association, no view tracking
+                                 * @enum {string}
+                                 */
+                                type: "user" | "event" | "facebook-pixel";
+                                event_id?: string;
+                                pixel_id?: string;
+                                apply_to_all_events?: boolean;
+                                /** @description True when this referal was generated by the newsletter send flow */
+                                newsletter_tracking_links?: boolean;
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt: number;
+                                /** @description Count of view rows attached to this referal */
+                                views: number;
+                                /** @description Sum of purchase view value, in cents */
+                                revenue: number;
+                                /** @description Sum of purchase view ticket qty */
+                                tickets: number;
+                                /** @description Resolved event title for event referals. Absent when the event was deleted or never existed. */
+                                event_name?: string;
+                                /** @description Resolved newsletter subject when newsletter_tracking_links=true (the label IS the newsletter id). Absent when the newsletter was deleted. */
+                                newsletter_subject?: string;
+                                /**
+                                 * @description Machine-readable classification. For user-facing rendering use
+                                 *     'category_label' instead. Derived from type + newsletter_tracking_links:
+                                 *     - "newsletter":     link auto-created by a newsletter send (type='event' AND newsletter_tracking_links=true)
+                                 *     - "event":          manual per-event tracking link
+                                 *     - "facebook-pixel": Meta pixel
+                                 *     - "user":           legacy per-host link
+                                 * @enum {string}
+                                 */
+                                category: "newsletter" | "event" | "facebook-pixel" | "user";
+                                /**
+                                 * @description Pre-formatted human-readable category. ALWAYS use this when
+                                 *     rendering the row's kind to a user — don't reformat 'category'
+                                 *     yourself.
+                                 *     - "Newsletter tracking link"
+                                 *     - "Event tracking link"
+                                 *     - "Meta Pixel"
+                                 *     - "User tracking link"
+                                 */
+                                category_label: string;
+                                /**
+                                 * @description Human-readable name for this referal. ALWAYS use this when
+                                 *     rendering the referal to a user — NEVER show 'label' directly,
+                                 *     because for newsletter referals it's the newsletter id (an opaque
+                                 *     ObjectId). Resolution:
+                                 *     - newsletter referals  → newsletter_subject (or "(deleted newsletter)" when the newsletter was removed)
+                                 *     - facebook-pixel       → pixel_id (or label when pixel_id missing)
+                                 *     - event / user         → label
+                                 */
+                                display_name: string;
+                            }[];
+                            totalViews?: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create Referal
+         * @description Creates a referal link. For type="event", supply event_id; for
+         *     type="facebook-pixel", supply pixel_id. Do not set
+         *     newsletter_tracking_links — the b2b newsletter-send flow sets that
+         *     server-side when it creates the referals for an event-block.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Display label. For newsletter referals this is the newsletter id. */
+                        label: string;
+                        /**
+                         * @description Referal kind.
+                         *     - user: generic per-host link (rare today)
+                         *     - event: tied to one event id; revenue join keys off these
+                         *     - facebook-pixel: fb pixel association, no view tracking
+                         * @enum {string}
+                         */
+                        type: "user" | "event" | "facebook-pixel";
+                        /** @description Required for type="event". Scopes the referal to one event. */
+                        event_id?: string;
+                        /** @description Required for type="facebook-pixel". The pixel id. */
+                        pixel_id?: string;
+                        /** @description When true, this referal applies to every event on the host (rather than just event_id). */
+                        apply_to_all_events?: boolean;
+                        /** @description Server-set by the /b2b/newsletters/:id/referals flow; clients should not set this. */
+                        newsletter_tracking_links?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                hostId: string;
+                                label: string;
+                                /**
+                                 * @description Referal kind.
+                                 *     - user: generic per-host link (rare today)
+                                 *     - event: tied to one event id; revenue join keys off these
+                                 *     - facebook-pixel: fb pixel association, no view tracking
+                                 * @enum {string}
+                                 */
+                                type: "user" | "event" | "facebook-pixel";
+                                event_id?: string;
+                                pixel_id?: string;
+                                apply_to_all_events?: boolean;
+                                /** @description True when this referal was generated by the newsletter send flow */
+                                newsletter_tracking_links?: boolean;
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/referals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Referal
+         * @description Retrieves a single referal by id, including its computed metrics.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Referal id, discoverable via list_referals */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                hostId: string;
+                                label: string;
+                                /**
+                                 * @description Referal kind.
+                                 *     - user: generic per-host link (rare today)
+                                 *     - event: tied to one event id; revenue join keys off these
+                                 *     - facebook-pixel: fb pixel association, no view tracking
+                                 * @enum {string}
+                                 */
+                                type: "user" | "event" | "facebook-pixel";
+                                event_id?: string;
+                                pixel_id?: string;
+                                apply_to_all_events?: boolean;
+                                /** @description True when this referal was generated by the newsletter send flow */
+                                newsletter_tracking_links?: boolean;
+                                /** @description Creation timestamp, ms since epoch */
+                                createdAt: number;
+                                /** @description Last-updated timestamp, ms since epoch */
+                                updatedAt: number;
+                                /** @description Count of view rows attached to this referal */
+                                views: number;
+                                /** @description Sum of purchase view value, in cents */
+                                revenue: number;
+                                /** @description Sum of purchase view ticket qty */
+                                tickets: number;
+                                /** @description Resolved event title for event referals. Absent when the event was deleted or never existed. */
+                                event_name?: string;
+                                /** @description Resolved newsletter subject when newsletter_tracking_links=true (the label IS the newsletter id). Absent when the newsletter was deleted. */
+                                newsletter_subject?: string;
+                                /**
+                                 * @description Machine-readable classification. For user-facing rendering use
+                                 *     'category_label' instead. Derived from type + newsletter_tracking_links:
+                                 *     - "newsletter":     link auto-created by a newsletter send (type='event' AND newsletter_tracking_links=true)
+                                 *     - "event":          manual per-event tracking link
+                                 *     - "facebook-pixel": Meta pixel
+                                 *     - "user":           legacy per-host link
+                                 * @enum {string}
+                                 */
+                                category: "newsletter" | "event" | "facebook-pixel" | "user";
+                                /**
+                                 * @description Pre-formatted human-readable category. ALWAYS use this when
+                                 *     rendering the row's kind to a user — don't reformat 'category'
+                                 *     yourself.
+                                 *     - "Newsletter tracking link"
+                                 *     - "Event tracking link"
+                                 *     - "Meta Pixel"
+                                 *     - "User tracking link"
+                                 */
+                                category_label: string;
+                                /**
+                                 * @description Human-readable name for this referal. ALWAYS use this when
+                                 *     rendering the referal to a user — NEVER show 'label' directly,
+                                 *     because for newsletter referals it's the newsletter id (an opaque
+                                 *     ObjectId). Resolution:
+                                 *     - newsletter referals  → newsletter_subject (or "(deleted newsletter)" when the newsletter was removed)
+                                 *     - facebook-pixel       → pixel_id (or label when pixel_id missing)
+                                 *     - event / user         → label
+                                 */
+                                display_name: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete Referal
+         * @description Permanently deletes a referal. View rows referencing it stay (revenue history is preserved).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Referal id, discoverable via list_referals */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                deleted: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/referals/{id}/views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Referal Activity
+         * @description Lists the View rows attached to one referal — link clicks (type="ref")
+         *     and ticket purchases (type="purchase"). Sorted newest first.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Narrow to one event */
+                    event_id?: string;
+                    /** @description Narrow to one view type */
+                    type?: "ref" | "purchase" | "view";
+                };
+                header?: never;
+                path: {
+                    /** @description Referal id, discoverable via list_referals */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                /**
+                                 * @description View row type.
+                                 *     - ref:      counted hit on a referal link
+                                 *     - view:     general event-page view (no ref_id)
+                                 *     - purchase: ticket purchase that came through this referal
+                                 * @enum {string}
+                                 */
+                                type: "ref" | "purchase" | "view";
+                                ref_id?: string;
+                                event_id?: string;
+                                hour: number;
+                                hashes?: string[];
+                                value?: number;
+                                tickets?: number;
+                                order_id?: string;
+                                createdAt: number;
+                                updatedAt: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
-  schemas: never
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
+    schemas: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-export type $defs = Record<string, never>
-export type operations = Record<string, never>
+export type $defs = Record<string, never>;
+export type operations = Record<string, never>;
