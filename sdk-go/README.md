@@ -214,6 +214,7 @@ sdk-go/
 ├── api_version.go      # pinned API version + path
 ├── client/             # aggregator: client.New(cfg) → *client.API
 ├── resources/events/   # events resource (client + types)
+├── resources/invoices/ # invoices resource (client + types)
 ├── filters/            # typed filter builder
 ├── pagination/         # generic Iter[T] auto-paginator
 ├── internal/core/      # HTTP transport (not user-importable)
@@ -228,15 +229,25 @@ Module path: `github.com/3-Common/sdk/sdk-go`. Major bumps follow the standard G
 
 ## Examples
 
-End-to-end runnable examples live under [`examples/events/`](./examples/events/):
+End-to-end runnable examples live under [`examples/`](./examples/):
 
 ```bash
+# Events
 go run ./examples/events/list
 go run ./examples/events/retrieve
 go run ./examples/events/update
 go run ./examples/events/auto_paginate
 go run ./examples/events/error_handling
 go run ./examples/events/filters
+
+# Invoices
+go run ./examples/invoices/list
+go run ./examples/invoices/retrieve
+go run ./examples/invoices/create
+go run ./examples/invoices/record_payment
+go run ./examples/invoices/void
+go run ./examples/invoices/auto_paginate
+go run ./examples/invoices/error_handling
 ```
 
 Replace `3co_your_api_key_here` and `evt_replace_with_real_id` with real values before running.
