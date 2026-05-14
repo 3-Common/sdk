@@ -19,6 +19,7 @@ from threecommon._core.retry import RetryPolicy
 from threecommon._core.telemetry import Telemetry
 from threecommon.config import RetryDelay, resolve_config
 from threecommon.events.service import AsyncEventsService, EventsService
+from threecommon.invoices.service import AsyncInvoicesService, InvoicesService
 
 if TYPE_CHECKING:  # pragma: no cover
     import logging
@@ -46,6 +47,9 @@ class ThreeCommon:
 
     events: EventsService
     """Events resource — ``GET /v1/events``, ``GET /v1/events/{id}``, ``PATCH /v1/events/{id}``."""
+
+    invoices: InvoicesService
+    """Invoices resource — list, retrieve, create, update, finalize, void, record_payment."""
 
     _http: HTTPClient
     _telemetry: Telemetry
@@ -88,6 +92,7 @@ class ThreeCommon:
             )
         )
         self.events = EventsService(self._http)
+        self.invoices = InvoicesService(self._http)
 
     def close(self) -> None:
         """Close the underlying httpx client (no-op if you supplied your own)."""
@@ -114,6 +119,7 @@ class AsyncThreeCommon:
     """Asynchronous entry point. Same surface as [ThreeCommon] with `await`-able methods."""
 
     events: AsyncEventsService
+    invoices: AsyncInvoicesService
 
     _http: AsyncHTTPClient
     _telemetry: Telemetry
@@ -156,6 +162,7 @@ class AsyncThreeCommon:
             )
         )
         self.events = AsyncEventsService(self._http)
+        self.invoices = AsyncInvoicesService(self._http)
 
     async def aclose(self) -> None:
         """Close the underlying async httpx client."""

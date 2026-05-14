@@ -186,9 +186,12 @@ sdk-python/
 │   │   └── auto_paginator.py   # Iter[T] + AsyncIter[T]
 │   ├── filters/                # typed filter builder (shared across resources)
 │   ├── events/                 # events resource (sync + async + Pydantic types)
+│   ├── invoices/               # invoices resource (sync + async + Pydantic types)
 │   ├── _core/                  # private HTTP machinery (decomposed)
 │   └── _generated/             # datamodel-code-generator output (re-run via `make gen`)
-├── examples/events/
+├── examples/
+│   ├── events/
+│   └── invoices/
 └── tests/
 ```
 
@@ -238,7 +241,7 @@ pytest -k "conformance"                             # match by name
 pytest -q                                           # quiet output
 ```
 
-The conformance harness (`tests/test_conformance.py`) parametrizes over the shared YAML scenarios at `../conformance/scenarios/*.yaml` and runs each one against both the sync and async clients (26 cases total).
+The conformance harness (`tests/test_conformance.py`) parametrizes over the shared YAML scenarios at `../conformance/scenarios/*.yaml` and runs each one against both the sync and async clients.
 
 ### Coverage
 
