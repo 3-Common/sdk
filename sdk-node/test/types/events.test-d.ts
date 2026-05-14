@@ -14,6 +14,7 @@ declare const client: ThreeCommon
 // list — accepts the documented params and returns a typed ListEventsResponse.
 expectType<Promise<ListEventsResponse>>(client.events.list({ status: 'open', pageSize: 50 }))
 expectAssignable<EventListParams>({ status: 'open' })
+// @ts-expect-error - invalid status.
 expectError<EventListParams>({ status: 'not-a-status' })
 
 // retrieve — id is a string; returns Event.
