@@ -1,0 +1,75 @@
+version: "2"
+
+run:
+  go: "1.22"
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - errcheck
+    - exhaustive
+    - forcetypeassert
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - nilerr
+    - noctx
+    - prealloc
+    - revive
+    - staticcheck
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+    revive:
+      rules:
+        - name: var-naming
+        - name: exported
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: package-comments
+        - name: receiver-naming
+        - name: indent-error-flow
+        - name: errorf
+        - name: range-val-in-closure
+    exhaustive:
+      default-signifies-exhaustive: false
+    gosec:
+      excludes:
+        - G404 # math/rand acceptable for jitter
+
+  exclusions:
+    paths:
+      - generated
+    rules:
+      - path: _test\.go$
+        linters:
+          - forcetypeassert
+          - gosec
+          - errcheck
+          - bodyclose
+          - noctx
+      - path: examples/
+        linters:
+          - forcetypeassert
+          - errcheck
+          - gosec
+
+formatters:
+  enable:
+    - gofumpt
+  exclusions:
+    paths:
+      - generated

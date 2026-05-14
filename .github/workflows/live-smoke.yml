@@ -62,5 +62,18 @@ jobs:
   smoke-go:
     needs: guard
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk-go
     steps:
-      - run: echo "Go smoke calls (placeholder)."
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+          cache-dependency-path: sdk-go/go.sum
+      - name: Live smoke
+        env:
+          THREECOMMON_API_KEY: ${{ secrets.THREECOMMON_API_KEY }}
+          THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
+          SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
+        run: go run ./scripts/livesmoke

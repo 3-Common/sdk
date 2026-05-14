@@ -1,0 +1,14 @@
+profile: coverage.out
+local-prefix: github.com/3-Common/sdk/sdk-go
+
+threshold:
+  file: 75
+  package: 80
+  total: 85
+
+exclude:
+  paths:
+    - _go123\.go$
+    - ^generated/
+    - ^examples/
+    - ^scripts/

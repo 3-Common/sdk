@@ -1,0 +1,16 @@
+# Build / test output
+coverage.out
+coverage.html
+dist/
+*.test
+*.out
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Local tooling
+/bin/

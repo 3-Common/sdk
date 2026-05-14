@@ -1,0 +1,50 @@
+// Package client is the recommended entry point for the SDK. [New] constructs
+// a [*API] that holds one connection-pooled HTTP backend shared by every
+// resource client.
+//
+//	api, err := client.New(threecommon.Config{APIKey: "..."})
+//	if err != nil { log.Fatal(err) }
+//
+//	result, err := api.Events.List(ctx, &events.ListParams{Status: events.StatusOpen})
+//
+// Customers who only need a single resource can also instantiate that
+// resource's client directly; the only difference is that
+// each direct constructor builds its own backend rather than sharing.
+package client
+
+import (
+	threecommon "github.com/3-Common/sdk/sdk-go"
+	"github.com/3-Common/sdk/sdk-go/internal/core"
+	"github.com/3-Common/sdk/sdk-go/resources/events"
+)
+
+// API aggregates every resource the SDK exposes. Construct one with [New];
+// the zero value is not usable.
+type API struct {
+	// Events is the events resource — GET /v1/events,
+	// GET /v1/events/{id}, PATCH /v1/events/{id}.
+	Events *events.Client
+
+	backend *core.Client
+}
+
+// New validates cfg, builds a single shared backend, and wires every
+// resource client to it. Returns a [*threecommon.ValidationError] when cfg is
+// missing required fields or has invalid values.
+func New(cfg threecommon.Config) (*API, error) {
+	backend, err := core.NewFromConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return &API{
+		Events:  events.FromBackend(backend),
+		backend: backend,
+	}, nil
+}
+
+// DisableTelemetry turns off opt-out client telemetry at runtime. The next
+// request and all subsequent ones omit the Threecommon-Client-Telemetry
+// header.
+func (a *API) DisableTelemetry() {
+	core.TelemetryFromClient(a.backend).Disable()
+}

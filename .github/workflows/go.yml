@@ -1,0 +1,118 @@
+name: Go SDK
+
+on:
+  pull_request:
+    paths:
+      - "sdk-go/**"
+      - "openapi/**"
+      - "conformance/**"
+      - ".github/workflows/go.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "sdk-go/**"
+      - "openapi/**"
+      - "conformance/**"
+      - ".github/workflows/go.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: go-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: sdk-go
+
+jobs:
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+          cache-dependency-path: sdk-go/go.sum
+      - run: go vet ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+          cache-dependency-path: sdk-go/go.sum
+      - uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.12.1
+          working-directory: sdk-go
+          args: --timeout=5m
+
+  unit:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ["1.22", "1.23", "stable"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go }}
+          cache-dependency-path: sdk-go/go.sum
+      - run: go test -race -count=1 ./...
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+          cache-dependency-path: sdk-go/go.sum
+      - name: Run tests with coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+      - name: Enforce coverage threshold
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          config: sdk-go/.testcoverage.yml
+          profile: sdk-go/coverage.out
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+          cache-dependency-path: sdk-go/go.sum
+      - run: go build ./...
+      - name: Verify examples compile
+        run: go build ./examples/...
+
+  # Secret scanning. Run from the repo root so the whole monorepo is scanned
+  # (not just sdk-go/), and so the downloaded binary + the scan command share
+  # a working directory. Using the gitleaks CLI directly avoids the paid
+  # org-license requirement on the GitHub Action.
+  gitleaks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          chmod +x gitleaks
+          ./gitleaks version
+      - name: Scan
+        run: ./gitleaks detect --source . --no-banner --redact
