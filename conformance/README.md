@@ -1,8 +1,29 @@
 # Conformance scenarios
 
-Cross-language behavioral tests that every SDK must pass identically. Each YAML file in [`scenarios/`](./scenarios) describes one SDK call: the inputs, the expected wire-level request(s), the mock response(s), and the expected return value or thrown error. Each language's test harness loads every file and asserts.
+Cross-language behavioral tests that every SDK must pass identically. Each YAML file in [`scenarios/`](./scenarios) describes one SDK call: the inputs, the expected wire-level request(s), the mock response(s), and the expected return value or thrown error. Each language's test harness walks the directory recursively and asserts on every file.
 
 If the Node SDK lowercases a header and the Go SDK doesn't, the YAML scenario fails on whichever SDK diverged. This is how we keep three SDKs aligned.
+
+## Directory layout
+
+Scenarios are grouped by resource so the set can grow without becoming a flat dump:
+
+```
+scenarios/
+├── events/      # call.resource: events
+│   ├── list-happy.yaml
+│   ├── retrieve-happy.yaml
+│   ├── error-401-unauthorized.yaml
+│   └── …
+└── invoices/    # call.resource: invoices
+    ├── list-happy.yaml
+    ├── create-happy.yaml
+    ├── finalize-happy.yaml
+    ├── error-409-finalize-conflict.yaml
+    └── …
+```
+
+When you add a new resource (`subscriptions/`, `quotes/`, …), create a sibling subdirectory. The harnesses pick it up automatically — no runner changes needed unless the new resource introduces a method shape the dispatcher doesn't already handle.
 
 ## Scenario schema
 

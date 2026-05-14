@@ -1,0 +1,31 @@
+name: void invoice — happy path
+call:
+  resource: invoices
+  method: void
+  args:
+    id: inv_123
+    body:
+      reason: Sent in error
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_123/void
+  body:
+    reason: Sent in error
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: inv_123
+      hostId: hst_1
+      customerId: cnt_42
+      currency: USD
+      status: void
+      total: 50000
+      amountDue: 50000
+      amountPaid: 0
+expectedResult:
+  id: inv_123
+  status: void

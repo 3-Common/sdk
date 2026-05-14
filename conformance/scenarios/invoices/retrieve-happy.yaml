@@ -1,0 +1,33 @@
+name: retrieve invoice — happy path
+call:
+  resource: invoices
+  method: retrieve
+  args:
+    id: inv_123
+    params:
+      fields: id,status,total
+expectedRequest:
+  method: GET
+  path: /v1/invoices/inv_123
+  query:
+    fields: id,status,total
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-inv-retrieve-001
+  body:
+    data:
+      id: inv_123
+      hostId: hst_1
+      customerId: cnt_42
+      currency: USD
+      status: draft
+      total: 50000
+      amountDue: 50000
+      amountPaid: 0
+expectedResult:
+  id: inv_123
+  status: draft
+  total: 50000

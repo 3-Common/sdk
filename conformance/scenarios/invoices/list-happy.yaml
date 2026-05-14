@@ -1,0 +1,36 @@
+name: list invoices — happy path
+call:
+  resource: invoices
+  method: list
+  args:
+    status: open
+    pageSize: 10
+expectedRequest:
+  method: GET
+  path: /v1/invoices
+  query:
+    status: open
+    pageSize: '10'
+  headers:
+    authorization: 'Bearer 3co_test'
+    threecommon-version: '2026-04-29'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-inv-list-001
+  body:
+    data:
+      - id: inv_a
+        hostId: hst_1
+        customerId: cnt_42
+        currency: USD
+        status: open
+        total: 50000
+        amountDue: 50000
+        amountPaid: 0
+    hasMore: false
+expectedResult:
+  data:
+    - id: inv_a
+      status: open
+  hasMore: false
