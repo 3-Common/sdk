@@ -11,6 +11,18 @@ import * as Errors from '@/errors'
 
 import { setupMockServer, TEST_BASE_URL } from '../helpers/mock-server'
 
+import { dispatchEvents } from './dispatch-events'
+import { dispatchInvoices } from './dispatch-invoices'
+
+import type {
+  ClientOverrides,
+  ExpectedError,
+  ExpectedRequest,
+  MockResponse,
+  Scenario,
+  ScenarioCall,
+} from './scenario'
+
 const SCENARIOS_DIR = resolve(
   fileURLToPath(import.meta.url),
   '..',
@@ -21,60 +33,28 @@ const SCENARIOS_DIR = resolve(
   'scenarios',
 )
 
-type ExpectedHeaders = Readonly<Record<string, string>>
-
-interface ExpectedRequest {
-  readonly method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
-  readonly path: string
-  readonly query?: Record<string, string>
-  readonly headers?: ExpectedHeaders
-  readonly headersAbsent?: readonly string[]
-  readonly body?: Record<string, unknown> | null
-}
-
-interface MockResponse {
-  readonly status: number
-  readonly headers?: Record<string, string>
-  readonly body?: unknown
-}
-
-interface ExpectedError {
-  readonly type: keyof typeof Errors
-  readonly code: string
-  readonly httpStatus?: number
-  readonly requestId?: string
-  readonly retryAfterSeconds?: number
-  readonly details?: Record<string, unknown>
-}
-
-interface ClientOverrides {
-  readonly apiVersion?: string
-  readonly telemetry?: boolean
-  readonly maxRetries?: number
-}
-
-interface Scenario {
-  readonly name: string
-  readonly call: {
-    readonly resource: 'events'
-    readonly method: 'list' | 'retrieve' | 'update' | 'listAutoPaginate'
-    readonly args: Record<string, unknown>
-  }
-  readonly client?: ClientOverrides
-  readonly expectedRequest?: ExpectedRequest
-  readonly mockResponse?: MockResponse
-  readonly exchanges?: readonly { request: ExpectedRequest; response: MockResponse }[]
-  readonly expectedResult?: unknown
-  readonly expectedAutoPaginated?: readonly Record<string, unknown>[]
-  readonly expectedError?: ExpectedError
-  readonly expectedCallCount?: number
-}
-
 async function loadScenarios(): Promise<readonly { file: string; scenario: Scenario }[]> {
-  const files = (await readdir(SCENARIOS_DIR)).filter((f) => f.endsWith('.yaml')).sort()
+  const files: string[] = []
+  const walk = async (dir: string): Promise<void> => {
+    const entries = await readdir(dir, { withFileTypes: true })
+    for (const entry of entries) {
+      const full = resolve(dir, entry.name)
+      if (entry.isDirectory()) {
+        await walk(full)
+      } else if (entry.name.endsWith('.yaml')) {
+        files.push(full)
+      }
+    }
+  }
+  await walk(SCENARIOS_DIR)
+  files.sort()
+
   const scenarios = await Promise.all(
-    files.map(async (file) => {
-      const text = await readFile(resolve(SCENARIOS_DIR, file), 'utf-8')
+    files.map(async (full) => {
+      const text = await readFile(full, 'utf-8')
+      // Relative path (e.g. "events/list-happy.yaml") makes it obvious which
+      // resource the scenario targets when scrolling test output.
+      const file = full.slice(SCENARIOS_DIR.length + 1)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const scenario: any = yaml.load(text)
       return { file, scenario: scenario as Scenario }
@@ -96,29 +76,20 @@ function buildClient(overrides: ClientOverrides = {}): ThreeCommon {
   })
 }
 
+// dispatchCall routes a scenario call to its per-resource dispatcher.
+// Each resource lives in its own file (e.g. dispatch-events.ts,
+// dispatch-invoices.ts); add a sibling case here when introducing a new
+// resource.
 function dispatchCall(
   client: ThreeCommon,
-  call: Scenario['call'],
+  call: ScenarioCall,
 ): Promise<unknown> | AsyncIterableIterator<unknown> {
-  const args = call.args
-  switch (call.method) {
-    case 'list':
-      return client.events.list(args)
-    case 'retrieve': {
-      const id = args['id']
-      if (typeof id !== 'string') throw new Error('retrieve requires args.id (string)')
-      const params = args['params'] as Record<string, string> | undefined
-      return client.events.retrieve(id, params)
-    }
-    case 'update': {
-      const id = args['id']
-      if (typeof id !== 'string') throw new Error('update requires args.id (string)')
-      const body = args['body'] as Record<string, unknown> | undefined
-      if (body === undefined) throw new Error('update requires args.body')
-      return client.events.update(id, body)
-    }
-    case 'listAutoPaginate':
-      return client.events.listAutoPaginate(args)
+  const resource = call.resource ?? 'events'
+  switch (resource) {
+    case 'events':
+      return dispatchEvents(client, call)
+    case 'invoices':
+      return dispatchInvoices(client, call)
   }
 }
 

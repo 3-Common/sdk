@@ -17,6 +17,23 @@ export type {
   ListEventsResponse,
 } from './resources/events'
 
+// Invoices resource (types only — instances live on the client).
+export type {
+  Invoice,
+  InvoiceCreateBody,
+  InvoiceCurrency,
+  InvoiceLineItem,
+  InvoiceListParams,
+  InvoicePayment,
+  InvoicePaymentBody,
+  InvoiceRetrieveParams,
+  InvoiceStatus,
+  InvoiceUpdateBody,
+  InvoiceVoidBody,
+  InvoicesService,
+  ListInvoicesResponse,
+} from './resources/invoices'
+
 // Filters — typed builder shared by every resource that accepts `filters`.
 export { filter, and, combine, field, or } from './filters'
 export type {

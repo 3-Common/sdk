@@ -6,12 +6,13 @@
 // across languages:
 //
 //   - threecommon (this package) — Config, typed errors, helpers, version constants
-//   - [github.com/3-Common/sdk/sdk-go/client]            — recommended entry point: [client.New] returns a *client.API
-//   - [github.com/3-Common/sdk/sdk-go/resources/events]  — events resource (client + types)
-//   - [github.com/3-Common/sdk/sdk-go/filters]           — typed builder for the API's filters query parameter
-//   - [github.com/3-Common/sdk/sdk-go/pagination]        — generic Iter[T] used by every list endpoint
-//   - [github.com/3-Common/sdk/sdk-go/internal/core]     — HTTP transport machinery (not user-importable)
-//   - [github.com/3-Common/sdk/sdk-go/generated]         — oapi-codegen output from ../openapi/spec.yaml
+//   - [github.com/3-Common/sdk/sdk-go/client]             — recommended entry point: [client.New] returns a *client.API
+//   - [github.com/3-Common/sdk/sdk-go/resources/events]   — events resource (client + types)
+//   - [github.com/3-Common/sdk/sdk-go/resources/invoices] — invoices resource (client + types)
+//   - [github.com/3-Common/sdk/sdk-go/filters]            — typed builder for the API's filters query parameter
+//   - [github.com/3-Common/sdk/sdk-go/pagination]         — generic Iter[T] used by every list endpoint
+//   - [github.com/3-Common/sdk/sdk-go/internal/core]      — HTTP transport machinery (not user-importable)
+//   - [github.com/3-Common/sdk/sdk-go/generated]          — oapi-codegen output from ../openapi/spec.yaml
 //
 // # File map of this package
 //

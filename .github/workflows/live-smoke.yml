@@ -2,7 +2,7 @@
 #
 # - Triggered manually (workflow_dispatch) or by the `live-smoke` label on a PR.
 # - Reads secrets.THREECOMMON_API_KEY (set ONLY in the upstream repo, never on forks).
-# - Runs <= 10 calls per SDK: happy path + four common error paths (401, 403, 404, 429).
+# - Runs <= 10 calls per SDK: happy paths across events + invoices plus the common error paths (401, 404).
 
 name: Live smoke (maintainer-only)
 
@@ -51,6 +51,7 @@ jobs:
           THREECOMMON_API_KEY: ${{ secrets.THREECOMMON_API_KEY }}
           THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
           SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
+          SMOKE_INVOICE_ID: ${{ vars.SMOKE_INVOICE_ID }}
         run: yarn smoke
 
   smoke-python:
@@ -73,6 +74,7 @@ jobs:
           THREECOMMON_API_KEY: ${{ secrets.THREECOMMON_API_KEY }}
           THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
           SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
+          SMOKE_INVOICE_ID: ${{ vars.SMOKE_INVOICE_ID }}
         run: python scripts/livesmoke.py
 
   smoke-go:
@@ -92,4 +94,5 @@ jobs:
           THREECOMMON_API_KEY: ${{ secrets.THREECOMMON_API_KEY }}
           THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
           SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
+          SMOKE_INVOICE_ID: ${{ vars.SMOKE_INVOICE_ID }}
         run: go run ./scripts/livesmoke

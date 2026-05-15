@@ -1,17 +1,20 @@
 // Pre-release smoke test against the live API.
 //
-// Runs <= 10 calls and verifies the happy path + the four common error paths.
-// Used by .github/workflows/live-smoke.yml (maintainer-only).
+// Runs <= 10 calls and verifies the happy path + the common error paths
+// across the events and invoices resources. Used by
+// .github/workflows/live-smoke.yml (maintainer-only).
 //
 // Required env:
 //
-//	THREECOMMON_API_KEY   — a real API key
+//	THREECOMMON_API_KEY    — a real API key
 //
 // Optional env:
 //
-//	THREECOMMON_BASE_URL  — defaults to https://api.3common.com
-//	SMOKE_EVENT_ID        — an event ID known to belong to the API-key host;
-//	                        required for retrieve / 403 / 422 checks
+//	THREECOMMON_BASE_URL   — defaults to https://api.3common.com
+//	SMOKE_EVENT_ID         — an event ID owned by the API-key host; if set,
+//	                         exercises the events.Retrieve happy path
+//	SMOKE_INVOICE_ID       — an invoice ID owned by the API-key host; if set,
+//	                         exercises the invoices.Retrieve happy path
 //
 // Run with: go run ./scripts/livesmoke
 package main
@@ -25,7 +28,14 @@ import (
 	threecommon "github.com/3-Common/sdk/sdk-go"
 	"github.com/3-Common/sdk/sdk-go/client"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
+	"github.com/3-Common/sdk/sdk-go/resources/invoices"
 )
+
+// missingObjectID is a syntactically valid 24-hex ObjectId that will not
+// match any real record. The API rejects non-ObjectId strings with a 400
+// before reaching the not-found path, so this must look well-formed to test
+// 404s.
+const missingObjectID = "000000000000000000000000"
 
 type result struct {
 	check  string
@@ -45,6 +55,7 @@ func main() {
 		baseURL = "https://api.3common.com"
 	}
 	knownEventID := os.Getenv("SMOKE_EVENT_ID")
+	knownInvoiceID := os.Getenv("SMOKE_INVOICE_ID")
 
 	off := false
 	api, err := client.New(threecommon.Config{
@@ -59,9 +70,9 @@ func main() {
 
 	results := []result{}
 	ctx := context.Background()
+	pageSize := 1
 
 	// 1. List events.
-	pageSize := 1
 	if r, listErr := api.Events.List(ctx, &events.ListParams{PageSize: &pageSize}); listErr == nil {
 		results = append(results, result{
 			check:  "events.List",
@@ -94,23 +105,61 @@ func main() {
 		results = append(results, result{check: "events.Retrieve", status: "skip", detail: "SMOKE_EVENT_ID not set"})
 	}
 
-	// 4. 404 path — random ID that should not exist.
-	if _, missErr := api.Events.Retrieve(ctx, "000000000000000000000000", nil); missErr != nil {
+	// 4. 404 path on events — well-formed ID that does not exist.
+	if _, missErr := api.Events.Retrieve(ctx, missingObjectID, nil); missErr != nil {
 		var nf *threecommon.NotFoundError
 		if errors.As(missErr, &nf) {
 			results = append(results, result{
-				check:  "404 path",
+				check:  "events 404 path",
 				status: "pass",
 				detail: fmt.Sprintf("code=%s requestId=%s", nf.Code, nf.RequestID),
 			})
 		} else {
-			results = append(results, result{check: "404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+			results = append(results, result{check: "events 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
 		}
 	} else {
-		results = append(results, result{check: "404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+		results = append(results, result{check: "events 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
 	}
 
-	// 5. 401 path — wrong API key.
+	// 5. List invoices.
+	if r, listErr := api.Invoices.List(ctx, &invoices.ListParams{PageSize: &pageSize}); listErr == nil {
+		results = append(results, result{
+			check:  "invoices.List",
+			status: "pass",
+			detail: fmt.Sprintf("data.len=%d hasMore=%v", len(r.Data), r.HasMore),
+		})
+	} else {
+		results = append(results, result{check: "invoices.List", status: "fail", detail: errMsg(listErr)})
+	}
+
+	// 6. Retrieve a known invoice (if configured).
+	if knownInvoiceID != "" {
+		if inv, retrieveErr := api.Invoices.Retrieve(ctx, knownInvoiceID, nil); retrieveErr == nil {
+			results = append(results, result{check: "invoices.Retrieve", status: "pass", detail: "id=" + inv.ID})
+		} else {
+			results = append(results, result{check: "invoices.Retrieve", status: "fail", detail: errMsg(retrieveErr)})
+		}
+	} else {
+		results = append(results, result{check: "invoices.Retrieve", status: "skip", detail: "SMOKE_INVOICE_ID not set"})
+	}
+
+	// 7. 404 path on invoices.
+	if _, missErr := api.Invoices.Retrieve(ctx, missingObjectID, nil); missErr != nil {
+		var nf *threecommon.NotFoundError
+		if errors.As(missErr, &nf) {
+			results = append(results, result{
+				check:  "invoices 404 path",
+				status: "pass",
+				detail: fmt.Sprintf("code=%s requestId=%s", nf.Code, nf.RequestID),
+			})
+		} else {
+			results = append(results, result{check: "invoices 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+		}
+	} else {
+		results = append(results, result{check: "invoices 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+	}
+
+	// 8. 401 path — wrong API key.
 	zero := 0
 	//nolint:gosec // G101: deliberate fake to test the 401 path; not a real credential.
 	const fakeKey = "3co_smoke_test_invalid_key" //gitleaks:allow

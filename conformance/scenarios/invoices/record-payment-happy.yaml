@@ -1,0 +1,35 @@
+name: record invoice payment — happy path
+call:
+  resource: invoices
+  method: recordPayment
+  args:
+    id: inv_123
+    body:
+      payment: 50000
+      idempotencyKey: pmt-2026-05-11
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_123/payments
+  body:
+    payment: 50000
+    idempotencyKey: pmt-2026-05-11
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: inv_123
+      hostId: hst_1
+      customerId: cnt_42
+      currency: USD
+      status: paid
+      total: 50000
+      amountDue: 0
+      amountPaid: 50000
+expectedResult:
+  id: inv_123
+  status: paid
+  amountDue: 0
+  amountPaid: 50000

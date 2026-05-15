@@ -1,0 +1,28 @@
+name: 409 Conflict — finalize already-finalized invoice
+call:
+  resource: invoices
+  method: finalize
+  args:
+    id: inv_already_open
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_already_open/finalize
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-inv-409-001
+  body:
+    error:
+      code: invoice_already_finalized
+      message: Invoice inv_already_open is already open and cannot be finalized again
+      details:
+        currentStatus: open
+expectedError:
+  type: ThreeCommonConflictError
+  code: invoice_already_finalized
+  httpStatus: 409
+  requestId: req-inv-409-001
+  details:
+    currentStatus: open

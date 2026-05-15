@@ -1,0 +1,37 @@
+name: 422 Validation — create invoice with empty line items
+call:
+  resource: invoices
+  method: create
+  args:
+    body:
+      customerId: cnt_42
+      currency: USD
+      lineItems: []
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices
+  body:
+    customerId: cnt_42
+    currency: USD
+    lineItems: []
+mockResponse:
+  status: 422
+  headers:
+    x-request-id: req-inv-422-001
+  body:
+    error:
+      code: validation_failed
+      message: At least one line item is required
+      details:
+        field: lineItems
+        rule: min_items
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_failed
+  httpStatus: 422
+  requestId: req-inv-422-001
+  details:
+    field: lineItems
+    rule: min_items

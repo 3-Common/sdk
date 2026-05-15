@@ -16,6 +16,7 @@ import (
 	threecommon "github.com/3-Common/sdk/sdk-go"
 	"github.com/3-Common/sdk/sdk-go/internal/core"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
+	"github.com/3-Common/sdk/sdk-go/resources/invoices"
 )
 
 // API aggregates every resource the SDK exposes. Construct one with [New];
@@ -24,6 +25,10 @@ type API struct {
 	// Events is the events resource — GET /v1/events,
 	// GET /v1/events/{id}, PATCH /v1/events/{id}.
 	Events *events.Client
+
+	// Invoices is the invoices resource — List, Retrieve, Create, Update,
+	// Finalize, Void, RecordPayment.
+	Invoices *invoices.Client
 
 	backend *core.Client
 }
@@ -37,8 +42,9 @@ func New(cfg threecommon.Config) (*API, error) {
 		return nil, err
 	}
 	return &API{
-		Events:  events.FromBackend(backend),
-		backend: backend,
+		Events:   events.FromBackend(backend),
+		Invoices: invoices.FromBackend(backend),
+		backend:  backend,
 	}, nil
 }
 

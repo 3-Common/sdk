@@ -1,15 +1,17 @@
-package threecommon_test
-
-// Conformance harness — runs the shared YAML scenarios at
-// ../conformance/scenarios/*.yaml against the Go SDK. Every other SDK in this
-// monorepo runs the same scenarios; identical pass/fail across languages is
-// the contract.
+// Package conformance runs the shared YAML scenarios at
+// ../../conformance/scenarios/**/*.yaml against the Go SDK. Every other SDK in
+// this monorepo runs the same scenarios; identical pass/fail across languages
+// is the contract. Each resource has its own dispatcher file
+// (dispatch_events_test.go, dispatch_invoices_test.go); add a sibling when
+// introducing a new resource.
+package conformance
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -24,7 +26,6 @@ import (
 
 	threecommon "github.com/3-Common/sdk/sdk-go"
 	"github.com/3-Common/sdk/sdk-go/client"
-	"github.com/3-Common/sdk/sdk-go/resources/events"
 )
 
 type scenario struct {
@@ -79,12 +80,14 @@ type expectedError struct {
 func TestConformance(t *testing.T) {
 	t.Parallel()
 
-	scenarios, err := loadScenarios("../conformance/scenarios")
+	scenarios, err := loadScenarios("../../conformance/scenarios")
 	require.NoError(t, err)
 	require.NotEmpty(t, scenarios, "no conformance scenarios found")
 
 	for _, sc := range scenarios {
-		t.Run(filepath.Base(sc.path), func(t *testing.T) {
+		// sc.path is "events/list-happy.yaml" — keeps the resource visible
+		// when reading test output.
+		t.Run(sc.path, func(t *testing.T) {
 			t.Parallel()
 			runScenario(t, sc.scn)
 		})
@@ -97,24 +100,33 @@ type loadedScenario struct {
 }
 
 func loadScenarios(dir string) ([]loadedScenario, error) {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
 	var out []loadedScenario
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".yaml") {
-			continue
-		}
-		bytes, err := os.ReadFile(filepath.Join(dir, e.Name()))
+	walkErr := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return nil, fmt.Errorf("read %s: %w", e.Name(), err)
+			return err
+		}
+		if d.IsDir() || !strings.HasSuffix(d.Name(), ".yaml") {
+			return nil
+		}
+		bytes, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("read %s: %w", path, err)
 		}
 		var sc scenario
 		if err := yaml.Unmarshal(bytes, &sc); err != nil {
-			return nil, fmt.Errorf("parse %s: %w", e.Name(), err)
+			return fmt.Errorf("parse %s: %w", path, err)
 		}
-		out = append(out, loadedScenario{path: e.Name(), scn: sc})
+		// Relative path (e.g. "events/list-happy.yaml") keeps the resource
+		// visible in the t.Run subtest name.
+		rel, relErr := filepath.Rel(dir, path)
+		if relErr != nil {
+			rel = path
+		}
+		out = append(out, loadedScenario{path: rel, scn: sc})
+		return nil
+	})
+	if walkErr != nil {
+		return nil, walkErr
 	}
 	return out, nil
 }
@@ -180,79 +192,27 @@ func runScenario(t *testing.T, sc scenario) {
 	}
 }
 
+// dispatch routes a scenario call to the appropriate resource dispatcher.
+// Each resource lives in its own file (e.g. dispatch_events_test.go,
+// dispatch_invoices_test.go); add a sibling case here when introducing a new
+// resource.
 func dispatch(t *testing.T, api *client.API, sc scenario) (any, error) {
 	t.Helper()
 	ctx := context.Background()
 
-	switch sc.Call.Method {
-	case "list":
-		params := buildListParams(sc.Call.Args)
-		return api.Events.List(ctx, params)
-	case "retrieve":
-		id, _ := sc.Call.Args["id"].(string)
-		var rp *events.RetrieveParams
-		if raw, ok := sc.Call.Args["params"].(map[string]any); ok {
-			rp = &events.RetrieveParams{}
-			if f, ok := raw["fields"].(string); ok {
-				rp.Fields = f
-			}
-		}
-		return api.Events.Retrieve(ctx, id, rp)
-	case "update":
-		id, _ := sc.Call.Args["id"].(string)
-		body, _ := sc.Call.Args["body"].(map[string]any)
-		return api.Events.Update(ctx, id, buildUpdateParams(body))
-	case "listAutoPaginate":
-		params := buildListParams(sc.Call.Args)
-		iter := api.Events.ListAutoPaginate(ctx, params)
-		var collected []events.Event
-		for iter.Next() {
-			collected = append(collected, iter.Current())
-		}
-		return collected, iter.Err()
+	resource := sc.Call.Resource
+	if resource == "" {
+		resource = "events"
 	}
-	t.Fatalf("unsupported scenario method %q", sc.Call.Method)
+
+	switch resource {
+	case "events":
+		return dispatchEvents(t, api, ctx, sc)
+	case "invoices":
+		return dispatchInvoices(t, api, ctx, sc)
+	}
+	t.Fatalf("unsupported scenario resource %q", resource)
 	return nil, nil
-}
-
-func buildListParams(args map[string]any) *events.ListParams {
-	if len(args) == 0 {
-		return nil
-	}
-	p := &events.ListParams{}
-	for k, v := range args {
-		switch k {
-		case "status":
-			if s, ok := v.(string); ok {
-				p.Status = events.Status(s)
-			}
-		case "pageSize":
-			p.PageSize = anyToIntPtr(v)
-		case "page":
-			p.Page = anyToIntPtr(v)
-		case "search":
-			if s, ok := v.(string); ok {
-				p.Search = s
-			}
-		case "fields":
-			if s, ok := v.(string); ok {
-				p.Fields = s
-			}
-		case "filters":
-			if s, ok := v.(string); ok {
-				p.Filters = s
-			}
-		}
-	}
-	return p
-}
-
-func buildUpdateParams(body map[string]any) *events.UpdateParams {
-	p := &events.UpdateParams{}
-	if name, ok := body["name"].(string); ok {
-		p.Name = threecommon.String(name)
-	}
-	return p
 }
 
 func anyToIntPtr(v any) *int {
