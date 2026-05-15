@@ -14,6 +14,7 @@ import pytest
 import yaml
 from pytest_httpx import HTTPXMock
 
+from _conformance import dispatch_events, dispatch_invoices
 from threecommon import (
     APIError,
     AsyncThreeCommon,
@@ -26,7 +27,6 @@ from threecommon import (
     ThreeCommon,
     ValidationError,
 )
-from threecommon.events import ListParams, RetrieveParams, UpdateBody
 
 SCENARIOS_DIR = Path(__file__).resolve().parents[2] / "conformance" / "scenarios"
 
@@ -43,9 +43,12 @@ def _load_scenarios() -> list[_Scenario]:
         msg = f"conformance scenarios dir not found: {SCENARIOS_DIR}"
         raise FileNotFoundError(msg)
     out: list[_Scenario] = []
-    for p in sorted(SCENARIOS_DIR.glob("*.yaml")):
+    for p in sorted(SCENARIOS_DIR.rglob("*.yaml")):
+        # Relative path (e.g. "events/list-happy.yaml") makes it obvious which
+        # resource the scenario targets when scrolling test output.
+        rel = p.relative_to(SCENARIOS_DIR).as_posix()
         raw = yaml.safe_load(p.read_text())
-        out.append(_Scenario(path=p.name, name=raw.get("name", p.name), raw=raw))
+        out.append(_Scenario(path=rel, name=raw.get("name", rel), raw=raw))
     return out
 
 
@@ -123,41 +126,20 @@ def _assert_request(want: dict[str, Any], actual_requests: list[Any], idx: int) 
         )
 
 
-def _build_list_params(args: dict[str, Any]) -> ListParams | None:
-    if not args:
-        return None
-    payload: dict[str, Any] = {}
-    for key in ("status", "page", "page_size", "search", "fields", "filters"):
-        # Accept both snake_case and camelCase as the YAML uses both.
-        for src in (key, _camel(key)):
-            if src in args:
-                payload[key] = args[src]
-                break
-    if "pageSize" in args and "page_size" not in payload:
-        payload["page_size"] = args["pageSize"]
-    return ListParams.model_validate(payload) if payload else None
-
-
-def _camel(s: str) -> str:
-    parts = s.split("_")
-    return parts[0] + "".join(p.title() for p in parts[1:])
-
-
 def _dispatch_sync(client: ThreeCommon, call: dict[str, Any]) -> Any:  # noqa: ANN401
+    """Route a scenario call to the per-resource sync dispatcher.
+
+    Each resource lives in its own module under ``tests/_conformance/``; add a
+    sibling branch here when introducing a new resource.
+    """
+    resource = call.get("resource", "events")
     method = call["method"]
     args = call.get("args", {}) or {}
-    if method == "list":
-        return client.events.list(_build_list_params(args))
-    if method == "retrieve":
-        params_raw = args.get("params")
-        params = RetrieveParams(fields=params_raw["fields"]) if params_raw else None
-        return client.events.retrieve(args["id"], params)
-    if method == "update":
-        body_raw = args.get("body", {}) or {}
-        return client.events.update(args["id"], UpdateBody(**body_raw))
-    if method == "listAutoPaginate":
-        return list(client.events.list_auto_paginate(_build_list_params(args)))
-    pytest.fail(f"unsupported method: {method}")
+    if resource == "events":
+        return dispatch_events.dispatch_sync(client, method, args)
+    if resource == "invoices":
+        return dispatch_invoices.dispatch_sync(client, method, args)
+    pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 
 def _assert_subset(want: Any, got: Any, prefix: str) -> None:  # noqa: ANN401
@@ -258,28 +240,19 @@ def test_conformance_sync(scenario: _Scenario, httpx_mock: HTTPXMock) -> None:
 # ────────────────────────────────────────────────────────────────────────────
 
 
-_ASYNC_SCENARIOS = [
-    s
-    for s in SCENARIOS
-    if s.raw.get("call", {}).get("method") in {"list", "retrieve", "update", "listAutoPaginate"}
-]
+_ASYNC_SCENARIOS = SCENARIOS
 
 
 async def _dispatch_async(client: AsyncThreeCommon, call: dict[str, Any]) -> Any:  # noqa: ANN401
+    """Route a scenario call to the per-resource async dispatcher."""
+    resource = call.get("resource", "events")
     method = call["method"]
     args = call.get("args", {}) or {}
-    if method == "list":
-        return await client.events.list(_build_list_params(args))
-    if method == "retrieve":
-        params_raw = args.get("params")
-        params = RetrieveParams(fields=params_raw["fields"]) if params_raw else None
-        return await client.events.retrieve(args["id"], params)
-    if method == "update":
-        body_raw = args.get("body", {}) or {}
-        return await client.events.update(args["id"], UpdateBody(**body_raw))
-    if method == "listAutoPaginate":
-        return [ev async for ev in client.events.list_auto_paginate(_build_list_params(args))]
-    pytest.fail(f"unsupported method: {method}")
+    if resource == "events":
+        return await dispatch_events.dispatch_async(client, method, args)
+    if resource == "invoices":
+        return await dispatch_invoices.dispatch_async(client, method, args)
+    pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 
 @pytest.mark.parametrize("scenario", _ASYNC_SCENARIOS, ids=lambda s: f"async-{s.path}")
