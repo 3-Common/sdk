@@ -10,7 +10,7 @@ Include:
 
 - A description of the issue and its potential impact.
 - Steps to reproduce, or a proof-of-concept.
-- Affected SDK(s) and version(s) (`@3-common/sdk`, `threecommon`, or `github.com/3-Common/sdk/sdk-go`).
+- Affected SDK(s) and version(s) (`@3common/sdk`, `threecommon`, or `github.com/3-Common/sdk/sdk-go`).
 - Your contact info if you would like credit in the advisory.
 
 We aim to acknowledge reports within **2 business days** and to issue a fix or mitigation within **30 days** for confirmed vulnerabilities. Critical issues are prioritized.

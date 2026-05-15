@@ -11,7 +11,7 @@ import {
   ThreeCommonAuthError,
   ThreeCommonNotFoundError,
   ThreeCommonRateLimitError,
-} from '@3-common/sdk'
+} from '@3common/sdk'
 
 const client = new ThreeCommon({
   apiKey: '3co_your_api_key_here',

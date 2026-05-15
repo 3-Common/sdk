@@ -6,7 +6,7 @@
  *   npx tsx examples/events/custom-fetch.ts
  */
 
-import { ThreeCommon } from '@3-common/sdk'
+import { ThreeCommon } from '@3common/sdk'
 
 const loggingFetch: typeof fetch = async (input, init) => {
   const url = typeof input === 'string' || input instanceof URL ? String(input) : input.url

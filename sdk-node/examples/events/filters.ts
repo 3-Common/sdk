@@ -7,7 +7,7 @@
  *   npx tsx examples/events/filters.ts
  */
 
-import { filter, ThreeCommon } from '@3-common/sdk'
+import { filter, ThreeCommon } from '@3common/sdk'
 
 const client = new ThreeCommon({
   apiKey: '3co_your_api_key_here',

@@ -30,7 +30,7 @@
 
     "baseUrl": ".",
     "paths": {
-      "@3-common/sdk": ["./src/index.ts"],
+      "@3common/sdk": ["./src/index.ts"],
       "@/*": ["./src/*"]
     }
   },

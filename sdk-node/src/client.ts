@@ -13,7 +13,7 @@ import type { ClientConfig } from '@/types/public'
  *
  * @example
  * ```ts
- * import { ThreeCommon } from '@3-common/sdk'
+ * import { ThreeCommon } from '@3common/sdk'
  *
  * const client = new ThreeCommon({ apiKey: process.env.THREECOMMON_API_KEY })
  * const { data, hasMore } = await client.events.list({ status: 'open' })

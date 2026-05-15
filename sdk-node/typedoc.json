@@ -3,7 +3,7 @@
   "entryPoints": ["src/index.ts"],
   "tsconfig": "tsconfig.build.json",
   "out": "docs/api",
-  "name": "@3-common/sdk",
+  "name": "@3common/sdk",
   "includeVersion": true,
   "excludeInternal": true,
   "excludePrivate": true,
