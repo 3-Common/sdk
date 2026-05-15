@@ -14,7 +14,7 @@ body:
     attributes:
       label: Affected SDK
       options:
-        - Node.js (@3-common/sdk)
+        - Node.js (@3common/sdk)
         - Python (threecommon)
         - Go (github.com/3-Common/sdk/sdk-go)
         - Cross-SDK / repo infrastructure

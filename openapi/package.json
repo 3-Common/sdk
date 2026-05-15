@@ -1,5 +1,5 @@
 {
-  "name": "@3-common/sdk-openapi",
+  "name": "@3common/sdk-openapi",
   "version": "0.0.0",
   "description": "Canonical OpenAPI spec snapshots and fetch tooling for the 3Common SDK.",
   "private": true,

@@ -1,6 +1,6 @@
-# `@3-common/sdk`
+# `@3common/sdk`
 
-[![npm](https://img.shields.io/npm/v/@3-common/sdk.svg)](https://www.npmjs.com/package/@3-common/sdk)
+[![npm](https://img.shields.io/npm/v/@3common/sdk.svg)](https://www.npmjs.com/package/@3common/sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 
@@ -9,11 +9,11 @@ Official Node.js / TypeScript client for the 3Common Public API.
 ## Install
 
 ```bash
-npm install @3-common/sdk
+npm install @3common/sdk
 # or
-pnpm add @3-common/sdk
+pnpm add @3common/sdk
 # or
-yarn add @3-common/sdk
+yarn add @3common/sdk
 ```
 
 Requires **Node.js ≥ 20**. Targets ESM and CJS via dual-emit; TypeScript types are bundled.
@@ -21,7 +21,7 @@ Requires **Node.js ≥ 20**. Targets ESM and CJS via dual-emit; TypeScript types
 ## Quick start
 
 ```ts
-import { ThreeCommon } from '@3-common/sdk'
+import { ThreeCommon } from '@3common/sdk'
 
 const client = new ThreeCommon({
   apiKey: process.env.THREECOMMON_API_KEY,
@@ -64,7 +64,7 @@ import {
   ThreeCommonNotFoundError,
   ThreeCommonRateLimitError,
   ThreeCommonAuthError,
-} from '@3-common/sdk'
+} from '@3common/sdk'
 
 try {
   await client.events.retrieve('evt_missing')

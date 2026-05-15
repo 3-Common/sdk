@@ -114,7 +114,7 @@ jobs:
         run: |
           npm pack --dry-run
           npm pack
-          tar -tzf 3-common-sdk-*.tgz | head -20
+          tar -tzf 3common-sdk-*.tgz | head -20
 
   # Secret scanning. The gitleaks GitHub Action requires a paid license for
   # organizations as of mid-2024, so we use the CLI directly (free, same engine,

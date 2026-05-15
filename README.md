@@ -4,7 +4,7 @@ Official client libraries for the [3Common](https://3common.com) Public API.
 
 | Language | Package | Status |
 |----------|---------|--------|
-| Node.js / TypeScript | [`@3-common/sdk`](https://www.npmjs.com/package/@3-common/sdk) | In development |
+| Node.js / TypeScript | [`@3common/sdk`](https://www.npmjs.com/package/@3common/sdk) | In development |
 | Python | `threecommon` | In development |
 | Go | `github.com/3-Common/sdk/sdk-go` | In development |
 

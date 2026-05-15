@@ -92,7 +92,7 @@ class CombinedFilters {
  *
  * @example
  * ```ts
- * import { filter } from '@3-common/sdk'
+ * import { filter } from '@3common/sdk'
  *
  * const f = filter.and(
  *   filter.field('status').isAnyOf(['open']),

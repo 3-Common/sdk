@@ -10,7 +10,7 @@ import type {
   InvoiceVoidBody,
   ListInvoicesResponse,
   ThreeCommon,
-} from '@3-common/sdk'
+} from '@3common/sdk'
 
 declare const client: ThreeCommon
 

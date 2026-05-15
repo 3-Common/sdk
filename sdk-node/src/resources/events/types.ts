@@ -54,12 +54,12 @@ export interface EventListParams {
   readonly sortDirection?: 'asc' | 'desc'
   /**
    * JSON-encoded `FilterGroup[]` for advanced filtering. Use the typed
-   * `filter` builder from `@3-common/sdk` to construct this — never write the
+   * `filter` builder from `@3common/sdk` to construct this — never write the
    * JSON by hand.
    *
    * @example
    * ```ts
-   * import { filter } from '@3-common/sdk'
+   * import { filter } from '@3common/sdk'
    *
    * await client.events.list({
    *   filters: filter.and(
