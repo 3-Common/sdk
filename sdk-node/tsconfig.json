@@ -35,5 +35,5 @@
     }
   },
   "include": ["src/**/*", "test/**/*", "examples/**/*", "scripts/**/*"],
-  "exclude": ["dist", "node_modules", "coverage"]
+  "exclude": ["dist", "node_modules", "coverage", "test/types/**/*.test-d.ts"]
 }

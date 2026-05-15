@@ -3,6 +3,7 @@ import { HttpClient } from '@/core/http-client'
 import { resolveFetch } from '@/core/platform'
 import { Telemetry } from '@/core/telemetry'
 import { eventsService, type EventsService } from '@/resources/events'
+import { invoicesService, type InvoicesService } from '@/resources/invoices'
 
 import type { ClientConfig } from '@/types/public'
 
@@ -23,6 +24,9 @@ import type { ClientConfig } from '@/types/public'
 export class ThreeCommon {
   /** Events resource — `GET /v1/events`, `GET /v1/events/{id}`, `PATCH /v1/events/{id}`. */
   public readonly events: EventsService
+
+  /** Invoices resource — list, retrieve, create, update, finalize, void, recordPayment. */
+  public readonly invoices: InvoicesService
 
   private readonly httpClient: HttpClient
   private readonly telemetry: Telemetry
@@ -48,6 +52,7 @@ export class ThreeCommon {
     })
 
     this.events = eventsService(this.httpClient)
+    this.invoices = invoicesService(this.httpClient)
   }
 
   /**
