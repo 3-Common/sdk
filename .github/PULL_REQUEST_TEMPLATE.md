@@ -27,6 +27,7 @@
 - [ ] Lint, type-check, and format clean
 - [ ] No secrets or API keys in committed files
 - [ ] Conformance scenarios still pass for affected language(s)
+- [ ] Code examples if applicable
 - [ ] CHANGELOG entry (or `changesets` for Node) added if user-facing
 - [ ] Follows [Conventional Commits](https://www.conventionalcommits.org/)
 
