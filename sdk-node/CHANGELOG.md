@@ -1,14 +1,16 @@
 # Changelog
 
-### 0.0.0
+## 0.2.0
 
-### Added
+### Minor Changes
 
-- Initial Node.js SDK skeleton with full `events` resource (`list`, `retrieve`, `update`, `listAutoPaginate`).
-- `invoices` resource (`list`, `retrieve`, `create`, `update`, `finalize`, `void`, `recordPayment`, `listAutoPaginate`).
-- Typed error hierarchy: `ThreeCommonError` plus per-status subclasses.
-- HTTP layer with automatic retries (exponential backoff + full jitter), `Retry-After` honoring, configurable timeout, request abort signals.
-- Opt-out telemetry header (`Threecommon-Client-Telemetry`).
+- Add the `subscriptions` resource. The new `client.subscriptions` surface
+  covers the full subscription lifecycle: `list`, `retrieve`, `create`,
+  `update` (mid-cycle change with proration), `activate`, `cancel`,
+  `cancelImmediately`, `markUnpaid`, `bill`, `renew`,
+  `previewUpcomingInvoice`, and `listAutoPaginate`. Types and typed errors
+  match the events / invoices resources.
+
 
 ## 0.1.0
 
@@ -21,3 +23,13 @@
   retry policy match the events resource.
 
 All notable changes to `@3common/sdk` are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/).
+
+### 0.0.0
+
+### Added
+
+- Initial Node.js SDK skeleton with full `events` resource (`list`, `retrieve`, `update`, `listAutoPaginate`).
+- `invoices` resource (`list`, `retrieve`, `create`, `update`, `finalize`, `void`, `recordPayment`, `listAutoPaginate`).
+- Typed error hierarchy: `ThreeCommonError` plus per-status subclasses.
+- HTTP layer with automatic retries (exponential backoff + full jitter), `Retry-After` honoring, configurable timeout, request abort signals.
+- Opt-out telemetry header (`Threecommon-Client-Telemetry`).
