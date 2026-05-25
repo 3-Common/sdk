@@ -228,6 +228,22 @@ describe('subscriptions.cancelImmediately', () => {
     expect(sub.status).toBe('canceled')
     expect(sub.endedAt).toBe('2026-05-25T00:00:00.000Z')
   })
+
+  it('accepts a missing body', async () => {
+    let body: unknown
+    server.use(
+      http.post(
+        `${TEST_BASE_URL}/v1/subscriptions/sub_123/cancel-immediately`,
+        async ({ request }) => {
+          body = await request.json()
+          return HttpResponse.json({ data: { ...sampleSubscription, status: 'canceled' } })
+        },
+      ),
+    )
+    const client = buildClient()
+    await client.subscriptions.cancelImmediately('sub_123')
+    expect(body).toEqual({})
+  })
 })
 
 describe('subscriptions.markUnpaid', () => {
@@ -319,6 +335,59 @@ describe('subscriptions.previewUpcomingInvoice', () => {
     const client = buildClient()
     const result = await client.subscriptions.previewUpcomingInvoice('sub_123')
     expect(result).toBeNull()
+  })
+})
+
+describe('subscriptions.list — paramsToQuery edge cases', () => {
+  it('skips explicit undefined params', async () => {
+    let captured = ''
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/subscriptions`, ({ request }) => {
+        captured = request.url
+        return HttpResponse.json({ data: [], hasMore: false })
+      }),
+    )
+    const client = buildClient()
+    await client.subscriptions.list({
+      status: 'active',
+      pageSize: undefined,
+      contactId: undefined,
+    } as unknown as Parameters<typeof client.subscriptions.list>[0])
+    expect(captured).toContain('status=active')
+    expect(captured).not.toContain('pageSize')
+    expect(captured).not.toContain('contactId')
+  })
+
+  it('drops non-primitive values silently', async () => {
+    let captured = ''
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/subscriptions`, ({ request }) => {
+        captured = request.url
+        return HttpResponse.json({ data: [], hasMore: false })
+      }),
+    )
+    const client = buildClient()
+    await client.subscriptions.list({
+      status: 'active',
+      forbidden: ['x', 'y'],
+    } as unknown as Parameters<typeof client.subscriptions.list>[0])
+    expect(captured).toContain('status=active')
+    expect(captured).not.toContain('forbidden')
+  })
+})
+
+describe('subscriptions.retrieve — paramsToQuery edge cases', () => {
+  it('omits fields query when not provided', async () => {
+    let captured = ''
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/subscriptions/sub_123`, ({ request }) => {
+        captured = request.url
+        return HttpResponse.json({ data: sampleSubscription })
+      }),
+    )
+    const client = buildClient()
+    await client.subscriptions.retrieve('sub_123')
+    expect(captured).not.toContain('fields=')
   })
 })
 
