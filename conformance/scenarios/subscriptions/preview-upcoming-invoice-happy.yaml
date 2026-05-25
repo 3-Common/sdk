@@ -1,0 +1,33 @@
+name: preview upcoming invoice — happy path
+call:
+  resource: subscriptions
+  method: previewUpcomingInvoice
+  args:
+    id: sub_123
+expectedRequest:
+  method: GET
+  path: /v1/subscriptions/sub_123/upcoming
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  body:
+    data:
+      invoice:
+        customerId: cnt_42
+        subscriptionId: sub_123
+        currency: USD
+        lineItems:
+          - description: Pro plan
+            quantity: 1
+            unitAmount: 50000
+        subtotal: 50000
+        total: 50000
+        periodStart: '2026-06-01T00:00:00.000Z'
+        periodEnd: '2026-07-01T00:00:00.000Z'
+expectedResult:
+  subscriptionId: sub_123
+  total: 50000
+  currency: USD
+  periodStart: '2026-06-01T00:00:00.000Z'
+  periodEnd: '2026-07-01T00:00:00.000Z'

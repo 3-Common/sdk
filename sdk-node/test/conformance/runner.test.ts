@@ -13,6 +13,7 @@ import { setupMockServer, TEST_BASE_URL } from '../helpers/mock-server'
 
 import { dispatchEvents } from './dispatch-events'
 import { dispatchInvoices } from './dispatch-invoices'
+import { dispatchSubscriptions } from './dispatch-subscriptions'
 
 import type {
   ClientOverrides,
@@ -90,6 +91,8 @@ function dispatchCall(
       return dispatchEvents(client, call)
     case 'invoices':
       return dispatchInvoices(client, call)
+    case 'subscriptions':
+      return dispatchSubscriptions(client, call)
   }
 }
 

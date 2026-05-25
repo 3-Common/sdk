@@ -1,0 +1,42 @@
+name: renew subscription — advance period
+call:
+  resource: subscriptions
+  method: renew
+  args:
+    id: sub_123
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions/sub_123/renew
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: sub_123
+      hostId: hst_1
+      contactId: cnt_42
+      priceId: price_7
+      quantity: 1
+      status: active
+      currentPeriodStart: '2026-06-01T00:00:00.000Z'
+      currentPeriodEnd: '2026-07-01T00:00:00.000Z'
+      cancelAtPeriodEnd: false
+      dunningEnabled: true
+      autoCharge: true
+      createdAt: '2026-04-01T00:00:00.000Z'
+      updatedAt: '2026-06-01T00:00:00.000Z'
+    invoice:
+      id: inv_renewal_1
+      status: open
+      total: 50000
+      currency: USD
+expectedResult:
+  subscription:
+    id: sub_123
+    currentPeriodStart: '2026-06-01T00:00:00.000Z'
+    currentPeriodEnd: '2026-07-01T00:00:00.000Z'
+  invoice:
+    id: inv_renewal_1
+    status: open
+    total: 50000

@@ -46,5 +46,13 @@ export function dispatchInvoices(
     }
     case 'listAutoPaginate':
       return client.invoices.listAutoPaginate(args)
+    case 'activate':
+    case 'cancel':
+    case 'cancelImmediately':
+    case 'markUnpaid':
+    case 'bill':
+    case 'renew':
+    case 'previewUpcomingInvoice':
+      throw new Error(`invoices: unsupported method '${call.method}'`)
   }
 }

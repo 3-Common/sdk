@@ -1,0 +1,44 @@
+name: create subscription — happy path
+call:
+  resource: subscriptions
+  method: create
+  args:
+    body:
+      contactId: cnt_42
+      priceId: price_7
+      quantity: 1
+      trialDays: 14
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions
+  body:
+    contactId: cnt_42
+    priceId: price_7
+    quantity: 1
+    trialDays: 14
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: sub_new
+      hostId: hst_1
+      contactId: cnt_42
+      priceId: price_7
+      quantity: 1
+      status: trialing
+      currentPeriodStart: '2026-05-25T00:00:00.000Z'
+      currentPeriodEnd: '2026-06-08T00:00:00.000Z'
+      trialStart: '2026-05-25T00:00:00.000Z'
+      trialEnd: '2026-06-08T00:00:00.000Z'
+      cancelAtPeriodEnd: false
+      dunningEnabled: true
+      autoCharge: true
+      createdAt: '2026-05-25T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+expectedResult:
+  id: sub_new
+  status: trialing
+  contactId: cnt_42

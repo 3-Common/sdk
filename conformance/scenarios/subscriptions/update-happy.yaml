@@ -1,0 +1,57 @@
+name: update subscription — mid-cycle upgrade with proration
+call:
+  resource: subscriptions
+  method: update
+  args:
+    id: sub_123
+    body:
+      priceId: price_upgrade
+      quantity: 2
+expectedRequest:
+  method: PATCH
+  path: /v1/subscriptions/sub_123
+  body:
+    priceId: price_upgrade
+    quantity: 2
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: sub_123
+      hostId: hst_1
+      contactId: cnt_42
+      priceId: price_upgrade
+      quantity: 2
+      status: active
+      currentPeriodStart: '2026-05-01T00:00:00.000Z'
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z'
+      cancelAtPeriodEnd: false
+      dunningEnabled: true
+      autoCharge: true
+      createdAt: '2026-04-01T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+    invoice:
+      id: inv_proration_1
+      status: open
+      total: 1234
+      currency: USD
+    proration:
+      netAmountMinor: 1234
+      daysRemaining: 7
+      daysInCycle: 31
+expectedResult:
+  subscription:
+    id: sub_123
+    priceId: price_upgrade
+    quantity: 2
+  invoice:
+    id: inv_proration_1
+    status: open
+    total: 1234
+  proration:
+    netAmountMinor: 1234
+    daysRemaining: 7
+    daysInCycle: 31
