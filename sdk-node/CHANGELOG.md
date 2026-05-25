@@ -11,7 +11,6 @@
   `previewUpcomingInvoice`, and `listAutoPaginate`. Types and typed errors
   match the events / invoices resources.
 
-
 ## 0.1.0
 
 ### Minor Changes

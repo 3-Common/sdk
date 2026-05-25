@@ -127,11 +127,7 @@ export interface SubscriptionsService {
    * await client.subscriptions.cancel('sub_123', { reason: 'Customer churned' })
    * ```
    */
-  cancel(
-    id: string,
-    body?: SubscriptionCancelBody,
-    options?: RequestOptions,
-  ): Promise<Subscription>
+  cancel(id: string, body?: SubscriptionCancelBody, options?: RequestOptions): Promise<Subscription>
 
   /**
    * Admin override — terminate the subscription immediately (status
@@ -247,10 +243,7 @@ export function subscriptionsService(http: HttpClient): SubscriptionsService {
       return response.data
     },
 
-    async create(
-      body: SubscriptionCreateBody,
-      options?: RequestOptions,
-    ): Promise<Subscription> {
+    async create(body: SubscriptionCreateBody, options?: RequestOptions): Promise<Subscription> {
       const response = await http.request<DetailEnvelope<Subscription>>({
         method: 'POST',
         path: '/subscriptions',
