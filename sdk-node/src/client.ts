@@ -4,6 +4,7 @@ import { resolveFetch } from '@/core/platform'
 import { Telemetry } from '@/core/telemetry'
 import { eventsService, type EventsService } from '@/resources/events'
 import { invoicesService, type InvoicesService } from '@/resources/invoices'
+import { subscriptionsService, type SubscriptionsService } from '@/resources/subscriptions'
 
 import type { ClientConfig } from '@/types/public'
 
@@ -27,6 +28,9 @@ export class ThreeCommon {
 
   /** Invoices resource — list, retrieve, create, update, finalize, void, recordPayment. */
   public readonly invoices: InvoicesService
+
+  /** Subscriptions resource — list, retrieve, create, update, activate, cancel, cancelImmediately, markUnpaid, bill, renew, previewUpcomingInvoice. */
+  public readonly subscriptions: SubscriptionsService
 
   private readonly httpClient: HttpClient
   private readonly telemetry: Telemetry
@@ -53,6 +57,7 @@ export class ThreeCommon {
 
     this.events = eventsService(this.httpClient)
     this.invoices = invoicesService(this.httpClient)
+    this.subscriptions = subscriptionsService(this.httpClient)
   }
 
   /**

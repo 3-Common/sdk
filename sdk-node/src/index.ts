@@ -34,6 +34,29 @@ export type {
   ListInvoicesResponse,
 } from './resources/invoices'
 
+// Subscriptions resource (types only — instances live on the client).
+export type {
+  BillSubscriptionResult,
+  ListSubscriptionsResponse,
+  RenewSubscriptionResult,
+  Subscription,
+  SubscriptionCancelBody,
+  SubscriptionCancelImmediatelyBody,
+  SubscriptionCreateBody,
+  SubscriptionInvoicePreview,
+  SubscriptionInvoicePreviewLineItem,
+  SubscriptionInvoiceRef,
+  SubscriptionItem,
+  SubscriptionListParams,
+  SubscriptionProration,
+  SubscriptionRetrieveParams,
+  SubscriptionStatus,
+  SubscriptionTaxId,
+  SubscriptionUpdateBody,
+  SubscriptionsService,
+  UpdateSubscriptionResult,
+} from './resources/subscriptions'
+
 // Filters — typed builder shared by every resource that accepts `filters`.
 export { filter, and, combine, field, or } from './filters'
 export type {
