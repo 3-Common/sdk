@@ -1,19 +1,22 @@
 /**
  * Pre-release smoke test against the live API.
  *
- * Runs ≤ 10 calls and verifies the happy path + the common error paths
- * across the events and invoices resources. Used by
- * `.github/workflows/live-smoke.yml` (maintainer-only).
+ * Runs the happy path + the common error paths across the events, invoices,
+ * and subscriptions resources. Used by `.github/workflows/live-smoke.yml`
+ * (maintainer-only).
  *
  * Required env:
- *   THREECOMMON_API_KEY    — a real API key
+ *   THREECOMMON_API_KEY        — a real API key
  *
  * Optional env:
- *   THREECOMMON_BASE_URL   — defaults to https://api.3common.com
- *   SMOKE_EVENT_ID         — an event ID owned by the API-key host; if set,
- *                            exercises the events.retrieve happy path
- *   SMOKE_INVOICE_ID       — an invoice ID owned by the API-key host; if set,
- *                            exercises the invoices.retrieve happy path
+ *   THREECOMMON_BASE_URL       — defaults to https://api.3common.com
+ *   SMOKE_EVENT_ID             — an event ID owned by the API-key host; if set,
+ *                                exercises the events.retrieve happy path
+ *   SMOKE_INVOICE_ID           — an invoice ID owned by the API-key host; if set,
+ *                                exercises the invoices.retrieve happy path
+ *   SMOKE_SUBSCRIPTION_ID      — a subscription ID owned by the API-key host;
+ *                                if set, exercises subscriptions.retrieve and
+ *                                subscriptions.previewUpcomingInvoice
  */
 
 import process from 'node:process'
@@ -45,6 +48,7 @@ async function run(): Promise<SmokeResult[]> {
   const baseUrl = process.env['THREECOMMON_BASE_URL'] ?? 'https://api.3common.com'
   const knownEventId = process.env['SMOKE_EVENT_ID']
   const knownInvoiceId = process.env['SMOKE_INVOICE_ID']
+  const knownSubscriptionId = process.env['SMOKE_SUBSCRIPTION_ID']
 
   const results: SmokeResult[] = []
   const client = new ThreeCommon({ apiKey, baseUrl, telemetry: false })
@@ -174,7 +178,84 @@ async function run(): Promise<SmokeResult[]> {
     }
   }
 
-  // 8. 401 path — wrong API key.
+  // 8. List subscriptions.
+  try {
+    const result = await client.subscriptions.list({ pageSize: 1 })
+    results.push({
+      check: 'subscriptions.list',
+      status: 'pass',
+      detail: `data.length=${String(result.data.length)}, hasMore=${String(result.hasMore)}`,
+    })
+  } catch (err) {
+    results.push({ check: 'subscriptions.list', status: 'fail', detail: errMsg(err) })
+  }
+
+  // 9. Retrieve a known subscription (if configured).
+  if (knownSubscriptionId !== undefined && knownSubscriptionId.length > 0) {
+    try {
+      const sub = await client.subscriptions.retrieve(knownSubscriptionId)
+      results.push({
+        check: 'subscriptions.retrieve',
+        status: 'pass',
+        detail: `id=${sub.id ?? '?'}, status=${sub.status ?? '?'}`,
+      })
+    } catch (err) {
+      results.push({ check: 'subscriptions.retrieve', status: 'fail', detail: errMsg(err) })
+    }
+
+    // 10. Preview upcoming invoice on the known subscription.
+    try {
+      const preview = await client.subscriptions.previewUpcomingInvoice(knownSubscriptionId)
+      results.push({
+        check: 'subscriptions.previewUpcomingInvoice',
+        status: 'pass',
+        detail: preview === null ? 'null (cancel-at-period-end)' : `total=${String(preview.total)}`,
+      })
+    } catch (err) {
+      results.push({
+        check: 'subscriptions.previewUpcomingInvoice',
+        status: 'fail',
+        detail: errMsg(err),
+      })
+    }
+  } else {
+    results.push({
+      check: 'subscriptions.retrieve',
+      status: 'skip',
+      detail: 'SMOKE_SUBSCRIPTION_ID not set',
+    })
+    results.push({
+      check: 'subscriptions.previewUpcomingInvoice',
+      status: 'skip',
+      detail: 'SMOKE_SUBSCRIPTION_ID not set',
+    })
+  }
+
+  // 11. 404 path on subscriptions.
+  try {
+    await client.subscriptions.retrieve(MISSING_OBJECT_ID)
+    results.push({
+      check: 'subscriptions 404 path',
+      status: 'fail',
+      detail: 'expected ThreeCommonNotFoundError but call succeeded',
+    })
+  } catch (err) {
+    if (err instanceof ThreeCommonNotFoundError) {
+      results.push({
+        check: 'subscriptions 404 path',
+        status: 'pass',
+        detail: `code=${err.code}, requestId=${err.requestId ?? '?'}`,
+      })
+    } else {
+      results.push({
+        check: 'subscriptions 404 path',
+        status: 'fail',
+        detail: `unexpected error: ${errMsg(err)}`,
+      })
+    }
+  }
+
+  // 12. 401 path — wrong API key.
   try {
     const badClient = new ThreeCommon({
       apiKey: '3co_smoke_test_invalid_key', // gitleaks:allow — deliberate fake to test the 401 path
