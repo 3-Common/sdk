@@ -6,6 +6,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.1.0
+
+### Added
+
+- Subscriptions resource: `List`, `Retrieve`, `Create`, `Update` (mid-cycle
+  change with proration), `Activate`, `Cancel`, `CancelImmediately`,
+  `MarkUnpaid`, `Bill`, `Renew`, `PreviewUpcomingInvoice`, `ListAutoPaginate`.
+  Available as `api.Subscriptions` and via `subscriptions.New` for standalone
+  use. Types and typed errors match the events / invoices resources.
+- `scripts/livesmoke` exercises the subscriptions happy path and 404 path when
+  `SMOKE_SUBSCRIPTION_ID` is set.
+
+## 0.0.0
+
 ### Added
 
 - Initial release scaffolding. 
