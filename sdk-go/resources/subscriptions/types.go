@@ -52,7 +52,7 @@ type TaxID struct {
 // `omitempty` strings are populated only when the server returned them —
 // list responses with a `Fields` filter omit unrequested values.
 type Subscription struct {
-	ID                 string            `json:"id,omitempty"`
+	ID                 string            `json:"id"`
 	HostID             string            `json:"hostId,omitempty"`
 	ContactID          string            `json:"contactId,omitempty"`
 	CustomerEmail      string            `json:"customerEmail,omitempty"`
