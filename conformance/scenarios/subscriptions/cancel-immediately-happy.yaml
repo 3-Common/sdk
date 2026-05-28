@@ -1,0 +1,40 @@
+name: cancel subscription immediately — admin override
+call:
+  resource: subscriptions
+  method: cancelImmediately
+  args:
+    id: sub_123
+    body:
+      reason: Fraud
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions/sub_123/cancel-immediately
+  body:
+    reason: Fraud
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: sub_123
+      hostId: hst_1
+      contactId: cnt_42
+      priceId: price_7
+      quantity: 1
+      status: canceled
+      currentPeriodStart: '2026-05-01T00:00:00.000Z'
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z'
+      canceledAt: '2026-05-25T00:00:00.000Z'
+      endedAt: '2026-05-25T00:00:00.000Z'
+      cancelReason: Fraud
+      cancelAtPeriodEnd: false
+      dunningEnabled: true
+      autoCharge: true
+      createdAt: '2026-04-01T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+expectedResult:
+  id: sub_123
+  status: canceled
+  endedAt: '2026-05-25T00:00:00.000Z'

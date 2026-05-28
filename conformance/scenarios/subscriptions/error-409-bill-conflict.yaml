@@ -1,0 +1,28 @@
+name: 409 Conflict — bill already-billed period
+call:
+  resource: subscriptions
+  method: bill
+  args:
+    id: sub_already_billed
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions/sub_already_billed/bill
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-sub-409-001
+  body:
+    error:
+      code: subscription_already_billed
+      message: Subscription sub_already_billed already has an invoice for the current period
+      details:
+        currentPeriodEnd: '2026-06-01T00:00:00.000Z'
+expectedError:
+  type: ThreeCommonConflictError
+  code: subscription_already_billed
+  httpStatus: 409
+  requestId: req-sub-409-001
+  details:
+    currentPeriodEnd: '2026-06-01T00:00:00.000Z'

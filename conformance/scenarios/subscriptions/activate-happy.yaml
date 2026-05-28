@@ -1,0 +1,32 @@
+name: activate subscription — happy path
+call:
+  resource: subscriptions
+  method: activate
+  args:
+    id: sub_incomplete
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions/sub_incomplete/activate
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: sub_incomplete
+      hostId: hst_1
+      contactId: cnt_42
+      priceId: price_7
+      quantity: 1
+      status: active
+      currentPeriodStart: '2026-05-25T00:00:00.000Z'
+      currentPeriodEnd: '2026-06-25T00:00:00.000Z'
+      startedAt: '2026-05-25T00:00:00.000Z'
+      cancelAtPeriodEnd: false
+      dunningEnabled: true
+      autoCharge: true
+      createdAt: '2026-05-25T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+expectedResult:
+  id: sub_incomplete
+  status: active

@@ -39,7 +39,7 @@ export interface ClientOverrides {
   readonly maxRetries?: number
 }
 
-export type Resource = 'events' | 'invoices'
+export type Resource = 'events' | 'invoices' | 'subscriptions'
 
 export type Method =
   | 'list'
@@ -49,6 +49,13 @@ export type Method =
   | 'finalize'
   | 'void'
   | 'recordPayment'
+  | 'activate'
+  | 'cancel'
+  | 'cancelImmediately'
+  | 'markUnpaid'
+  | 'bill'
+  | 'renew'
+  | 'previewUpcomingInvoice'
   | 'listAutoPaginate'
 
 export interface ScenarioCall {

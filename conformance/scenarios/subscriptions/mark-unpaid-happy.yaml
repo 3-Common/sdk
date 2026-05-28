@@ -1,0 +1,31 @@
+name: mark subscription unpaid — admin override
+call:
+  resource: subscriptions
+  method: markUnpaid
+  args:
+    id: sub_123
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions/sub_123/mark-unpaid
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: sub_123
+      hostId: hst_1
+      contactId: cnt_42
+      priceId: price_7
+      quantity: 1
+      status: unpaid
+      currentPeriodStart: '2026-05-01T00:00:00.000Z'
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z'
+      cancelAtPeriodEnd: false
+      dunningEnabled: true
+      autoCharge: true
+      createdAt: '2026-04-01T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+expectedResult:
+  id: sub_123
+  status: unpaid

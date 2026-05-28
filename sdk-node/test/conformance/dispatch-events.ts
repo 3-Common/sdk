@@ -33,6 +33,13 @@ export function dispatchEvents(
     case 'finalize':
     case 'void':
     case 'recordPayment':
+    case 'activate':
+    case 'cancel':
+    case 'cancelImmediately':
+    case 'markUnpaid':
+    case 'bill':
+    case 'renew':
+    case 'previewUpcomingInvoice':
       throw new Error(`events: unsupported method '${call.method}'`)
   }
 }

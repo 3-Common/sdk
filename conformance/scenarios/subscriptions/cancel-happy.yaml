@@ -1,0 +1,39 @@
+name: cancel subscription — schedule at period end
+call:
+  resource: subscriptions
+  method: cancel
+  args:
+    id: sub_123
+    body:
+      reason: Customer requested
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions/sub_123/cancel
+  body:
+    reason: Customer requested
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: sub_123
+      hostId: hst_1
+      contactId: cnt_42
+      priceId: price_7
+      quantity: 1
+      status: active
+      currentPeriodStart: '2026-05-01T00:00:00.000Z'
+      currentPeriodEnd: '2026-06-01T00:00:00.000Z'
+      cancelAtPeriodEnd: true
+      cancelReason: Customer requested
+      dunningEnabled: true
+      autoCharge: true
+      createdAt: '2026-04-01T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+expectedResult:
+  id: sub_123
+  status: active
+  cancelAtPeriodEnd: true
+  cancelReason: Customer requested

@@ -215,6 +215,7 @@ sdk-go/
 ├── client/             # aggregator: client.New(cfg) → *client.API
 ├── resources/events/   # events resource (client + types)
 ├── resources/invoices/ # invoices resource (client + types)
+├── resources/subscriptions/ # subscriptions resource (client + types)
 ├── filters/            # typed filter builder
 ├── pagination/         # generic Iter[T] auto-paginator
 ├── internal/core/      # HTTP transport (not user-importable)
@@ -248,6 +249,15 @@ go run ./examples/invoices/record_payment
 go run ./examples/invoices/void
 go run ./examples/invoices/auto_paginate
 go run ./examples/invoices/error_handling
+
+# Subscriptions
+go run ./examples/subscriptions/list
+go run ./examples/subscriptions/retrieve
+go run ./examples/subscriptions/create
+go run ./examples/subscriptions/update
+go run ./examples/subscriptions/cancel
+go run ./examples/subscriptions/preview_upcoming_invoice
+go run ./examples/subscriptions/auto_paginate
 ```
 
 Replace `3co_your_api_key_here` and `evt_replace_with_real_id` with real values before running.

@@ -17,6 +17,7 @@ import (
 	"github.com/3-Common/sdk/sdk-go/internal/core"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
+	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
 )
 
 // API aggregates every resource the SDK exposes. Construct one with [New];
@@ -30,6 +31,11 @@ type API struct {
 	// Finalize, Void, RecordPayment.
 	Invoices *invoices.Client
 
+	// Subscriptions is the subscriptions resource — List, Retrieve, Create,
+	// Update, Activate, Cancel, CancelImmediately, MarkUnpaid, Bill, Renew,
+	// PreviewUpcomingInvoice.
+	Subscriptions *subscriptions.Client
+
 	backend *core.Client
 }
 
@@ -42,9 +48,10 @@ func New(cfg threecommon.Config) (*API, error) {
 		return nil, err
 	}
 	return &API{
-		Events:   events.FromBackend(backend),
-		Invoices: invoices.FromBackend(backend),
-		backend:  backend,
+		Events:        events.FromBackend(backend),
+		Invoices:      invoices.FromBackend(backend),
+		Subscriptions: subscriptions.FromBackend(backend),
+		backend:       backend,
 	}, nil
 }
 
