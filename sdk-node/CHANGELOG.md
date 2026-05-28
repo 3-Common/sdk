@@ -4,6 +4,12 @@
 
 ### Minor Changes
 
+- Add the `subscriptions` resource. The new `client.subscriptions` surface covers the full subscription lifecycle: `list`, `retrieve`, `create`, `update`
+
+## 0.2.0
+
+### Minor Changes
+
 - Add the `subscriptions` resource. The new `client.subscriptions` surface
   covers the full subscription lifecycle: `list`, `retrieve`, `create`,
   `update` (mid-cycle change with proration), `activate`, `cancel`,
