@@ -1,7 +1,7 @@
 // Pre-release smoke test against the live API.
 //
-// Runs <= 10 calls and verifies the happy path + the common error paths
-// across the events and invoices resources. Used by
+// Runs <= 12 calls and verifies the happy path + the common error paths
+// across the events, invoices, and subscriptions resources. Used by
 // .github/workflows/live-smoke.yml (maintainer-only).
 //
 // Required env:
@@ -15,6 +15,8 @@
 //	                         exercises the events.Retrieve happy path
 //	SMOKE_INVOICE_ID       — an invoice ID owned by the API-key host; if set,
 //	                         exercises the invoices.Retrieve happy path
+//	SMOKE_SUBSCRIPTION_ID  — a subscription ID owned by the API-key host; if
+//	                         set, exercises the subscriptions.Retrieve happy path
 //
 // Run with: go run ./scripts/livesmoke
 package main
@@ -29,6 +31,7 @@ import (
 	"github.com/3-Common/sdk/sdk-go/client"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
+	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
 )
 
 // missingObjectID is a syntactically valid 24-hex ObjectId that will not
@@ -56,6 +59,7 @@ func main() {
 	}
 	knownEventID := os.Getenv("SMOKE_EVENT_ID")
 	knownInvoiceID := os.Getenv("SMOKE_INVOICE_ID")
+	knownSubscriptionID := os.Getenv("SMOKE_SUBSCRIPTION_ID")
 
 	off := false
 	api, err := client.New(threecommon.Config{
@@ -159,7 +163,45 @@ func main() {
 		results = append(results, result{check: "invoices 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
 	}
 
-	// 8. 401 path — wrong API key.
+	// 8. List subscriptions.
+	if r, listErr := api.Subscriptions.List(ctx, &subscriptions.ListParams{PageSize: &pageSize}); listErr == nil {
+		results = append(results, result{
+			check:  "subscriptions.List",
+			status: "pass",
+			detail: fmt.Sprintf("data.len=%d hasMore=%v", len(r.Data), r.HasMore),
+		})
+	} else {
+		results = append(results, result{check: "subscriptions.List", status: "fail", detail: errMsg(listErr)})
+	}
+
+	// 9. Retrieve a known subscription (if configured).
+	if knownSubscriptionID != "" {
+		if sub, retrieveErr := api.Subscriptions.Retrieve(ctx, knownSubscriptionID, nil); retrieveErr == nil {
+			results = append(results, result{check: "subscriptions.Retrieve", status: "pass", detail: "id=" + sub.ID})
+		} else {
+			results = append(results, result{check: "subscriptions.Retrieve", status: "fail", detail: errMsg(retrieveErr)})
+		}
+	} else {
+		results = append(results, result{check: "subscriptions.Retrieve", status: "skip", detail: "SMOKE_SUBSCRIPTION_ID not set"})
+	}
+
+	// 10. 404 path on subscriptions.
+	if _, missErr := api.Subscriptions.Retrieve(ctx, missingObjectID, nil); missErr != nil {
+		var nf *threecommon.NotFoundError
+		if errors.As(missErr, &nf) {
+			results = append(results, result{
+				check:  "subscriptions 404 path",
+				status: "pass",
+				detail: fmt.Sprintf("code=%s requestId=%s", nf.Code, nf.RequestID),
+			})
+		} else {
+			results = append(results, result{check: "subscriptions 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+		}
+	} else {
+		results = append(results, result{check: "subscriptions 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+	}
+
+	// 11. 401 path — wrong API key.
 	zero := 0
 	//nolint:gosec // G101: deliberate fake to test the 401 path; not a real credential.
 	const fakeKey = "3co_smoke_test_invalid_key" //gitleaks:allow
