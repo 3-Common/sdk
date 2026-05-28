@@ -55,7 +55,7 @@ class Subscription(_BaseModel):
     responses with a ``fields`` filter omit unrequested values.
     """
 
-    id: str | None = None
+    id: str
     host_id: str | None = Field(
         default=None, serialization_alias="hostId", validation_alias="hostId"
     )
