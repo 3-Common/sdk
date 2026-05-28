@@ -62,11 +62,13 @@ describe('invoices.list', () => {
       status: 'open',
       pageSize: 25,
       customerId: 'cnt_42',
+      subscriptionId: 'sub_99',
       issuedAfter: '2026-01-01T00:00:00.000Z',
     })
     expect(url).toContain('status=open')
     expect(url).toContain('pageSize=25')
     expect(url).toContain('customerId=cnt_42')
+    expect(url).toContain('subscriptionId=sub_99')
     expect(url).toContain('issuedAfter=2026-01-01T00%3A00%3A00.000Z')
   })
 })
@@ -222,6 +224,113 @@ describe('invoices.recordPayment', () => {
   it('rejects empty id', async () => {
     const client = buildClient()
     await expect(client.invoices.recordPayment('', { payment: 1 })).rejects.toThrow(TypeError)
+  })
+})
+
+describe('invoices.autoCharge', () => {
+  it('POSTs to /auto_charge and returns { invoice, outcome } when the charge clears', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/auto_charge`, () =>
+        HttpResponse.json({
+          data: { ...sampleInvoice, status: 'paid', amountPaid: 50_000, amountDue: 0 },
+          outcome: 'paid',
+        }),
+      ),
+    )
+    const client = buildClient()
+    const result = await client.invoices.autoCharge('inv_123')
+    expect(result.outcome).toBe('paid')
+    expect(result.invoice.status).toBe('paid')
+    expect(result.invoice.amountDue).toBe(0)
+    // No failureCode key on the happy path, not `failureCode: undefined`.
+    expect('failureCode' in result).toBe(false)
+  })
+
+  it('surfaces a decline as outcome:failed + failureCode rather than throwing', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/auto_charge`, () =>
+        HttpResponse.json({
+          data: { ...sampleInvoice, status: 'payment_failed' },
+          outcome: 'failed',
+          failureCode: 'card_declined',
+        }),
+      ),
+    )
+    const client = buildClient()
+    const result = await client.invoices.autoCharge('inv_123')
+    expect(result.outcome).toBe('failed')
+    expect(result.invoice.status).toBe('payment_failed')
+    expect(result.failureCode).toBe('card_declined')
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.invoices.autoCharge('')).rejects.toThrow(TypeError)
+  })
+})
+
+describe('invoices.refundPayment', () => {
+  it('POSTs the body to /payments/:paymentId/refunds and returns the unwrapped invoice', async () => {
+    let body: unknown
+    let capturedPath = ''
+    server.use(
+      http.post(
+        `${TEST_BASE_URL}/v1/invoices/inv_123/payments/pay_456/refunds`,
+        async ({ request }) => {
+          body = await request.json()
+          capturedPath = new URL(request.url).pathname
+          return HttpResponse.json({ data: { ...sampleInvoice, status: 'paid' } })
+        },
+      ),
+    )
+    const client = buildClient()
+    const refunded = await client.invoices.refundPayment('inv_123', 'pay_456', {
+      amount: 25_000,
+      reason: 'requested_by_customer',
+      idempotencyKey: 'rfnd-1',
+    })
+    expect(refunded.id).toBe('inv_123')
+    expect(capturedPath).toBe('/v1/invoices/inv_123/payments/pay_456/refunds')
+    expect(body).toEqual({
+      amount: 25_000,
+      reason: 'requested_by_customer',
+      idempotencyKey: 'rfnd-1',
+    })
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.invoices.refundPayment('', 'pay_456', { amount: 1 })).rejects.toThrow(
+      TypeError,
+    )
+  })
+
+  it('rejects empty paymentId', async () => {
+    const client = buildClient()
+    await expect(client.invoices.refundPayment('inv_123', '', { amount: 1 })).rejects.toThrow(
+      TypeError,
+    )
+  })
+})
+
+describe('invoices.deleteDraft', () => {
+  it('DELETEs /invoices/:id and returns the deleted id', async () => {
+    let method = ''
+    server.use(
+      http.delete(`${TEST_BASE_URL}/v1/invoices/inv_123`, ({ request }) => {
+        method = request.method
+        return HttpResponse.json({ data: { id: 'inv_123' } })
+      }),
+    )
+    const client = buildClient()
+    const result = await client.invoices.deleteDraft('inv_123')
+    expect(method).toBe('DELETE')
+    expect(result.id).toBe('inv_123')
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.invoices.deleteDraft('')).rejects.toThrow(TypeError)
   })
 })
 

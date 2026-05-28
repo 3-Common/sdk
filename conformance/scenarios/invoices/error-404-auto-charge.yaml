@@ -1,0 +1,24 @@
+name: 404 Not Found — auto-charge a missing invoice
+call:
+  resource: invoices
+  method: autoCharge
+  args:
+    id: inv_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_missing/auto_charge
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-inv-ac-404
+  body:
+    error:
+      code: not_found
+      message: Invoice inv_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-inv-ac-404

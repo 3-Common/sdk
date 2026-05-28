@@ -1,0 +1,31 @@
+name: 409 Conflict — refund a payment that is not in a refundable state
+call:
+  resource: invoices
+  method: refundPayment
+  args:
+    id: inv_open
+    paymentId: pay_456
+    body:
+      amount: 25000
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_open/payments/pay_456/refunds
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-inv-rf-409
+  body:
+    error:
+      code: payment_not_refundable
+      message: Payment pay_456 on invoice inv_open is not in a refundable state
+      details:
+        currentStatus: open
+expectedError:
+  type: ThreeCommonConflictError
+  code: payment_not_refundable
+  httpStatus: 409
+  requestId: req-inv-rf-409
+  details:
+    currentStatus: open

@@ -1,0 +1,27 @@
+name: 404 Not Found — refund a payment on a missing invoice
+call:
+  resource: invoices
+  method: refundPayment
+  args:
+    id: inv_missing
+    paymentId: pay_456
+    body:
+      amount: 25000
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_missing/payments/pay_456/refunds
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-inv-rf-404
+  body:
+    error:
+      code: not_found
+      message: Invoice inv_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-inv-rf-404

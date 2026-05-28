@@ -178,6 +178,45 @@ async function run(): Promise<SmokeResult[]> {
     }
   }
 
+  // 7b. New invoice write methods — only their not-found paths are smoke-tested.
+  // The happy paths move real money (auto_charge, refundPayment) or delete a
+  // record (deleteDraft), so running them against the live host on every
+  // maintainer run isn't safe. A well-formed-but-missing id 404s when the
+  // handler loads the invoice, before any side effect, so these exercise the
+  // wire path + error mapping without touching real data.
+  try {
+    await client.invoices.autoCharge(MISSING_OBJECT_ID)
+    results.push({
+      check: 'invoices.autoCharge 404 path',
+      status: 'fail',
+      detail: 'expected ThreeCommonNotFoundError but call succeeded',
+    })
+  } catch (err) {
+    results.push(notFoundCheck('invoices.autoCharge 404 path', err))
+  }
+
+  try {
+    await client.invoices.refundPayment(MISSING_OBJECT_ID, MISSING_OBJECT_ID, { amount: 1 })
+    results.push({
+      check: 'invoices.refundPayment 404 path',
+      status: 'fail',
+      detail: 'expected ThreeCommonNotFoundError but call succeeded',
+    })
+  } catch (err) {
+    results.push(notFoundCheck('invoices.refundPayment 404 path', err))
+  }
+
+  try {
+    await client.invoices.deleteDraft(MISSING_OBJECT_ID)
+    results.push({
+      check: 'invoices.deleteDraft 404 path',
+      status: 'fail',
+      detail: 'expected ThreeCommonNotFoundError but call succeeded',
+    })
+  } catch (err) {
+    results.push(notFoundCheck('invoices.deleteDraft 404 path', err))
+  }
+
   // 8. List subscriptions.
   try {
     const result = await client.subscriptions.list({ pageSize: 1 })
@@ -288,6 +327,15 @@ function errMsg(err: unknown): string {
   if (err instanceof ThreeCommonError) return err.toString()
   if (err instanceof Error) return err.message
   return String(err)
+}
+
+// Shared assertion for the new invoice methods' not-found checks: a pass when
+// the call rejected with a 404, a fail otherwise.
+function notFoundCheck(check: string, err: unknown): SmokeResult {
+  if (err instanceof ThreeCommonNotFoundError) {
+    return { check, status: 'pass', detail: `code=${err.code}, requestId=${err.requestId ?? '?'}` }
+  }
+  return { check, status: 'fail', detail: `unexpected error: ${errMsg(err)}` }
 }
 
 const results = await run()

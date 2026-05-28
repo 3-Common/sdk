@@ -1,0 +1,24 @@
+name: 502 — auto-charge processor error (network / Stripe 5xx, not a decline)
+call:
+  resource: invoices
+  method: autoCharge
+  args:
+    id: inv_123
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_123/auto_charge
+mockResponse:
+  status: 502
+  headers:
+    x-request-id: req-inv-ac-502
+  body:
+    error:
+      code: processor_error
+      message: The payment processor returned an unexpected error
+expectedError:
+  type: ThreeCommonServerError
+  code: processor_error
+  httpStatus: 502
+  requestId: req-inv-ac-502

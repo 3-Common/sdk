@@ -33,6 +33,9 @@ export function dispatchEvents(
     case 'finalize':
     case 'void':
     case 'recordPayment':
+    case 'autoCharge':
+    case 'refundPayment':
+    case 'deleteDraft':
     case 'activate':
     case 'cancel':
     case 'cancelImmediately':

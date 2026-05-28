@@ -1,0 +1,32 @@
+name: auto-charge invoice — charge cleared
+call:
+  resource: invoices
+  method: autoCharge
+  args:
+    id: inv_123
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_123/auto_charge
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: inv_123
+      hostId: hst_1
+      customerId: cnt_42
+      currency: USD
+      status: paid
+      total: 50000
+      amountDue: 0
+      amountPaid: 50000
+    outcome: paid
+expectedResult:
+  invoice:
+    id: inv_123
+    status: paid
+    amountDue: 0
+    amountPaid: 50000
+  outcome: paid

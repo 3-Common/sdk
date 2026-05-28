@@ -19,6 +19,9 @@ export type {
 
 // Invoices resource (types only — instances live on the client).
 export type {
+  AutoChargeOutcome,
+  AutoChargeResult,
+  DeletedInvoice,
   Invoice,
   InvoiceCreateBody,
   InvoiceCurrency,
@@ -26,6 +29,7 @@ export type {
   InvoiceListParams,
   InvoicePayment,
   InvoicePaymentBody,
+  InvoiceRefundBody,
   InvoiceRetrieveParams,
   InvoiceStatus,
   InvoiceUpdateBody,
