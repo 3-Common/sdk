@@ -177,6 +177,75 @@ func (c *Client) RecordPayment(ctx context.Context, id string, params *PaymentPa
 	return &env.Data, nil
 }
 
+// AutoCharge off-session charges the customer's saved card for an open
+// invoice. A decline is not an error — it returns a result with Outcome
+// "failed" and a FailureCode, leaving the invoice in payment_failed. Only
+// network / processor 5xx errors return an error.
+func (c *Client) AutoCharge(ctx context.Context, id string) (*AutoChargeResult, error) {
+	if err := requireID("AutoCharge", id); err != nil {
+		return nil, err
+	}
+
+	var env autoChargeEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/invoices/" + url.PathEscape(id) + "/auto_charge",
+		Body:   struct{}{},
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &AutoChargeResult{Invoice: env.Data, Outcome: env.Outcome, FailureCode: env.FailureCode}, nil
+}
+
+// RefundPayment refunds all or part of a recorded payment on a paid invoice.
+// It is idempotent on params.IdempotencyKey: replays return the existing refund
+// without contacting the processor again.
+func (c *Client) RefundPayment(ctx context.Context, id, paymentID string, params *RefundParams) (*Invoice, error) {
+	if err := requireID("RefundPayment", id); err != nil {
+		return nil, err
+	}
+	if paymentID == "" {
+		return nil, &threecommon.ValidationError{APIError: &threecommon.APIError{
+			Code:    "missing_id",
+			Message: "invoices.RefundPayment: paymentID must be non-empty",
+		}}
+	}
+	if params == nil {
+		return nil, missingBody("RefundPayment")
+	}
+
+	var env retrieveEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/invoices/" + url.PathEscape(id) + "/payments/" + url.PathEscape(paymentID) + "/refunds",
+		Body:   params,
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
+// DeleteDraft permanently deletes a draft invoice. Only legal while in draft
+// (no number issued); finalized invoices must be voided instead so the audit
+// trail stays intact.
+func (c *Client) DeleteDraft(ctx context.Context, id string) (*DeleteDraftResult, error) {
+	if err := requireID("DeleteDraft", id); err != nil {
+		return nil, err
+	}
+
+	var env deletedEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodDelete,
+		Path:   "/invoices/" + url.PathEscape(id),
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
 // ListAutoPaginate returns a [*pagination.Iter] that walks every invoice
 // matching params. Pages are fetched lazily.
 //
@@ -243,6 +312,9 @@ func encodeListParams(p *ListParams) map[string]string {
 	}
 	if p.CustomerID != "" {
 		q["customerId"] = p.CustomerID
+	}
+	if p.SubscriptionID != "" {
+		q["subscriptionId"] = p.SubscriptionID
 	}
 	if p.IssuedAfter != "" {
 		q["issuedAfter"] = p.IssuedAfter

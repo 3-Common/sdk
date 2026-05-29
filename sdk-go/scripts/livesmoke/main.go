@@ -163,6 +163,43 @@ func main() {
 		results = append(results, result{check: "invoices 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
 	}
 
+	// 7b. Not-found paths for the invoice write methods. The happy paths move
+	// real money (AutoCharge, RefundPayment) or delete a record (DeleteDraft),
+	// so only the 404 path is smoke-tested — a missing id 404s before any side
+	// effect.
+	if _, missErr := api.Invoices.AutoCharge(ctx, missingObjectID); missErr != nil {
+		var nf *threecommon.NotFoundError
+		if errors.As(missErr, &nf) {
+			results = append(results, result{check: "invoices.AutoCharge 404 path", status: "pass", detail: "code=" + nf.Code})
+		} else {
+			results = append(results, result{check: "invoices.AutoCharge 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+		}
+	} else {
+		results = append(results, result{check: "invoices.AutoCharge 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+	}
+
+	if _, missErr := api.Invoices.RefundPayment(ctx, missingObjectID, missingObjectID, &invoices.RefundParams{Amount: 1}); missErr != nil {
+		var nf *threecommon.NotFoundError
+		if errors.As(missErr, &nf) {
+			results = append(results, result{check: "invoices.RefundPayment 404 path", status: "pass", detail: "code=" + nf.Code})
+		} else {
+			results = append(results, result{check: "invoices.RefundPayment 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+		}
+	} else {
+		results = append(results, result{check: "invoices.RefundPayment 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+	}
+
+	if _, missErr := api.Invoices.DeleteDraft(ctx, missingObjectID); missErr != nil {
+		var nf *threecommon.NotFoundError
+		if errors.As(missErr, &nf) {
+			results = append(results, result{check: "invoices.DeleteDraft 404 path", status: "pass", detail: "code=" + nf.Code})
+		} else {
+			results = append(results, result{check: "invoices.DeleteDraft 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+		}
+	} else {
+		results = append(results, result{check: "invoices.DeleteDraft 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+	}
+
 	// 8. List subscriptions.
 	if r, listErr := api.Subscriptions.List(ctx, &subscriptions.ListParams{PageSize: &pageSize}); listErr == nil {
 		results = append(results, result{

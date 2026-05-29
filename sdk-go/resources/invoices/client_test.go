@@ -540,3 +540,186 @@ func TestList_EmptyParamsReturnNil(t *testing.T) {
 	_, err := cl.List(context.Background(), &invoices.ListParams{})
 	require.NoError(t, err)
 }
+
+func TestList_ForwardsSubscriptionID(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "sub_99", r.URL.Query().Get("subscriptionId"))
+		_, _ = w.Write([]byte(`{"data":[],"hasMore":false}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.List(context.Background(), &invoices.ListParams{SubscriptionID: "sub_99"})
+	require.NoError(t, err)
+}
+
+func TestAutoCharge_Paid(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/invoices/inv_1/auto_charge", r.URL.Path)
+		_, _ = w.Write([]byte(`{"data":{"id":"inv_1","status":"paid","amountDue":0},"outcome":"paid"}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.AutoCharge(context.Background(), "inv_1")
+	require.NoError(t, err)
+	assert.Equal(t, invoices.AutoChargeOutcomePaid, got.Outcome)
+	assert.Equal(t, invoices.StatusPaid, got.Invoice.Status)
+	assert.Empty(t, got.FailureCode)
+}
+
+func TestAutoCharge_Declined(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"data":{"id":"inv_1","status":"payment_failed"},"outcome":"failed","failureCode":"card_declined"}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.AutoCharge(context.Background(), "inv_1")
+	require.NoError(t, err)
+	assert.Equal(t, invoices.AutoChargeOutcomeFailed, got.Outcome)
+	assert.Equal(t, invoices.StatusPaymentFailed, got.Invoice.Status)
+	assert.Equal(t, "card_declined", got.FailureCode)
+}
+
+func TestAutoCharge_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := invoices.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.AutoCharge(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestRefundPayment_SendsBody(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/invoices/inv_1/payments/pay_9/refunds", r.URL.Path)
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+		assert.Equal(t, float64(25_000), got["amount"])
+		assert.Equal(t, "requested_by_customer", got["reason"])
+
+		_, _ = w.Write([]byte(`{"data":{"id":"inv_1","status":"paid"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.RefundPayment(context.Background(), "inv_1", "pay_9", &invoices.RefundParams{
+		Amount:         25_000,
+		Reason:         "requested_by_customer",
+		IdempotencyKey: "rfnd-1",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, invoices.StatusPaid, got.Status)
+}
+
+func TestRefundPayment_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := invoices.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.RefundPayment(context.Background(), "", "pay_9", &invoices.RefundParams{Amount: 1})
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestRefundPayment_RequiresPaymentID(t *testing.T) {
+	t.Parallel()
+	cl, _ := invoices.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.RefundPayment(context.Background(), "inv_1", "", &invoices.RefundParams{Amount: 1})
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestRefundPayment_RequiresParams(t *testing.T) {
+	t.Parallel()
+	cl, _ := invoices.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.RefundPayment(context.Background(), "inv_1", "pay_9", nil)
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_body", v.Code)
+}
+
+func TestDeleteDraft_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodDelete, r.Method)
+		assert.Equal(t, "/v1/invoices/inv_1", r.URL.Path)
+		_, _ = w.Write([]byte(`{"data":{"id":"inv_1"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.DeleteDraft(context.Background(), "inv_1")
+	require.NoError(t, err)
+	assert.Equal(t, "inv_1", got.ID)
+}
+
+func TestDeleteDraft_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := invoices.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.DeleteDraft(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestAutoCharge_502SurfacesAsServerError(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = io.WriteString(w, `{"error":{"code":"processor_error","message":"upstream"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.AutoCharge(context.Background(), "inv_1")
+
+	var server *threecommon.ServerError
+	require.True(t, errors.As(err, &server))
+}
+
+func TestRefundPayment_404Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, `{"error":{"code":"not_found","message":"missing"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.RefundPayment(context.Background(), "inv_missing", "pay_9", &invoices.RefundParams{Amount: 1})
+
+	var nf *threecommon.NotFoundError
+	require.True(t, errors.As(err, &nf))
+}
+
+func TestDeleteDraft_409Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusConflict)
+		_, _ = io.WriteString(w, `{"error":{"code":"invoice_not_draft","message":"finalized"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.DeleteDraft(context.Background(), "inv_open")
+
+	var conflict *threecommon.ConflictError
+	require.True(t, errors.As(err, &conflict))
+}
