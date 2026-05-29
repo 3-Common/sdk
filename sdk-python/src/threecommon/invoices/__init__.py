@@ -8,7 +8,10 @@ service classes directly is supported for advanced wiring.
 
 from threecommon.invoices.service import AsyncInvoicesService, InvoicesService
 from threecommon.invoices.types import (
+    AutoChargeOutcome,
+    AutoChargeResult,
     CreateBody,
+    DeletedInvoice,
     Invoice,
     InvoiceCurrency,
     InvoiceLineItem,
@@ -17,6 +20,7 @@ from threecommon.invoices.types import (
     ListInvoicesResponse,
     ListParams,
     PaymentBody,
+    RefundBody,
     RetrieveParams,
     UpdateBody,
     VoidBody,
@@ -24,7 +28,10 @@ from threecommon.invoices.types import (
 
 __all__ = (
     "AsyncInvoicesService",
+    "AutoChargeOutcome",
+    "AutoChargeResult",
     "CreateBody",
+    "DeletedInvoice",
     "Invoice",
     "InvoiceCurrency",
     "InvoiceLineItem",
@@ -34,6 +41,7 @@ __all__ = (
     "ListInvoicesResponse",
     "ListParams",
     "PaymentBody",
+    "RefundBody",
     "RetrieveParams",
     "UpdateBody",
     "VoidBody",
