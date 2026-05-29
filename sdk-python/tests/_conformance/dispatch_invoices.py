@@ -12,6 +12,7 @@ from threecommon.invoices import (
     InvoiceLineItem,
     ListParams,
     PaymentBody,
+    RefundBody,
     RetrieveParams,
     UpdateBody,
     VoidBody,
@@ -27,6 +28,7 @@ def build_list_params(args: dict[str, Any]) -> ListParams | None:
         "pageSize": "page_size",
         "status": "status",
         "customerId": "customer_id",
+        "subscriptionId": "subscription_id",
         "issuedAfter": "issued_after",
         "issuedBefore": "issued_before",
         "fields": "fields",
@@ -104,6 +106,22 @@ def dispatch_sync(client: ThreeCommon, method: str, args: dict[str, Any]) -> Any
                 note=body_raw.get("note"),
             ),
         )
+    if method == "autoCharge":
+        return client.invoices.auto_charge(args["id"])
+    if method == "refundPayment":
+        body_raw = args.get("body") or {}
+        return client.invoices.refund_payment(
+            args["id"],
+            args["paymentId"],
+            RefundBody(
+                amount=body_raw["amount"],
+                reason=body_raw.get("reason"),
+                note=body_raw.get("note"),
+                idempotency_key=body_raw.get("idempotencyKey", body_raw.get("idempotency_key")),
+            ),
+        )
+    if method == "deleteDraft":
+        return client.invoices.delete_draft(args["id"])
     if method == "listAutoPaginate":
         return list(client.invoices.list_auto_paginate(build_list_params(args)))
     pytest.fail(f"unsupported invoice method: {method}")
@@ -138,6 +156,22 @@ async def dispatch_async(  # noqa: PLR0911
                 note=body_raw.get("note"),
             ),
         )
+    if method == "autoCharge":
+        return await client.invoices.auto_charge(args["id"])
+    if method == "refundPayment":
+        body_raw = args.get("body") or {}
+        return await client.invoices.refund_payment(
+            args["id"],
+            args["paymentId"],
+            RefundBody(
+                amount=body_raw["amount"],
+                reason=body_raw.get("reason"),
+                note=body_raw.get("note"),
+                idempotency_key=body_raw.get("idempotencyKey", body_raw.get("idempotency_key")),
+            ),
+        )
+    if method == "deleteDraft":
+        return await client.invoices.delete_draft(args["id"])
     if method == "listAutoPaginate":
         return [inv async for inv in client.invoices.list_auto_paginate(build_list_params(args))]
     pytest.fail(f"unsupported invoice method: {method}")

@@ -1,7 +1,7 @@
 """Pre-release smoke test against the live API.
 
-Runs <= 10 calls and verifies the happy path + the common error paths
-across the events and invoices resources. Used by
+Runs a small set of calls and verifies the happy path + the common error
+paths across the events and invoices resources. Used by
 .github/workflows/live-smoke.yml (maintainer-only).
 
 Required env:
@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from threecommon import APIError, AuthError, NotFoundError, ThreeCommon
 from threecommon.events import ListParams
 from threecommon.invoices import ListParams as InvoiceListParams
+from threecommon.invoices import RefundBody
 
 # Syntactically valid 24-hex ObjectId that will not match any real record.
 # The API rejects non-ObjectId strings with a 400 before reaching the
@@ -117,6 +118,40 @@ def _check_invoices_404(client: ThreeCommon) -> _Result:
     return _Result("invoices 404 path", "fail", "expected NotFoundError")
 
 
+# The new invoice write methods move real money (auto_charge, refund_payment)
+# or delete a record (delete_draft), so only their not-found paths are smoke-
+# tested against the live host. A well-formed-but-missing id 404s when the
+# handler loads the invoice, before any side effect.
+def _check_invoices_auto_charge_404(client: ThreeCommon) -> _Result:
+    try:
+        client.invoices.auto_charge(MISSING_OBJECT_ID)
+    except NotFoundError as e:
+        return _Result("invoices.auto_charge 404 path", "pass", f"code={e.code}")
+    except APIError as e:
+        return _Result("invoices.auto_charge 404 path", "fail", f"unexpected: {e!r}")
+    return _Result("invoices.auto_charge 404 path", "fail", "expected NotFoundError")
+
+
+def _check_invoices_refund_404(client: ThreeCommon) -> _Result:
+    try:
+        client.invoices.refund_payment(MISSING_OBJECT_ID, MISSING_OBJECT_ID, RefundBody(amount=1))
+    except NotFoundError as e:
+        return _Result("invoices.refund_payment 404 path", "pass", f"code={e.code}")
+    except APIError as e:
+        return _Result("invoices.refund_payment 404 path", "fail", f"unexpected: {e!r}")
+    return _Result("invoices.refund_payment 404 path", "fail", "expected NotFoundError")
+
+
+def _check_invoices_delete_draft_404(client: ThreeCommon) -> _Result:
+    try:
+        client.invoices.delete_draft(MISSING_OBJECT_ID)
+    except NotFoundError as e:
+        return _Result("invoices.delete_draft 404 path", "pass", f"code={e.code}")
+    except APIError as e:
+        return _Result("invoices.delete_draft 404 path", "fail", f"unexpected: {e!r}")
+    return _Result("invoices.delete_draft 404 path", "fail", "expected NotFoundError")
+
+
 def _check_401(base_url: str) -> _Result:
     fake = "3co_smoke_test_invalid_key"  # gitleaks:allow
     try:
@@ -153,6 +188,9 @@ def main() -> int:
         results.append(_check_invoices_list(client))
         results.append(_check_invoices_retrieve(client, known_invoice_id))
         results.append(_check_invoices_404(client))
+        results.append(_check_invoices_auto_charge_404(client))
+        results.append(_check_invoices_refund_404(client))
+        results.append(_check_invoices_delete_draft_404(client))
     results.append(_check_401(base_url))
 
     failed = 0

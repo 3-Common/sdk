@@ -11,12 +11,16 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-#: Lifecycle status of an invoice. Future server-side values will arrive as
-#: raw strings until the SDK is updated.
-InvoiceStatus = Literal["draft", "open", "paid", "void"]
+#: Lifecycle status of an invoice. ``payment_failed`` is set when an off-session
+#: auto-charge attempt is rejected (decline / SCA / no card); the invoice is
+#: still owed and can be retried or paid manually.
+InvoiceStatus = Literal["draft", "open", "payment_failed", "paid", "void"]
 
 #: Invoice currency code; all line amounts must match.
 InvoiceCurrency = Literal["USD", "CAD"]
+
+#: Outcome of an auto-charge attempt.
+AutoChargeOutcome = Literal["paid", "failed"]
 
 
 class _BaseModel(BaseModel):
@@ -130,6 +134,9 @@ class ListParams(_BaseModel):
     customer_id: str | None = Field(
         default=None, serialization_alias="customerId", validation_alias="customerId"
     )
+    subscription_id: str | None = Field(
+        default=None, serialization_alias="subscriptionId", validation_alias="subscriptionId"
+    )
     issued_after: str | None = Field(
         default=None, serialization_alias="issuedAfter", validation_alias="issuedAfter"
     )
@@ -193,3 +200,35 @@ class PaymentBody(_BaseModel):
         default=None, serialization_alias="idempotencyKey", validation_alias="idempotencyKey"
     )
     note: str | None = None
+
+
+class RefundBody(_BaseModel):
+    """Body accepted by ``POST /v1/invoices/{id}/payments/{paymentId}/refunds``."""
+
+    amount: int
+    reason: Literal["duplicate", "fraudulent", "requested_by_customer"] | None = None
+    note: str | None = None
+    idempotency_key: str | None = Field(
+        default=None, serialization_alias="idempotencyKey", validation_alias="idempotencyKey"
+    )
+
+
+class AutoChargeResult(_BaseModel):
+    """Successful response shape from ``POST /v1/invoices/{id}/auto_charge``.
+
+    A card decline is an expected business outcome, not an error: ``outcome`` is
+    ``"failed"`` with the invoice left in ``payment_failed`` and a
+    ``failure_code`` set. Only network / processor 5xx errors raise.
+    """
+
+    invoice: Invoice
+    outcome: AutoChargeOutcome
+    failure_code: str | None = Field(
+        default=None, serialization_alias="failureCode", validation_alias="failureCode"
+    )
+
+
+class DeletedInvoice(_BaseModel):
+    """Result of ``DELETE /v1/invoices/{id}`` — the id of the removed draft."""
+
+    id: str
