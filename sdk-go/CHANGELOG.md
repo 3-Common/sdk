@@ -6,6 +6,31 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.2.0
+
+### Added
+
+- Invoice write operations completing parity with the public REST surface:
+  - `AutoCharge` — off-session charge the customer's saved card
+    (`POST /v1/invoices/{id}/auto_charge`). A decline returns a result with
+    `Outcome` "failed" and a `FailureCode` rather than an error; only network /
+    processor 5xx errors return an error.
+  - `RefundPayment` — refund all or part of a recorded payment
+    (`POST /v1/invoices/{id}/payments/{paymentId}/refunds`). Idempotent on
+    `RefundParams.IdempotencyKey`.
+  - `DeleteDraft` — permanently remove a draft invoice
+    (`DELETE /v1/invoices/{id}`).
+- New types `AutoChargeResult`, `AutoChargeOutcome`, `RefundParams`, and
+  `DeleteDraftResult` on the `invoices` package.
+- `scripts/livesmoke` exercises the not-found path for each new method.
+
+### Changed
+
+- `invoices.Status` adds `StatusPaymentFailed` (the state set after a failed
+  off-session auto-charge).
+- `invoices.ListParams` adds the `SubscriptionID` filter accepted by
+  `GET /v1/invoices`.
+
 ## 0.1.0
 
 ### Added
