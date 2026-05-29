@@ -207,7 +207,7 @@ func (c *Client) RefundPayment(ctx context.Context, id, paymentID string, params
 	}
 	if paymentID == "" {
 		return nil, &threecommon.ValidationError{APIError: &threecommon.APIError{
-			Code:    "missing_id",
+			Code:    "missing_payment_id",
 			Message: "invoices.RefundPayment: paymentID must be non-empty",
 		}}
 	}

@@ -639,7 +639,7 @@ func TestRefundPayment_RequiresPaymentID(t *testing.T) {
 	_, err := cl.RefundPayment(context.Background(), "inv_1", "", &invoices.RefundParams{Amount: 1})
 	var v *threecommon.ValidationError
 	require.True(t, errors.As(err, &v))
-	assert.Equal(t, "missing_id", v.Code)
+	assert.Equal(t, "missing_payment_id", v.Code)
 }
 
 func TestRefundPayment_RequiresParams(t *testing.T) {

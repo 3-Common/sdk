@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	threecommon "github.com/3-Common/sdk/sdk-go"
 	"github.com/3-Common/sdk/sdk-go/client"
@@ -25,9 +24,12 @@ func main() {
 	}
 
 	refunded, err := api.Invoices.RefundPayment(context.Background(), "inv_replace_with_real_id", "pay_replace_with_real_id", &invoices.RefundParams{
-		Amount:         25_000, // $250.00 in cents; capped at the refundable balance
-		Reason:         "requested_by_customer",
-		IdempotencyKey: "rfnd-" + time.Now().UTC().Format(time.RFC3339Nano),
+		Amount: 25_000, // $250.00 in cents; capped at the refundable balance
+		Reason: "requested_by_customer",
+		// Derive the idempotency key from a stable business event id (e.g. the
+		// refund-request id in your own system), never the wall clock — a retry
+		// must reuse the same key or it refunds a second time.
+		IdempotencyKey: "rfnd-8842",
 	})
 	if err != nil {
 		log.Fatal(err)
