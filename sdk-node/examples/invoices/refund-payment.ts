@@ -19,7 +19,10 @@ const refunded = await client.invoices.refundPayment(
   {
     amount: 25_000, // $250.00 in cents; capped at the payment's refundable balance
     reason: 'requested_by_customer',
-    idempotencyKey: `rfnd-${new Date().toISOString()}`,
+    // Derive the idempotency key from a stable business event id (e.g. the
+    // refund-request id in your own system) — never the wall clock. A fresh
+    // value on each run is a new key, so a retry after a crash refunds twice.
+    idempotencyKey: 'rfnd-8842',
   },
 )
 

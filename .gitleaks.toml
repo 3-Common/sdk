@@ -1,0 +1,16 @@
+# gitleaks configuration for 3-Common/sdk
+#
+# Start from gitleaks' built-in ruleset, then suppress known false positives.
+[extend]
+useDefault = true
+
+# Conformance scenarios are synthetic, cross-language test fixtures: every value
+# in them is fake (idempotency keys, `Bearer 3co_test`, sample ids). The default
+# `generic-api-key` rule false-positives on `idempotencyKey:` values there
+# because the field name contains "key". Nothing under this path is ever a real
+# credential, so allowlist the whole directory.
+[allowlist]
+description = "Conformance scenarios contain only synthetic test data, never real secrets"
+paths = [
+  '''conformance/scenarios/.*''',
+]

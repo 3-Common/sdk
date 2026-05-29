@@ -15,7 +15,10 @@ const client = new ThreeCommon({
 
 const updated = await client.invoices.recordPayment('inv_replace_with_real_id', {
   payment: 50_000, // $500.00 in cents
-  idempotencyKey: `pmt-${new Date().toISOString()}`,
+  // Derive the idempotency key from a stable business event id (e.g. the
+  // payment id in your own system) — never the wall clock. A fresh value on
+  // each run is a new key, so a retry after a crash records a second payment.
+  idempotencyKey: 'pmt-4310',
   note: 'Wire transfer, ref ABCD-1234',
 })
 

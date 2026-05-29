@@ -73,7 +73,7 @@ def _build_auto_charge_result(response: dict[str, Any]) -> AutoChargeResult:
 def _require_payment_id(payment_id: str) -> None:
     if not payment_id:
         msg = "invoices.refund_payment: payment_id must be a non-empty string"
-        raise ValidationError(code="missing_id", message=msg)
+        raise ValidationError(code="missing_payment_id", message=msg)
 
 
 # ────────────────────────────────────────────────────────────────────────────
