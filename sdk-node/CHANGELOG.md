@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- Add the remaining invoice write operations so the invoices resource reaches full parity with the public REST surface:
+- Add the remaining invoice write operations so the invoices resource reaches full parity with the public REST surface: 
   - `client.invoices.autoCharge(id)` — off-session charge the customer's saved card (`POST /v1/invoices/{id}/auto_charge`). A decline resolves with `outcome: 'failed'` and a `failureCode` rather than throwing.
   - `client.invoices.refundPayment(id, paymentId, body)` — refund all or part of a recorded payment (`POST /v1/invoices/{id}/payments/{paymentId}/refunds`). Idempotent on `body.idempotencyKey`.
   - `client.invoices.deleteDraft(id)` — permanently remove a draft invoice (`DELETE /v1/invoices/{id}`).
