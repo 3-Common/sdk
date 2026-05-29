@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	threecommon "github.com/3-Common/sdk/sdk-go"
 	"github.com/3-Common/sdk/sdk-go/client"
@@ -25,8 +24,11 @@ func main() {
 	}
 
 	updated, err := api.Invoices.RecordPayment(context.Background(), "inv_replace_with_real_id", &invoices.PaymentParams{
-		Payment:        50_000, // $500.00 in cents
-		IdempotencyKey: "pmt-" + time.Now().UTC().Format(time.RFC3339Nano),
+		Payment: 50_000, // $500.00 in cents
+		// Derive the idempotency key from a stable business event id (e.g. the
+		// payment id in your own system), never the wall clock — a retry must
+		// reuse the same key or it records a second payment.
+		IdempotencyKey: "pmt-4310",
 		Note:           "Wire transfer, ref ABCD-1234",
 	})
 	if err != nil {
