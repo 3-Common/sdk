@@ -8,21 +8,23 @@ Run with: python examples/invoices/refund_payment.py
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from threecommon import ThreeCommon
 from threecommon.invoices import RefundBody
 
 
 def main() -> None:
     with ThreeCommon(api_key="3co_your_api_key_here") as client:
+        # Derive the idempotency key from a stable business event id (e.g. the
+        # refund-request id from your own system) — never the wall clock. A fresh
+        # timestamp on each run is a *new* key, so a retry after a crash would
+        # issue a second refund instead of replaying the first.
         refunded = client.invoices.refund_payment(
             "inv_replace_with_real_id",
             "pay_replace_with_real_id",
             RefundBody(
                 amount=25_000,  # $250.00 in cents; capped at the refundable balance
                 reason="requested_by_customer",
-                idempotency_key=f"rfnd-{datetime.now(timezone.utc).isoformat()}",
+                idempotency_key="rfnd-replace_with_business_event_id",
             ),
         )
         print(f"invoice {refunded.id} now {refunded.status}")

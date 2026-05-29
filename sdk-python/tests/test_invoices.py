@@ -446,7 +446,7 @@ def test_refund_payment_requires_id() -> None:
 def test_refund_payment_requires_payment_id() -> None:
     with _make_sync() as c, pytest.raises(ValidationError) as exc:
         c.invoices.refund_payment("inv_123", "", RefundBody(amount=1))
-    assert exc.value.code == "missing_id"
+    assert exc.value.code == "missing_payment_id"
 
 
 def test_refund_payment_validates_body() -> None:
