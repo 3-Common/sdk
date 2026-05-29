@@ -1,0 +1,32 @@
+name: auto-charge invoice — card declined (200 with failed outcome, not an error)
+call:
+  resource: invoices
+  method: autoCharge
+  args:
+    id: inv_123
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_123/auto_charge
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: inv_123
+      hostId: hst_1
+      customerId: cnt_42
+      currency: USD
+      status: payment_failed
+      total: 50000
+      amountDue: 50000
+      amountPaid: 0
+    outcome: failed
+    failureCode: card_declined
+expectedResult:
+  invoice:
+    id: inv_123
+    status: payment_failed
+  outcome: failed
+  failureCode: card_declined

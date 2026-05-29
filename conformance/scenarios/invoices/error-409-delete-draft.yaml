@@ -1,0 +1,28 @@
+name: 409 Conflict — delete a finalized (non-draft) invoice
+call:
+  resource: invoices
+  method: deleteDraft
+  args:
+    id: inv_open
+client:
+  maxRetries: 0
+expectedRequest:
+  method: DELETE
+  path: /v1/invoices/inv_open
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-inv-del-409
+  body:
+    error:
+      code: invoice_not_draft
+      message: Invoice inv_open is finalized and cannot be deleted; void it instead
+      details:
+        currentStatus: open
+expectedError:
+  type: ThreeCommonConflictError
+  code: invoice_not_draft
+  httpStatus: 409
+  requestId: req-inv-del-409
+  details:
+    currentStatus: open

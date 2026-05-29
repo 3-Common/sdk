@@ -56,6 +56,9 @@ export function dispatchSubscriptions(
     case 'finalize':
     case 'void':
     case 'recordPayment':
+    case 'autoCharge':
+    case 'refundPayment':
+    case 'deleteDraft':
       throw new Error(`subscriptions: unsupported method '${call.method}'`)
   }
 }

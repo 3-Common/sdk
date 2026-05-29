@@ -1,10 +1,14 @@
 import { expectAssignable, expectError, expectType } from 'tsd'
 
 import type {
+  AutoChargeOutcome,
+  AutoChargeResult,
+  DeletedInvoice,
   Invoice,
   InvoiceCreateBody,
   InvoiceListParams,
   InvoicePaymentBody,
+  InvoiceRefundBody,
   InvoiceRetrieveParams,
   InvoiceUpdateBody,
   InvoiceVoidBody,
@@ -54,6 +58,31 @@ declare const paymentBody: InvoicePaymentBody
 expectType<Promise<Invoice>>(client.invoices.recordPayment('inv_123', paymentBody))
 expectAssignable<InvoicePaymentBody>({ payment: 50_000 })
 expectAssignable<InvoicePaymentBody>({ payment: 50_000, idempotencyKey: 'pmt-1', note: 'wire' })
+
+// autoCharge — id only; returns AutoChargeResult ({ invoice, outcome, failureCode? }).
+expectType<Promise<AutoChargeResult>>(client.invoices.autoCharge('inv_123'))
+declare const autoChargeResult: AutoChargeResult
+expectType<Invoice>(autoChargeResult.invoice)
+expectType<AutoChargeOutcome>(autoChargeResult.outcome)
+expectAssignable<AutoChargeOutcome>('paid')
+expectAssignable<AutoChargeOutcome>('failed')
+expectError<AutoChargeOutcome>('refunded')
+
+// refundPayment — id + paymentId + body; returns Invoice.
+declare const refundBody: InvoiceRefundBody
+expectType<Promise<Invoice>>(client.invoices.refundPayment('inv_123', 'pay_456', refundBody))
+expectAssignable<InvoiceRefundBody>({ amount: 25_000 })
+expectAssignable<InvoiceRefundBody>({
+  amount: 25_000,
+  reason: 'requested_by_customer',
+  note: 'duplicate charge',
+  idempotencyKey: 'rfnd-1',
+})
+// amount is required.
+expectError<InvoiceRefundBody>({ reason: 'requested_by_customer' })
+
+// deleteDraft — id only; returns DeletedInvoice ({ id }).
+expectType<Promise<DeletedInvoice>>(client.invoices.deleteDraft('inv_123'))
 
 // listAutoPaginate — returns AsyncIterableIterator<Invoice>.
 expectAssignable<AsyncIterable<Invoice>>(client.invoices.listAutoPaginate({ status: 'open' }))

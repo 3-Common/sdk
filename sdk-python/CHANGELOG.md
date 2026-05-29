@@ -5,6 +5,31 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.2.0
+
+### Added
+
+- Invoice write operations completing parity with the public REST surface, on
+  both the sync and async clients:
+  - `auto_charge` — off-session charge the customer's saved card
+    (`POST /v1/invoices/{id}/auto_charge`). A decline resolves with
+    `outcome="failed"` and a `failure_code` rather than raising; only network /
+    processor 5xx errors raise.
+  - `refund_payment` — refund all or part of a recorded payment
+    (`POST /v1/invoices/{id}/payments/{paymentId}/refunds`). Idempotent on
+    `body.idempotency_key`.
+  - `delete_draft` — permanently remove a draft invoice
+    (`DELETE /v1/invoices/{id}`).
+- New public types on `threecommon.invoices`: `AutoChargeResult`,
+  `AutoChargeOutcome`, `RefundBody`, and `DeletedInvoice`.
+
+### Fixed
+
+- `InvoiceStatus` now includes `payment_failed` (the state set after a failed
+  off-session auto-charge); it was previously missing.
+- Invoice `ListParams` now accepts the `subscription_id` filter the API
+  supports; it was previously missing.
+
 ## 0.1.0
 
 ### Added

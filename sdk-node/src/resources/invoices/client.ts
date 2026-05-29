@@ -1,10 +1,14 @@
 import { createAutoPaginator } from '@/pagination/auto-paginator'
 
 import type {
+  AutoChargeOutcome,
+  AutoChargeResult,
+  DeletedInvoice,
   Invoice,
   InvoiceCreateBody,
   InvoiceListParams,
   InvoicePaymentBody,
+  InvoiceRefundBody,
   InvoiceRetrieveParams,
   InvoiceUpdateBody,
   InvoiceVoidBody,
@@ -15,6 +19,12 @@ import type { RequestOptions } from '@/types/public'
 
 interface DetailEnvelope<T> {
   readonly data: T
+}
+
+interface AutoChargeEnvelope {
+  readonly data: Invoice
+  readonly outcome: AutoChargeOutcome
+  readonly failureCode?: string
 }
 
 /**
@@ -94,10 +104,57 @@ export interface InvoicesService {
    *
    * @example
    * ```ts
-   * await client.invoices.recordPayment('inv_123', { payment: 50_000, idempotencyKey: 'pmt-2026-05-11' })
+   * // idempotencyKey: a STABLE id from your system, never the wall clock — a retry must reuse it
+   * await client.invoices.recordPayment('inv_123', { payment: 50_000, idempotencyKey: 'pmt-4310' })
    * ```
    */
   recordPayment(id: string, body: InvoicePaymentBody, options?: RequestOptions): Promise<Invoice>
+
+  /**
+   * Off-session charge the customer's saved card for an `open` or
+   * `payment_failed` invoice. A decline is not an error — it resolves with
+   * `outcome: 'failed'` and a `failureCode`, leaving the invoice in
+   * `payment_failed`. Only network / processor 5xx errors throw.
+   *
+   * @example
+   * ```ts
+   * const { invoice, outcome, failureCode } = await client.invoices.autoCharge('inv_123')
+   * if (outcome === 'failed') console.warn(`charge failed: ${failureCode ?? 'unknown'}`)
+   * ```
+   */
+  autoCharge(id: string, options?: RequestOptions): Promise<AutoChargeResult>
+
+  /**
+   * Refund all or part of a recorded payment on a paid invoice. Idempotent on
+   * the body's `idempotencyKey`: replaying the same key returns the existing
+   * refund without contacting the processor again.
+   *
+   * @example
+   * ```ts
+   * const refunded = await client.invoices.refundPayment('inv_123', 'pay_456', {
+   *   amount: 25_000,
+   *   reason: 'requested_by_customer',
+   * })
+   * ```
+   */
+  refundPayment(
+    id: string,
+    paymentId: string,
+    body: InvoiceRefundBody,
+    options?: RequestOptions,
+  ): Promise<Invoice>
+
+  /**
+   * Permanently delete a draft invoice. Only legal while in `draft` (no number
+   * issued) — finalized invoices must be voided instead so the audit trail
+   * stays intact.
+   *
+   * @example
+   * ```ts
+   * await client.invoices.deleteDraft('inv_123')
+   * ```
+   */
+  deleteDraft(id: string, options?: RequestOptions): Promise<DeletedInvoice>
 
   /**
    * Iterate every invoice matching the filter, paging automatically.
@@ -201,6 +258,50 @@ export function invoicesService(http: HttpClient): InvoicesService {
         method: 'POST',
         path: `/invoices/${encodeURIComponent(id)}/payments`,
         body,
+        options,
+      })
+      return response.data
+    },
+
+    async autoCharge(id: string, options?: RequestOptions): Promise<AutoChargeResult> {
+      requireId('autoCharge', id)
+      const response = await http.request<AutoChargeEnvelope>({
+        method: 'POST',
+        path: `/invoices/${encodeURIComponent(id)}/auto_charge`,
+        options,
+      })
+      // Omit `failureCode` rather than emit `failureCode: undefined` so the
+      // result shape matches the wire on the happy path. Mirrors the
+      // subscriptions `bill`/`renew` envelope-unwrap pattern.
+      return response.failureCode === undefined
+        ? { invoice: response.data, outcome: response.outcome }
+        : { invoice: response.data, outcome: response.outcome, failureCode: response.failureCode }
+    },
+
+    async refundPayment(
+      id: string,
+      paymentId: string,
+      body: InvoiceRefundBody,
+      options?: RequestOptions,
+    ): Promise<Invoice> {
+      requireId('refundPayment', id)
+      if (typeof paymentId !== 'string' || paymentId.length === 0) {
+        throw new TypeError('invoices.refundPayment: `paymentId` must be a non-empty string')
+      }
+      const response = await http.request<DetailEnvelope<Invoice>>({
+        method: 'POST',
+        path: `/invoices/${encodeURIComponent(id)}/payments/${encodeURIComponent(paymentId)}/refunds`,
+        body,
+        options,
+      })
+      return response.data
+    },
+
+    async deleteDraft(id: string, options?: RequestOptions): Promise<DeletedInvoice> {
+      requireId('deleteDraft', id)
+      const response = await http.request<DetailEnvelope<DeletedInvoice>>({
+        method: 'DELETE',
+        path: `/invoices/${encodeURIComponent(id)}`,
         options,
       })
       return response.data

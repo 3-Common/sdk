@@ -1,18 +1,12 @@
-name: record invoice payment — happy path
+name: auto-charge invoice — charge cleared
 call:
   resource: invoices
-  method: recordPayment
+  method: autoCharge
   args:
     id: inv_123
-    body:
-      payment: 50000
-      idempotencyKey: pmt-4310
 expectedRequest:
   method: POST
-  path: /v1/invoices/inv_123/payments
-  body:
-    payment: 50000
-    idempotencyKey: pmt-4310
+  path: /v1/invoices/inv_123/auto_charge
   headers:
     authorization: 'Bearer 3co_test'
     content-type: application/json
@@ -28,8 +22,11 @@ mockResponse:
       total: 50000
       amountDue: 0
       amountPaid: 50000
+    outcome: paid
 expectedResult:
-  id: inv_123
-  status: paid
-  amountDue: 0
-  amountPaid: 50000
+  invoice:
+    id: inv_123
+    status: paid
+    amountDue: 0
+    amountPaid: 50000
+  outcome: paid

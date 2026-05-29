@@ -1,0 +1,24 @@
+name: 404 Not Found — delete a missing draft invoice
+call:
+  resource: invoices
+  method: deleteDraft
+  args:
+    id: inv_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: DELETE
+  path: /v1/invoices/inv_missing
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-inv-del-404
+  body:
+    error:
+      code: not_found
+      message: Invoice inv_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-inv-del-404

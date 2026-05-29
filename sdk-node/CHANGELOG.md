@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- Add the remaining invoice write operations so the invoices resource reaches full parity with the public REST surface:
+  - `client.invoices.autoCharge(id)` — off-session charge the customer's saved card (`POST /v1/invoices/{id}/auto_charge`). A decline resolves with `outcome: 'failed'` and a `failureCode` rather than throwing.
+  - `client.invoices.refundPayment(id, paymentId, body)` — refund all or part of a recorded payment (`POST /v1/invoices/{id}/payments/{paymentId}/refunds`). Idempotent on `body.idempotencyKey`.
+  - `client.invoices.deleteDraft(id)` — permanently remove a draft invoice (`DELETE /v1/invoices/{id}`).
+
+  New exported types: `AutoChargeResult`, `AutoChargeOutcome`, `InvoiceRefundBody`, and `DeletedInvoice`.
+
+  Also corrected two invoice types that had drifted from the API:
+  - `InvoiceStatus` now includes `payment_failed` (the state set after a failed off-session auto-charge).
+  - `InvoiceListParams` now exposes the `subscriptionId` filter accepted by `GET /v1/invoices`.
+
 ## 0.2.0
 
 ### Minor Changes

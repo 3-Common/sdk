@@ -51,6 +51,17 @@ func dispatchInvoices(t *testing.T, api *client.API, ctx context.Context, sc sce
 		id, _ := sc.Call.Args["id"].(string)
 		body, _ := sc.Call.Args["body"].(map[string]any)
 		return api.Invoices.RecordPayment(ctx, id, buildInvoicePaymentParams(body))
+	case "autoCharge":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Invoices.AutoCharge(ctx, id)
+	case "refundPayment":
+		id, _ := sc.Call.Args["id"].(string)
+		paymentID, _ := sc.Call.Args["paymentId"].(string)
+		body, _ := sc.Call.Args["body"].(map[string]any)
+		return api.Invoices.RefundPayment(ctx, id, paymentID, buildInvoiceRefundParams(body))
+	case "deleteDraft":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Invoices.DeleteDraft(ctx, id)
 	case "listAutoPaginate":
 		iter := api.Invoices.ListAutoPaginate(ctx, buildInvoiceListParams(sc.Call.Args))
 		var collected []invoices.Invoice
@@ -81,6 +92,10 @@ func buildInvoiceListParams(args map[string]any) *invoices.ListParams {
 		case "customerId":
 			if s, ok := v.(string); ok {
 				p.CustomerID = s
+			}
+		case "subscriptionId":
+			if s, ok := v.(string); ok {
+				p.SubscriptionID = s
 			}
 		case "issuedAfter":
 			if s, ok := v.(string); ok {
@@ -192,6 +207,26 @@ func buildInvoicePaymentParams(body map[string]any) *invoices.PaymentParams {
 	}
 	if s, ok := body["note"].(string); ok {
 		p.Note = s
+	}
+	return p
+}
+
+func buildInvoiceRefundParams(body map[string]any) *invoices.RefundParams {
+	if body == nil {
+		return nil
+	}
+	p := &invoices.RefundParams{}
+	if v := anyToIntPtr(body["amount"]); v != nil {
+		p.Amount = int64(*v)
+	}
+	if s, ok := body["reason"].(string); ok {
+		p.Reason = s
+	}
+	if s, ok := body["note"].(string); ok {
+		p.Note = s
+	}
+	if s, ok := body["idempotencyKey"].(string); ok {
+		p.IdempotencyKey = s
 	}
 	return p
 }

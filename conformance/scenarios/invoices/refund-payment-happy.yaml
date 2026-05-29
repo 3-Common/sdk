@@ -1,0 +1,46 @@
+name: refund invoice payment — happy path
+call:
+  resource: invoices
+  method: refundPayment
+  args:
+    id: inv_123
+    paymentId: pay_456
+    body:
+      amount: 25000
+      reason: requested_by_customer
+      idempotencyKey: rfnd-8842
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_123/payments/pay_456/refunds
+  body:
+    amount: 25000
+    reason: requested_by_customer
+    idempotencyKey: rfnd-8842
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: inv_123
+      hostId: hst_1
+      customerId: cnt_42
+      currency: USD
+      status: paid
+      total: 50000
+      amountDue: 0
+      amountPaid: 50000
+      payments:
+        - id: pay_456
+          status: succeeded
+          amount: 50000
+          paidAt: '2026-05-10T00:00:00.000Z'
+          refunds:
+            - id: re_1
+              amount: 25000
+              refundedAt: '2026-05-11T00:00:00.000Z'
+              reason: requested_by_customer
+expectedResult:
+  id: inv_123
+  status: paid

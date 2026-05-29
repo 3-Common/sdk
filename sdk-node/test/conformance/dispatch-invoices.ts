@@ -44,6 +44,20 @@ export function dispatchInvoices(
         body as unknown as Parameters<typeof client.invoices.recordPayment>[1],
       )
     }
+    case 'autoCharge':
+      return client.invoices.autoCharge(expectString(args['id'], 'autoCharge'))
+    case 'refundPayment': {
+      const id = expectString(args['id'], 'refundPayment')
+      const paymentId = expectString(args['paymentId'], 'refundPayment')
+      const body = expectBody(args['body'], 'refundPayment')
+      return client.invoices.refundPayment(
+        id,
+        paymentId,
+        body as unknown as Parameters<typeof client.invoices.refundPayment>[2],
+      )
+    }
+    case 'deleteDraft':
+      return client.invoices.deleteDraft(expectString(args['id'], 'deleteDraft'))
     case 'listAutoPaginate':
       return client.invoices.listAutoPaginate(args)
     case 'activate':
