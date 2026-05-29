@@ -122,6 +122,13 @@ jobs:
   # provides a second layer for any miss here.
   gitleaks:
     runs-on: ubuntu-latest
+    # Run from the repo root (not the inherited sdk-node/ default) so the whole
+    # monorepo is scanned, the repo-root .gitleaks.toml allowlist is picked up,
+    # and the downloaded binary + the scan command share a working directory.
+    # python.yml and go.yml do the same.
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v6
         with:
