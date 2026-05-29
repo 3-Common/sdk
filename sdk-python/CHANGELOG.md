@@ -5,6 +5,14 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.3.0
+
+### Added
+
+- Invoices: auto_charge, refund_payment, delete_draft methods (sync + async).
+- Invoices: subscription_id filter on list().
+- Invoices: AutoChargeOutcome, AutoChargeResult, DeletedInvoice, RefundBody types.
+
 ## 0.2.0
 
 ### Added
