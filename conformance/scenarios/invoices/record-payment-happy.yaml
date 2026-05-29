@@ -6,13 +6,13 @@ call:
     id: inv_123
     body:
       payment: 50000
-      idempotencyKey: pmt-req_4310
+      idempotencyKey: pmt-4310
 expectedRequest:
   method: POST
   path: /v1/invoices/inv_123/payments
   body:
     payment: 50000
-    idempotencyKey: pmt-req_4310
+    idempotencyKey: pmt-4310
   headers:
     authorization: 'Bearer 3co_test'
     content-type: application/json

@@ -214,11 +214,11 @@ describe('invoices.recordPayment', () => {
     const client = buildClient()
     const paid = await client.invoices.recordPayment('inv_123', {
       payment: 50_000,
-      idempotencyKey: 'pmt-2026-05-11',
+      idempotencyKey: 'pmt-4310',
     })
     expect(paid.status).toBe('paid')
     expect(paid.amountDue).toBe(0)
-    expect(body).toEqual({ payment: 50_000, idempotencyKey: 'pmt-2026-05-11' })
+    expect(body).toEqual({ payment: 50_000, idempotencyKey: 'pmt-4310' })
   })
 
   it('rejects empty id', async () => {

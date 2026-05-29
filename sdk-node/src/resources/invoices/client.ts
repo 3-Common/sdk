@@ -104,7 +104,8 @@ export interface InvoicesService {
    *
    * @example
    * ```ts
-   * await client.invoices.recordPayment('inv_123', { payment: 50_000, idempotencyKey: 'pmt-2026-05-11' })
+   * // idempotencyKey: a STABLE id from your system, never the wall clock — a retry must reuse it
+   * await client.invoices.recordPayment('inv_123', { payment: 50_000, idempotencyKey: 'pmt-4310' })
    * ```
    */
   recordPayment(id: string, body: InvoicePaymentBody, options?: RequestOptions): Promise<Invoice>

@@ -8,14 +8,14 @@ call:
     body:
       amount: 25000
       reason: requested_by_customer
-      idempotencyKey: rfnd-req_8842
+      idempotencyKey: rfnd-8842
 expectedRequest:
   method: POST
   path: /v1/invoices/inv_123/payments/pay_456/refunds
   body:
     amount: 25000
     reason: requested_by_customer
-    idempotencyKey: rfnd-req_8842
+    idempotencyKey: rfnd-8842
   headers:
     authorization: 'Bearer 3co_test'
     content-type: application/json
