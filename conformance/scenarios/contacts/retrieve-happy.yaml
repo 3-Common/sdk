@@ -1,0 +1,33 @@
+name: retrieve contact — happy path
+call:
+  resource: contacts
+  method: retrieve
+  args:
+    id: cnt_123
+expectedRequest:
+  method: GET
+  path: /v1/contacts/cnt_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-retrieve-001
+  body:
+    data:
+      id: cnt_123
+      firstName: Alex
+      lastName: Garcia
+      fullName: Alex Garcia
+      email: alex@example.com
+      vendorId: hst_1
+      orderSum: 3
+      grossSum: 15000
+      status: opted-in
+      eventsAttended_IDS: []
+      itemsPurchased_IDS: []
+      productsPurchased_IDS: []
+expectedResult:
+  id: cnt_123
+  email: alex@example.com
+  status: opted-in

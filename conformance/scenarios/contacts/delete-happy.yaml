@@ -1,0 +1,20 @@
+name: delete contact — happy path
+call:
+  resource: contacts
+  method: delete
+  args:
+    id: cnt_123
+expectedRequest:
+  method: DELETE
+  path: /v1/contacts/cnt_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-delete-001
+  body:
+    data:
+      id: cnt_123
+expectedResult:
+  id: cnt_123

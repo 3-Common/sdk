@@ -14,7 +14,12 @@ import pytest
 import yaml
 from pytest_httpx import HTTPXMock
 
-from _conformance import dispatch_events, dispatch_invoices, dispatch_subscriptions
+from _conformance import (
+    dispatch_contacts,
+    dispatch_events,
+    dispatch_invoices,
+    dispatch_subscriptions,
+)
 from threecommon import (
     APIError,
     AsyncThreeCommon,
@@ -141,6 +146,8 @@ def _dispatch_sync(client: ThreeCommon, call: dict[str, Any]) -> Any:  # noqa: A
         return dispatch_invoices.dispatch_sync(client, method, args)
     if resource == "subscriptions":
         return dispatch_subscriptions.dispatch_sync(client, method, args)
+    if resource == "contacts":
+        return dispatch_contacts.dispatch_sync(client, method, args)
     pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 
@@ -256,6 +263,8 @@ async def _dispatch_async(client: AsyncThreeCommon, call: dict[str, Any]) -> Any
         return await dispatch_invoices.dispatch_async(client, method, args)
     if resource == "subscriptions":
         return await dispatch_subscriptions.dispatch_async(client, method, args)
+    if resource == "contacts":
+        return await dispatch_contacts.dispatch_async(client, method, args)
     pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 
