@@ -38,6 +38,27 @@ export type {
   ListInvoicesResponse,
 } from './resources/invoices'
 
+// Contacts resource (types only — instances live on the client).
+export type {
+  BulkUpsertContactsResult,
+  Contact,
+  ContactActivity,
+  ContactActivityListParams,
+  ContactActivityType,
+  ContactBulkUpsertBody,
+  ContactCountResult,
+  ContactCreateBody,
+  ContactListParams,
+  ContactMergeResolution,
+  ContactStatus,
+  ContactUpdateBody,
+  ContactWithOrderDetails,
+  ContactsService,
+  DeletedContact,
+  ListContactActivityResponse,
+  ListContactsResponse,
+} from './resources/contacts'
+
 // Subscriptions resource (types only — instances live on the client).
 export type {
   BillSubscriptionResult,

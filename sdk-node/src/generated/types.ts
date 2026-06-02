@@ -109,6 +109,926 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/contacts/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Contacts
+         * @description Lists the host's contacts, sorted and filtered. Paginated.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Page number (0-based) */
+                    pageNumber?: number;
+                    /** @description Items per page (default 20, max 500) */
+                    pageSize?: number;
+                    /**
+                     * @description Field to sort by. Index-backed (fast) values: `mostRecentOrder`,
+                     *     `orderSum`, `grossSum`. Other enum values + 24-char hex custom-
+                     *     property ids are accepted and sorted in-memory by the database —
+                     *     fine at per-page volumes but avoid on large hosts. Defaults to
+                     *     `mostRecentOrder` desc.
+                     */
+                    sortField?: ("mostRecentOrder" | "leastRecentOrder" | "orderSum" | "grossSum" | "email" | "firstName" | "lastName" | "fullName" | "phone" | "status" | "createdAt" | "updatedAt" | "events_attended" | "items_purchased" | "products_purchased") | string;
+                    /** @description Sort direction. Defaults to desc when sortField is provided. */
+                    sortDirection?: "asc" | "desc";
+                    /** @description Quick status filter; case-insensitive. "all" or omit for no filter. ANDed with `filters` when both supplied. */
+                    filter?: "all" | "opted-in" | "unknown" | "unsubscribed" | "imported";
+                    /**
+                     * @description JSON-encoded array of filter groups for advanced filtering.
+                     *     Each group has "logic" ("and" | "or") and "conditions" (array of conditions or nested groups).
+                     *     Each condition has "field", "operator", and optional "value".
+                     *     Operators by type:
+                     *     - Text: is_equal_to_any_of, is_not_equal_to_any_of, contains, contains_exactly
+                     *     - Date: is_before, is_after, is_between (value: {start, end})
+                     *     - Number: is_equal_to, is_not_equal_to, is_greater_than, is_greater_than_or_equal_to, is_less_than, is_less_than_or_equal_to, is_between
+                     *     - Select: is_any_of, is_none_of
+                     *     - Common: is_empty, is_not_empty
+                     *     Conditions referencing fields outside the persisted contact schema are silently ignored.
+                     *     Example: [{"logic":"and","conditions":[{"field":"status","operator":"is_any_of","value":["opted-in"]},{"field":"grossSum","operator":"is_greater_than","value":1000}]}]
+                     */
+                    filters?: string;
+                    /** @description Free-text search over email, firstName, lastName, fullName */
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: ({
+                                id: string;
+                                firstName: string;
+                                lastName: string;
+                                fullName: string;
+                                email: string;
+                                phone?: string;
+                                vendorId: string;
+                                orderSum: number;
+                                grossSum: number;
+                                /** @description First order, ms since epoch */
+                                firstOrder?: number;
+                                /** @description Most recent order, ms since epoch */
+                                lastOrder?: number;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /**
+                                 * @description Subset of statuses surfaced on the compact contact projection.
+                                 * @enum {string}
+                                 */
+                                status: "unsubscribed" | "opted-in" | "unknown";
+                                eventsAttended_IDS: string[];
+                                itemsPurchased_IDS: string[];
+                                productsPurchased_IDS: string[];
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            hasMore: boolean;
+                            pageNumber: number;
+                            pageSize: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create Contact
+         * @description Creates a new contact. Fails with 409 if a contact with the same
+         *     email already exists for the host — callers wanting "create or
+         *     fetch existing" behaviour should use the host management site upsert flow instead.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: email
+                         * @description Contact email — unique per host, lowercased on persist
+                         */
+                        email: string;
+                        firstName?: string;
+                        lastName?: string;
+                        phone?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                firstName: string;
+                                lastName: string;
+                                fullName: string;
+                                email: string;
+                                phone?: string;
+                                vendorId: string;
+                                orderSum: number;
+                                grossSum: number;
+                                /** @description First order, ms since epoch */
+                                firstOrder?: number;
+                                /** @description Most recent order, ms since epoch */
+                                lastOrder?: number;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /**
+                                 * @description Subset of statuses surfaced on the compact contact projection.
+                                 * @enum {string}
+                                 */
+                                status: "unsubscribed" | "opted-in" | "unknown";
+                                eventsAttended_IDS: string[];
+                                itemsPurchased_IDS: string[];
+                                productsPurchased_IDS: string[];
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contacts/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count Contacts
+         * @description Returns the total contact count for the host.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                count: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contacts/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Upsert Contacts
+         * @description Upserts up to many contacts in one round-trip. Deduplicated server-side by email.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated (not just inserted) so re-imports refresh the persisted fields. */
+                        contacts: ({
+                            email: string;
+                            firstName?: string;
+                            lastName?: string;
+                            phone?: string | (null);
+                            /**
+                             * @description Contact lifecycle status.
+                             *     - opted-in / unsubscribed: explicit consent state
+                             *     - unknown: never recorded a choice
+                             *     - imported / deleted: lifecycle states from list imports / soft-deletes
+                             * @enum {string}
+                             */
+                            status?: "deleted" | "imported" | "unsubscribed" | "opted-in" | "unknown";
+                            properties?: {
+                                property_id: string;
+                                value: string | string[] | boolean;
+                            }[];
+                            eventsAttended_IDS?: string[];
+                            itemsPurchased_IDS?: string[];
+                            productsPurchased_IDS?: string[];
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                affected: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Contact
+         * @description Retrieves a single contact by id.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Contact id, discoverable via list_contacts */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                firstName: string;
+                                lastName: string;
+                                fullName: string;
+                                email: string;
+                                phone?: string;
+                                vendorId: string;
+                                orderSum: number;
+                                grossSum: number;
+                                /** @description First order, ms since epoch */
+                                firstOrder?: number;
+                                /** @description Most recent order, ms since epoch */
+                                lastOrder?: number;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /**
+                                 * @description Subset of statuses surfaced on the compact contact projection.
+                                 * @enum {string}
+                                 */
+                                status: "unsubscribed" | "opted-in" | "unknown";
+                                eventsAttended_IDS: string[];
+                                itemsPurchased_IDS: string[];
+                                productsPurchased_IDS: string[];
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete Contact
+         * @description Removes a contact by id.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Contact id, discoverable via list_contacts */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update Contact
+         * @description Updates a contact. Optionally merges another contact into the target when `mergeWith` is set.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Contact id, discoverable via list_contacts */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description New contact field values */
+                        contact: {
+                            firstName: string;
+                            lastName: string;
+                            /** Format: email */
+                            email: string;
+                            phone?: string | (null);
+                            /**
+                             * @description Contact lifecycle status.
+                             *     - opted-in / unsubscribed: explicit consent state
+                             *     - unknown: never recorded a choice
+                             *     - imported / deleted: lifecycle states from list imports / soft-deletes
+                             * @enum {string}
+                             */
+                            status: "deleted" | "imported" | "unsubscribed" | "opted-in" | "unknown";
+                        };
+                        /**
+                         * @description Id of a second contact to absorb into the target during this update.
+                         *     Set when an email change collides with another existing contact.
+                         */
+                        mergeWith?: string;
+                        /**
+                         * @description Required when `mergeWith` is set; chooses how field-level
+                         *     conflicts resolve.
+                         * @enum {string}
+                         */
+                        resolution?: "safe-merge" | "overwrite-merge";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                _id: string;
+                                email: string;
+                                vendorId: string;
+                                firstName: string;
+                                lastName: string;
+                                fullName: string;
+                                phone?: string | (null);
+                                /**
+                                 * @description Contact lifecycle status.
+                                 *     - opted-in / unsubscribed: explicit consent state
+                                 *     - unknown: never recorded a choice
+                                 *     - imported / deleted: lifecycle states from list imports / soft-deletes
+                                 * @enum {string}
+                                 */
+                                status: "deleted" | "imported" | "unsubscribed" | "opted-in" | "unknown";
+                                grossSum: number;
+                                orderSum: number;
+                                /** Format: date-time */
+                                leastRecentOrder?: string;
+                                /** Format: date-time */
+                                mostRecentOrder?: string;
+                                events_attended: string[];
+                                items_purchased: string[];
+                                products_purchased: string[];
+                                properties?: {
+                                    property_id: string;
+                                    value: string | string[] | boolean;
+                                }[];
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/contacts/{id}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Contact Activity
+         * @description Paginated activity log for a contact (checkouts, refunds, scans, emails, invoice payments).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Restrict to a single activity type */
+                    filter?: "checkout_session_completed" | "product_set_checkout_session_completed" | "order_refunded" | "ticket_scanned" | "email_sent" | "invoice_paid";
+                    /** @description Default is newest-first; "oldest" reverses */
+                    sort?: "oldest";
+                    pageNumber?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path: {
+                    /** @description Contact id, discoverable via list_contacts */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                _id: string;
+                                vendor_id: string;
+                                email: string;
+                                contact_id?: string;
+                                /** @enum {string} */
+                                type: "checkout_session_completed" | "product_set_checkout_session_completed" | "order_refunded" | "ticket_scanned" | "email_sent" | "invoice_paid";
+                                data: {
+                                    [key: string]: unknown;
+                                };
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: date-time */
+                                updatedAt: string;
+                            }[];
+                            hasMore: boolean;
+                            pageNumber: number;
+                            pageSize: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/entitlements/": {
         parameters: {
             query?: never;
@@ -2340,6 +3260,8 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            /** @description If true, there are more pages of results available. */
+                            hasMore: boolean;
                             data: {
                                 /** @description The form's ID. */
                                 id: string;
@@ -2361,7 +3283,6 @@ export interface paths {
                                  */
                                 status: "draft" | "active" | "archived";
                             }[];
-                            hasMore: boolean;
                         };
                     };
                 };
