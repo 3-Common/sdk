@@ -15,7 +15,7 @@ const client = new ThreeCommon({
 const { affected } = await client.contacts.bulkUpsert({
   contacts: [
     { email: 'aiden@example.com', firstName: 'Aidan', lastName: 'Garvey' },
-    { email: 'ethan@example.com', firstName: 'Ethan', lastName: 'Toews'},
+    { email: 'ethan@example.com', firstName: 'Ethan', lastName: 'Toews' },
     { email: 'jaden@example.com', firstName: 'Jaden', lastName: 'Martens' },
     { email: 'zuhao@example.com', firstName: 'Zuhao', lastName: 'Fang' },
   ],
