@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	threecommon "github.com/3-Common/sdk/sdk-go"
+	"github.com/3-Common/sdk/sdk-go/filters"
 	"github.com/3-Common/sdk/sdk-go/internal/core"
 	"github.com/3-Common/sdk/sdk-go/resources/contacts"
 )
@@ -704,4 +705,20 @@ func TestListActivityAutoPaginate_ContextCancellation(t *testing.T) {
 	for iter.Next() {
 	}
 	require.Error(t, iter.Err())
+}
+
+func TestFilterWith_AppliesSerializedFilter(t *testing.T) {
+	t.Parallel()
+
+	f := filters.And(filters.Field("status").IsEqualTo("opted-in"))
+	params := (&contacts.ListParams{}).FilterWith(f)
+	assert.NotEmpty(t, params.Filters)
+	assert.Contains(t, params.Filters, `"field":"status"`)
+}
+
+func TestFilterWith_NilFilterIsNoOp(t *testing.T) {
+	t.Parallel()
+
+	params := (&contacts.ListParams{Filters: "x"}).FilterWith(nil)
+	assert.Equal(t, "x", params.Filters)
 }
