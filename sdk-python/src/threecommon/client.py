@@ -18,6 +18,7 @@ from threecommon._core.http_client import (
 from threecommon._core.retry import RetryPolicy
 from threecommon._core.telemetry import Telemetry
 from threecommon.config import RetryDelay, resolve_config
+from threecommon.contacts.service import AsyncContactsService, ContactsService
 from threecommon.events.service import AsyncEventsService, EventsService
 from threecommon.invoices.service import AsyncInvoicesService, InvoicesService
 from threecommon.subscriptions.service import AsyncSubscriptionsService, SubscriptionsService
@@ -54,6 +55,11 @@ class ThreeCommon:
 
     subscriptions: SubscriptionsService
     """Subscriptions resource — list, retrieve, create, update, activate, cancel, bill, renew."""
+
+    contacts: ContactsService
+    """Contacts resource — ``list``, ``count``, ``retrieve``, ``create``,
+    ``update``, ``delete``, ``bulk_upsert``, ``list_activity``, plus
+    auto-paginators."""
 
     _http: HTTPClient
     _telemetry: Telemetry
@@ -98,6 +104,7 @@ class ThreeCommon:
         self.events = EventsService(self._http)
         self.invoices = InvoicesService(self._http)
         self.subscriptions = SubscriptionsService(self._http)
+        self.contacts = ContactsService(self._http)
 
     def close(self) -> None:
         """Close the underlying httpx client (no-op if you supplied your own)."""
@@ -126,6 +133,7 @@ class AsyncThreeCommon:
     events: AsyncEventsService
     invoices: AsyncInvoicesService
     subscriptions: AsyncSubscriptionsService
+    contacts: AsyncContactsService
 
     _http: AsyncHTTPClient
     _telemetry: Telemetry
@@ -170,6 +178,7 @@ class AsyncThreeCommon:
         self.events = AsyncEventsService(self._http)
         self.invoices = AsyncInvoicesService(self._http)
         self.subscriptions = AsyncSubscriptionsService(self._http)
+        self.contacts = AsyncContactsService(self._http)
 
     async def aclose(self) -> None:
         """Close the underlying async httpx client."""
