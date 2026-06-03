@@ -1,0 +1,32 @@
+name: bulk upsert contacts — happy path
+call:
+  resource: contacts
+  method: bulkUpsert
+  args:
+    body:
+      contacts:
+        - email: ada@example.com
+          firstName: Ada
+        - email: beatrix@example.com
+          firstName: Beatrix
+expectedRequest:
+  method: POST
+  path: /v1/contacts/bulk
+  body:
+    contacts:
+      - email: ada@example.com
+        firstName: Ada
+      - email: beatrix@example.com
+        firstName: Beatrix
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-bulk-001
+  body:
+    data:
+      affected: 2
+expectedResult:
+  affected: 2

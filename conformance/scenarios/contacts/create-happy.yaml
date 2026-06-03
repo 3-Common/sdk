@@ -1,0 +1,40 @@
+name: create contact — happy path
+call:
+  resource: contacts
+  method: create
+  args:
+    body:
+      email: alex@example.com
+      firstName: Alex
+      lastName: Garcia
+expectedRequest:
+  method: POST
+  path: /v1/contacts
+  body:
+    email: alex@example.com
+    firstName: Alex
+    lastName: Garcia
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-create-001
+  body:
+    data:
+      id: cnt_new
+      firstName: Alex
+      lastName: Garcia
+      fullName: Alex Garcia
+      email: alex@example.com
+      vendorId: hst_1
+      orderSum: 0
+      grossSum: 0
+      status: opted-in
+      eventsAttended_IDS: []
+      itemsPurchased_IDS: []
+      productsPurchased_IDS: []
+expectedResult:
+  id: cnt_new
+  email: alex@example.com

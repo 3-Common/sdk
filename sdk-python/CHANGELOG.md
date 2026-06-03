@@ -5,6 +5,24 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.4.0
+
+### Added
+
+- Contacts resource. The new `client.contacts` surface covers the full
+  contact lifecycle: `list`, `count`, `retrieve`, `create`, `update`
+  (with optional `merge_with` + `resolution` for absorbing a second
+  contact during an email change), `delete`, `bulk_upsert`,
+  `list_activity`, and both `list_auto_paginate` +
+  `list_activity_auto_paginate` iterators. Both sync and async surfaces.
+- New public types on `threecommon.contacts`: `Contact`,
+  `ContactWithOrderDetails`, `ContactActivity`, `ContactProperty`,
+  `ContactUpdate`, `CreateBody`, `UpdateBody`, `BulkUpsertBody`,
+  `BulkUpsertItem`, `ListParams`, `ActivityListParams`, plus result
+  envelopes `ListContactsResponse`, `ListActivityResponse`, `CountResult`,
+  `BulkUpsertResult`, `DeleteResult`, and the lifecycle / merge / activity
+  literal unions.
+
 ## 0.3.0
 
 ### Added

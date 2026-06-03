@@ -1,0 +1,24 @@
+name: 404 — contact not found
+call:
+  resource: contacts
+  method: retrieve
+  args:
+    id: cnt_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/contacts/cnt_missing
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-cnt-404-001
+  body:
+    error:
+      code: not_found
+      message: contact cnt_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-cnt-404-001

@@ -6,6 +6,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.4.0
+
+### Added
+
+- Contacts resource. The new `api.Contacts` surface covers the full contact
+  lifecycle: `List`, `Count`, `Retrieve`, `Create`, `Update` (with optional
+  `MergeWith` + `Resolution` for absorbing a second contact during an email
+  change), `Delete`, `BulkUpsert`, `ListActivity`, and both
+  `ListAutoPaginate` + `ListActivityAutoPaginate` iterators.
+- New public types in `resources/contacts`: `Contact`, `WithOrderDetails`,
+  `Activity`, `Property`, `ContactUpdate`, `CreateParams`, `UpdateParams`,
+  `BulkUpsertParams`, `BulkUpsertItem`, `ListParams`, `ActivityListParams`,
+  `ListResponse`, `ListActivityResponse`, `CountResult`, `BulkUpsertResult`,
+  `DeleteResult`, plus the `Status`, `MergeResolution`, `QuickFilter`, and
+  `ActivityType` enums.
+- `contacts.ListParams.FilterWith(*filters.SerializableFilter)` convenience
+  for serializing the typed filter builder onto `Filters`, matching the
+  events resource.
+
 ## 0.3.0
 
 ### Added
