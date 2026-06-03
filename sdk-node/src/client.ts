@@ -3,6 +3,7 @@ import { HttpClient } from '@/core/http-client'
 import { resolveFetch } from '@/core/platform'
 import { Telemetry } from '@/core/telemetry'
 import { contactsService, type ContactsService } from '@/resources/contacts'
+import { entitlementsService, type EntitlementsService } from '@/resources/entitlements'
 import { eventsService, type EventsService } from '@/resources/events'
 import { invoicesService, type InvoicesService } from '@/resources/invoices'
 import { subscriptionsService, type SubscriptionsService } from '@/resources/subscriptions'
@@ -36,6 +37,9 @@ export class ThreeCommon {
   /** Contacts resource — list, count, retrieve, create, update, delete, bulkUpsert, listActivity, plus auto-paginators. */
   public readonly contacts: ContactsService
 
+  /** Entitlements resource — list, retrieve, lookup, grant, consume, plus listAutoPaginate. */
+  public readonly entitlements: EntitlementsService
+
   private readonly httpClient: HttpClient
   private readonly telemetry: Telemetry
 
@@ -63,6 +67,7 @@ export class ThreeCommon {
     this.invoices = invoicesService(this.httpClient)
     this.subscriptions = subscriptionsService(this.httpClient)
     this.contacts = contactsService(this.httpClient)
+    this.entitlements = entitlementsService(this.httpClient)
   }
 
   /**
