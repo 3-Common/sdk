@@ -1,0 +1,43 @@
+name: list contact activity — happy path
+call:
+  resource: contacts
+  method: listActivity
+  args:
+    id: cnt_123
+    params:
+      filter: email_sent
+      pageSize: 5
+expectedRequest:
+  method: GET
+  path: /v1/contacts/cnt_123/activity
+  query:
+    filter: email_sent
+    pageSize: '5'
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-activity-001
+  body:
+    data:
+      - _id: act_1
+        vendor_id: hst_1
+        email: alex@example.com
+        contact_id: cnt_123
+        type: email_sent
+        data:
+          subject: hi
+        createdAt: '2026-05-01T00:00:00.000Z'
+        updatedAt: '2026-05-01T00:00:00.000Z'
+    hasMore: false
+    pageNumber: 0
+    pageSize: 5
+expectedResult:
+  data:
+    - _id: act_1
+      type: email_sent
+      email: alex@example.com
+  hasMore: false
+  pageNumber: 0
+  pageSize: 5

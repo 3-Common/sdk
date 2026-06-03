@@ -15,6 +15,7 @@ package client
 import (
 	threecommon "github.com/3-Common/sdk/sdk-go"
 	"github.com/3-Common/sdk/sdk-go/internal/core"
+	"github.com/3-Common/sdk/sdk-go/resources/contacts"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
 	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
@@ -36,6 +37,11 @@ type API struct {
 	// PreviewUpcomingInvoice.
 	Subscriptions *subscriptions.Client
 
+	// Contacts is the contacts resource — List, Count, Retrieve, Create,
+	// Update, Delete, BulkUpsert, ListActivity, ListAutoPaginate,
+	// ListActivityAutoPaginate.
+	Contacts *contacts.Client
+
 	backend *core.Client
 }
 
@@ -51,6 +57,7 @@ func New(cfg threecommon.Config) (*API, error) {
 		Events:        events.FromBackend(backend),
 		Invoices:      invoices.FromBackend(backend),
 		Subscriptions: subscriptions.FromBackend(backend),
+		Contacts:      contacts.FromBackend(backend),
 		backend:       backend,
 	}, nil
 }
