@@ -58,6 +58,11 @@ export function dispatchSubscriptions(
     case 'recordPayment':
     case 'autoCharge':
     case 'refundPayment':
+    case 'count':
+    case 'delete':
+    case 'bulkUpsert':
+    case 'listActivity':
+    case 'listActivityAutoPaginate':
     case 'deleteDraft':
       throw new Error(`subscriptions: unsupported method '${call.method}'`)
   }

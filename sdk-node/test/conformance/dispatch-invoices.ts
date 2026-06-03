@@ -66,6 +66,11 @@ export function dispatchInvoices(
     case 'markUnpaid':
     case 'bill':
     case 'renew':
+    case 'count':
+    case 'delete':
+    case 'bulkUpsert':
+    case 'listActivity':
+    case 'listActivityAutoPaginate':
     case 'previewUpcomingInvoice':
       throw new Error(`invoices: unsupported method '${call.method}'`)
   }
