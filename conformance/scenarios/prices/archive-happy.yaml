@@ -1,0 +1,26 @@
+name: archive price — happy path
+call:
+  resource: prices
+  method: archive
+  args:
+    id: price_123
+expectedRequest:
+  method: POST
+  path: /v1/prices/price_123/archive
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-price-archive-001
+  body:
+    data:
+      id: price_123
+      productId: prod_7
+      type: recurring
+      currency: USD
+      unitAmount: 1500
+      active: false
+expectedResult:
+  id: price_123
+  active: false
