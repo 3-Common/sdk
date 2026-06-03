@@ -1,0 +1,45 @@
+name: list contacts — happy path
+call:
+  resource: contacts
+  method: list
+  args:
+    filter: opted-in
+    pageSize: 10
+expectedRequest:
+  method: GET
+  path: /v1/contacts
+  query:
+    filter: opted-in
+    pageSize: '10'
+  headers:
+    authorization: 'Bearer 3co_test'
+    threecommon-version: '2026-04-29'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-list-001
+  body:
+    data:
+      - id: cnt_a
+        firstName: Alex
+        lastName: Garcia
+        fullName: Alex Garcia
+        email: alex@example.com
+        vendorId: hst_1
+        orderSum: 3
+        grossSum: 15000
+        status: opted-in
+        eventsAttended_IDS: []
+        itemsPurchased_IDS: []
+        productsPurchased_IDS: []
+    hasMore: false
+    pageNumber: 0
+    pageSize: 10
+expectedResult:
+  data:
+    - id: cnt_a
+      email: alex@example.com
+      status: opted-in
+  hasMore: false
+  pageNumber: 0
+  pageSize: 10

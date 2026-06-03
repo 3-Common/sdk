@@ -1,0 +1,33 @@
+name: 422 — bulk upsert validation (empty contacts array)
+call:
+  resource: contacts
+  method: bulkUpsert
+  args:
+    body:
+      contacts: []
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/contacts/bulk
+  body:
+    contacts: []
+mockResponse:
+  status: 422
+  headers:
+    x-request-id: req-cnt-422-001
+  body:
+    error:
+      code: validation_failed
+      message: contacts must contain at least one item
+      details:
+        field: contacts
+        rule: min_items
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_failed
+  httpStatus: 422
+  requestId: req-cnt-422-001
+  details:
+    field: contacts
+    rule: min_items

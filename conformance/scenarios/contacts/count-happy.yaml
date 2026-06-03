@@ -1,0 +1,19 @@
+name: count contacts — happy path
+call:
+  resource: contacts
+  method: count
+  args: {}
+expectedRequest:
+  method: GET
+  path: /v1/contacts/count
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-count-001
+  body:
+    data:
+      count: 4823
+expectedResult:
+  count: 4823

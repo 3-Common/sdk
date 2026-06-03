@@ -1,0 +1,31 @@
+name: 409 — create contact with duplicate email
+call:
+  resource: contacts
+  method: create
+  args:
+    body:
+      email: alex@example.com
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/contacts
+  body:
+    email: alex@example.com
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-cnt-409-001
+  body:
+    error:
+      code: conflict
+      message: contact with email alex@example.com already exists
+      details:
+        field: email
+expectedError:
+  type: ThreeCommonConflictError
+  code: conflict
+  httpStatus: 409
+  requestId: req-cnt-409-001
+  details:
+    field: email

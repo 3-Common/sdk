@@ -1,0 +1,46 @@
+name: update contact — happy path (returns order-details projection)
+call:
+  resource: contacts
+  method: update
+  args:
+    id: cnt_123
+    body:
+      contact:
+        firstName: Alex
+        lastName: Garcia
+        email: a.garcia@example.com
+        status: opted-in
+expectedRequest:
+  method: PATCH
+  path: /v1/contacts/cnt_123
+  body:
+    contact:
+      firstName: Alex
+      lastName: Garcia
+      email: a.garcia@example.com
+      status: opted-in
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-update-001
+  body:
+    data:
+      _id: cnt_123
+      email: a.garcia@example.com
+      vendorId: hst_1
+      firstName: Alex
+      lastName: Garcia
+      fullName: Alex Garcia
+      status: opted-in
+      grossSum: 15000
+      orderSum: 3
+      events_attended: []
+      items_purchased: []
+      products_purchased: []
+expectedResult:
+  _id: cnt_123
+  email: a.garcia@example.com
+  status: opted-in
