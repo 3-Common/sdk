@@ -214,6 +214,8 @@ func dispatch(t *testing.T, api *client.API, sc scenario) (any, error) {
 		return dispatchSubscriptions(t, api, ctx, sc)
 	case "contacts":
 		return dispatchContacts(t, api, ctx, sc)
+	case "entitlements":
+		return dispatchEntitlements(t, api, ctx, sc)
 	}
 	t.Fatalf("unsupported scenario resource %q", resource)
 	return nil, nil

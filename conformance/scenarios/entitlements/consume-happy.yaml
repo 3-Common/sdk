@@ -1,0 +1,40 @@
+name: consume entitlement — happy path
+call:
+  resource: entitlements
+  method: consume
+  args:
+    body:
+      contactId: cnt_42
+      featureKey: api_calls
+      amount: 1
+      reason: POST /v1/generate
+expectedRequest:
+  method: POST
+  path: /v1/entitlements/consume
+  body:
+    contactId: cnt_42
+    featureKey: api_calls
+    amount: 1
+    reason: POST /v1/generate
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-ent-consume-001
+  body:
+    data:
+      id: ent_123
+      hostId: hst_1
+      contactId: cnt_42
+      featureKey: api_calls
+      balance: 99
+      totalGranted: 100
+      totalConsumed: 1
+      createdAt: '2026-05-01T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+expectedResult:
+  id: ent_123
+  contactId: cnt_42
+  balance: 99

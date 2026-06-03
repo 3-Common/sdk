@@ -1,0 +1,35 @@
+name: lookup entitlement by contact + feature — happy path
+call:
+  resource: entitlements
+  method: lookup
+  args:
+    contactId: cnt_42
+    featureKey: api_calls
+expectedRequest:
+  method: GET
+  path: /v1/entitlements/lookup
+  query:
+    contactId: cnt_42
+    featureKey: api_calls
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-ent-lookup-001
+  body:
+    data:
+      id: ent_123
+      hostId: hst_1
+      contactId: cnt_42
+      featureKey: api_calls
+      balance: 42
+      totalGranted: 50
+      totalConsumed: 8
+      createdAt: '2026-05-01T00:00:00.000Z'
+      updatedAt: '2026-05-20T00:00:00.000Z'
+expectedResult:
+  id: ent_123
+  contactId: cnt_42
+  featureKey: api_calls
+  balance: 42
