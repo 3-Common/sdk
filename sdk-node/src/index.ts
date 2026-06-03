@@ -73,6 +73,21 @@ export type {
   ListEntitlementsResponse,
 } from './resources/entitlements'
 
+// Features resource (types only — instances live on the client).
+export type {
+  Feature,
+  FeatureCreateBody,
+  FeatureListParams,
+  FeatureResolveParams,
+  FeatureRetrieveParams,
+  FeatureType,
+  FeatureUpdateBody,
+  FeaturesService,
+  ListFeaturesResponse,
+  ResolvedFeature,
+  ResolvedFeatureValue,
+} from './resources/features'
+
 // Prices resource (types only — instances live on the client).
 export type {
   ListPricesResponse,
