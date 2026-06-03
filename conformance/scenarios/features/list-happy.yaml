@@ -1,0 +1,39 @@
+name: list features — happy path
+call:
+  resource: features
+  method: list
+  args:
+    type: quantity
+    active: true
+    pageSize: 10
+expectedRequest:
+  method: GET
+  path: /v1/features
+  query:
+    type: quantity
+    active: 'true'
+    pageSize: '10'
+  headers:
+    authorization: 'Bearer 3co_test'
+    threecommon-version: '2026-04-29'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-feat-list-001
+  body:
+    data:
+      - id: feat_a
+        hostId: hst_1
+        key: api_calls
+        name: API calls
+        type: quantity
+        active: true
+        createdAt: '2026-05-01T00:00:00.000Z'
+        updatedAt: '2026-05-01T00:00:00.000Z'
+    hasMore: false
+expectedResult:
+  data:
+    - id: feat_a
+      key: api_calls
+      type: quantity
+  hasMore: false

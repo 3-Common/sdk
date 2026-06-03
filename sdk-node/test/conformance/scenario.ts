@@ -46,6 +46,7 @@ export type Resource =
   | 'contacts'
   | 'entitlements'
   | 'prices'
+  | 'features'
 
 export type Method =
   | 'list'
@@ -76,6 +77,7 @@ export type Method =
   | 'consume'
   | 'archive'
   | 'unarchive'
+  | 'resolve'
 
 export interface ScenarioCall {
   readonly resource?: Resource

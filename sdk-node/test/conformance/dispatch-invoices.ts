@@ -77,6 +77,7 @@ export function dispatchInvoices(
     case 'consume':
     case 'archive':
     case 'unarchive':
+    case 'resolve':
       throw new Error(`invoices: unsupported method '${call.method}'`)
   }
 }

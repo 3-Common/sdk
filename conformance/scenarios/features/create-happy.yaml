@@ -1,0 +1,36 @@
+name: create feature — happy path
+call:
+  resource: features
+  method: create
+  args:
+    body:
+      key: api_calls
+      name: API calls
+      type: quantity
+expectedRequest:
+  method: POST
+  path: /v1/features
+  body:
+    key: api_calls
+    name: API calls
+    type: quantity
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 201
+  headers:
+    x-request-id: req-feat-create-001
+  body:
+    data:
+      id: feat_new
+      key: api_calls
+      name: API calls
+      type: quantity
+      active: true
+      createdAt: '2026-05-25T00:00:00.000Z'
+      updatedAt: '2026-05-25T00:00:00.000Z'
+expectedResult:
+  id: feat_new
+  key: api_calls
+  type: quantity

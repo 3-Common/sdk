@@ -1,0 +1,30 @@
+name: retrieve feature — happy path
+call:
+  resource: features
+  method: retrieve
+  args:
+    id: feat_123
+expectedRequest:
+  method: GET
+  path: /v1/features/feat_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-feat-get-001
+  body:
+    data:
+      id: feat_123
+      hostId: hst_1
+      key: api_calls
+      name: API calls
+      description: Monthly API call quota
+      type: quantity
+      active: true
+      createdAt: '2026-05-01T00:00:00.000Z'
+      updatedAt: '2026-05-01T00:00:00.000Z'
+expectedResult:
+  id: feat_123
+  key: api_calls
+  type: quantity

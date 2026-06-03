@@ -1,0 +1,24 @@
+name: unarchive feature — happy path
+call:
+  resource: features
+  method: unarchive
+  args:
+    id: feat_123
+expectedRequest:
+  method: POST
+  path: /v1/features/feat_123/unarchive
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-feat-unarchive-001
+  body:
+    data:
+      id: feat_123
+      key: api_calls
+      type: quantity
+      active: true
+expectedResult:
+  id: feat_123
+  active: true

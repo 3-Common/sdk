@@ -69,6 +69,7 @@ export function dispatchSubscriptions(
     case 'consume':
     case 'archive':
     case 'unarchive':
+    case 'resolve':
       throw new Error(`subscriptions: unsupported method '${call.method}'`)
   }
 }
