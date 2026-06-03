@@ -21,6 +21,7 @@ from threecommon.config import RetryDelay, resolve_config
 from threecommon.contacts.service import AsyncContactsService, ContactsService
 from threecommon.entitlements.service import AsyncEntitlementsService, EntitlementsService
 from threecommon.events.service import AsyncEventsService, EventsService
+from threecommon.features.service import AsyncFeaturesService, FeaturesService
 from threecommon.invoices.service import AsyncInvoicesService, InvoicesService
 from threecommon.prices.service import AsyncPricesService, PricesService
 from threecommon.subscriptions.service import AsyncSubscriptionsService, SubscriptionsService
@@ -71,6 +72,10 @@ class ThreeCommon:
     """Prices resource — ``list``, ``retrieve``, ``create``, ``update``,
     ``archive``, ``unarchive``, plus ``list_auto_paginate``."""
 
+    features: FeaturesService
+    """Features resource — ``list``, ``resolve``, ``retrieve``, ``create``,
+    ``update``, ``archive``, ``unarchive``, plus ``list_auto_paginate``."""
+
     _http: HTTPClient
     _telemetry: Telemetry
 
@@ -117,6 +122,7 @@ class ThreeCommon:
         self.contacts = ContactsService(self._http)
         self.entitlements = EntitlementsService(self._http)
         self.prices = PricesService(self._http)
+        self.features = FeaturesService(self._http)
 
     def close(self) -> None:
         """Close the underlying httpx client (no-op if you supplied your own)."""
@@ -148,6 +154,7 @@ class AsyncThreeCommon:
     contacts: AsyncContactsService
     entitlements: AsyncEntitlementsService
     prices: AsyncPricesService
+    features: AsyncFeaturesService
 
     _http: AsyncHTTPClient
     _telemetry: Telemetry
@@ -195,6 +202,7 @@ class AsyncThreeCommon:
         self.contacts = AsyncContactsService(self._http)
         self.entitlements = AsyncEntitlementsService(self._http)
         self.prices = AsyncPricesService(self._http)
+        self.features = AsyncFeaturesService(self._http)
 
     async def aclose(self) -> None:
         """Close the underlying async httpx client."""
