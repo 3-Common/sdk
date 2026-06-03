@@ -205,6 +205,47 @@ describe('entitlements.consume', () => {
   })
 })
 
+describe('entitlements.list — paramsToQuery edge cases', () => {
+  it('skips explicit undefined params', async () => {
+    let captured = ''
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/entitlements`, ({ request }) => {
+        captured = request.url
+        return HttpResponse.json({ data: [], hasMore: false })
+      }),
+    )
+    const client = buildClient()
+    // Bypass exactOptionalPropertyTypes to feed explicit undefineds — verifies paramsToQuery
+    // correctly skips them.
+    await client.entitlements.list({
+      featureKey: 'api_calls',
+      contactId: undefined,
+      minBalance: undefined,
+    } as unknown as Parameters<typeof client.entitlements.list>[0])
+    expect(captured).toContain('featureKey=api_calls')
+    expect(captured).not.toContain('contactId')
+    expect(captured).not.toContain('minBalance')
+  })
+
+  it('drops non-primitive values silently rather than passing them on the wire', async () => {
+    let captured = ''
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/entitlements`, ({ request }) => {
+        captured = request.url
+        return HttpResponse.json({ data: [], hasMore: false })
+      }),
+    )
+    const client = buildClient()
+    // Bypass the type system to pass an array; the SDK must drop it.
+    await client.entitlements.list({
+      featureKey: 'api_calls',
+      forbidden: ['x', 'y'],
+    } as unknown as Parameters<typeof client.entitlements.list>[0])
+    expect(captured).toContain('featureKey=api_calls')
+    expect(captured).not.toContain('forbidden')
+  })
+})
+
 describe('entitlements.listAutoPaginate', () => {
   it('iterates across pages', async () => {
     server.use(
