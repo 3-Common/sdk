@@ -16,6 +16,7 @@ import (
 	threecommon "github.com/3-Common/sdk/sdk-go"
 	"github.com/3-Common/sdk/sdk-go/internal/core"
 	"github.com/3-Common/sdk/sdk-go/resources/contacts"
+	"github.com/3-Common/sdk/sdk-go/resources/entitlements"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
 	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
@@ -42,6 +43,10 @@ type API struct {
 	// ListActivityAutoPaginate.
 	Contacts *contacts.Client
 
+	// Entitlements is the entitlements resource — List, Retrieve, Lookup,
+	// Grant, Consume, ListAutoPaginate.
+	Entitlements *entitlements.Client
+
 	backend *core.Client
 }
 
@@ -58,6 +63,7 @@ func New(cfg threecommon.Config) (*API, error) {
 		Invoices:      invoices.FromBackend(backend),
 		Subscriptions: subscriptions.FromBackend(backend),
 		Contacts:      contacts.FromBackend(backend),
+		Entitlements:  entitlements.FromBackend(backend),
 		backend:       backend,
 	}, nil
 }
