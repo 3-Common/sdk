@@ -146,6 +146,8 @@ export function entitlementsService(http: HttpClient): EntitlementsService {
     },
 
     async lookup(params: EntitlementLookupParams, options?: RequestOptions): Promise<Entitlement> {
+      requireParam('lookup', 'contactId', params.contactId)
+      requireParam('lookup', 'featureKey', params.featureKey)
       const response = await http.request<DetailEnvelope<Entitlement>>({
         method: 'GET',
         path: '/entitlements/lookup',
@@ -198,6 +200,12 @@ export function entitlementsService(http: HttpClient): EntitlementsService {
 function requireId(method: string, id: string): void {
   if (typeof id !== 'string' || id.length === 0) {
     throw new TypeError(`entitlements.${method}: \`id\` must be a non-empty string`)
+  }
+}
+
+function requireParam(method: string, name: string, value: string): void {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new TypeError(`entitlements.${method}: \`${name}\` must be a non-empty string`)
   }
 }
 

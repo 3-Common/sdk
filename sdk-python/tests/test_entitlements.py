@@ -141,6 +141,18 @@ def test_lookup_forwards_params(httpx_mock: HTTPXMock) -> None:
     assert ent.balance == 100
 
 
+def test_lookup_requires_contact_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.entitlements.lookup(LookupParams(contact_id="", feature_key="api_calls"))
+    assert exc.value.code == "missing_contact_id"
+
+
+def test_lookup_requires_feature_key() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.entitlements.lookup(LookupParams(contact_id="cnt_7", feature_key=""))
+    assert exc.value.code == "missing_feature_key"
+
+
 def test_lookup_404_surfaces(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/entitlements/lookup?contactId=cnt_7&featureKey=unknown",
@@ -306,6 +318,22 @@ async def test_async_retrieve_requires_id() -> None:
     async with _make_async() as c:
         with pytest.raises(ValidationError):
             await c.entitlements.retrieve("")
+
+
+@pytest.mark.asyncio
+async def test_async_lookup_requires_contact_id() -> None:
+    async with _make_async() as c:
+        with pytest.raises(ValidationError) as exc:
+            await c.entitlements.lookup(LookupParams(contact_id="", feature_key="api_calls"))
+        assert exc.value.code == "missing_contact_id"
+
+
+@pytest.mark.asyncio
+async def test_async_lookup_requires_feature_key() -> None:
+    async with _make_async() as c:
+        with pytest.raises(ValidationError) as exc:
+            await c.entitlements.lookup(LookupParams(contact_id="cnt_7", feature_key=""))
+        assert exc.value.code == "missing_feature_key"
 
 
 @pytest.mark.asyncio
