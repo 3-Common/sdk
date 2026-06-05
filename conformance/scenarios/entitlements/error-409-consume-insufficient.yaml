@@ -1,0 +1,33 @@
+name: 409 Conflict — consume with insufficient balance
+call:
+  resource: entitlements
+  method: consume
+  args:
+    body:
+      contactId: cnt_42
+      featureKey: api_calls
+      amount: 9999
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/entitlements/consume
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-ent-409-001
+  body:
+    error:
+      code: insufficient_balance
+      message: Contact cnt_42 has insufficient balance for api_calls
+      details:
+        required: 9999
+        available: 12
+expectedError:
+  type: ThreeCommonConflictError
+  code: insufficient_balance
+  httpStatus: 409
+  requestId: req-ent-409-001
+  details:
+    required: 9999
+    available: 12

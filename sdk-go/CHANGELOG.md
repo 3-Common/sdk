@@ -6,6 +6,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.5.0
+
+### Added
+
+- Entitlements resource. The new `api.Entitlements` surface covers balance
+  lookups and grant management: `List`, `Retrieve`, `Lookup` (by contact +
+  feature), `Grant` (manual top-up, idempotent on `GrantID`), `Consume`
+  (debit balance), and `ListAutoPaginate`. Available as `api.Entitlements`
+  and via `entitlements.New` for standalone use.
+- New public types in `resources/entitlements`: `Entitlement`, `Grant`,
+  `GrantSource`, `ListParams`, `RetrieveParams`, `LookupParams`,
+  `GrantParams`, `ConsumeParams`, and the `ListResponse` envelope.
+
 ## 0.4.0
 
 ### Added

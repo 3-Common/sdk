@@ -1,0 +1,28 @@
+name: 404 Not Found — entitlement lookup miss
+call:
+  resource: entitlements
+  method: lookup
+  args:
+    contactId: cnt_42
+    featureKey: unknown_feature
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/entitlements/lookup
+  query:
+    contactId: cnt_42
+    featureKey: unknown_feature
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-ent-404-001
+  body:
+    error:
+      code: not_found
+      message: No entitlement record for cnt_42 / unknown_feature
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-ent-404-001

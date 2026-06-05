@@ -48,6 +48,9 @@ export function dispatchEvents(
     case 'listActivity':
     case 'listActivityAutoPaginate':
     case 'previewUpcomingInvoice':
+    case 'lookup':
+    case 'grant':
+    case 'consume':
       throw new Error(`events: unsupported method '${call.method}'`)
   }
 }
