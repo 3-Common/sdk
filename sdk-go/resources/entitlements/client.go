@@ -2,7 +2,6 @@ package entitlements
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -79,7 +78,19 @@ func (c *Client) Retrieve(ctx context.Context, id string, params *RetrieveParams
 // Returns a [*threecommon.NotFoundError] when no record exists yet.
 func (c *Client) Lookup(ctx context.Context, params *LookupParams) (*Entitlement, error) {
 	if params == nil {
-		return nil, missingBody("Lookup")
+		return nil, missingParams("Lookup")
+	}
+	if params.ContactID == "" {
+		return nil, &threecommon.ValidationError{APIError: &threecommon.APIError{
+			Code:    "missing_contact_id",
+			Message: "entitlements.Lookup: ContactID must be non-empty",
+		}}
+	}
+	if params.FeatureKey == "" {
+		return nil, &threecommon.ValidationError{APIError: &threecommon.APIError{
+			Code:    "missing_feature_key",
+			Message: "entitlements.Lookup: FeatureKey must be non-empty",
+		}}
 	}
 
 	var env retrieveEnvelope
@@ -159,9 +170,6 @@ func (c *Client) ListAutoPaginate(ctx context.Context, params *ListParams) *pagi
 			Query:  encodeListParams(&pageParams),
 			Out:    &out,
 		}); err != nil {
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return nil, false, err
-			}
 			return nil, false, err
 		}
 		return out.Data, out.HasMore, nil
@@ -171,6 +179,13 @@ func (c *Client) ListAutoPaginate(ctx context.Context, params *ListParams) *pagi
 func missingBody(method string) error {
 	return &threecommon.ValidationError{APIError: &threecommon.APIError{
 		Code:    "missing_body",
+		Message: "entitlements." + method + ": params must be non-nil",
+	}}
+}
+
+func missingParams(method string) error {
+	return &threecommon.ValidationError{APIError: &threecommon.APIError{
+		Code:    "missing_params",
 		Message: "entitlements." + method + ": params must be non-nil",
 	}}
 }
