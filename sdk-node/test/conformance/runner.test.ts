@@ -12,6 +12,7 @@ import * as Errors from '@/errors'
 import { setupMockServer, TEST_BASE_URL } from '../helpers/mock-server'
 
 import { dispatchContacts } from './dispatch-contacts'
+import { dispatchEntitlements } from './dispatch-entitlements'
 import { dispatchEvents } from './dispatch-events'
 import { dispatchInvoices } from './dispatch-invoices'
 import { dispatchSubscriptions } from './dispatch-subscriptions'
@@ -96,6 +97,8 @@ function dispatchCall(
       return dispatchSubscriptions(client, call)
     case 'contacts':
       return dispatchContacts(client, call)
+    case 'entitlements':
+      return dispatchEntitlements(client, call)
   }
 }
 

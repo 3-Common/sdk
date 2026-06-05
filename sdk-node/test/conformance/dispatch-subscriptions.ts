@@ -64,6 +64,9 @@ export function dispatchSubscriptions(
     case 'listActivity':
     case 'listActivityAutoPaginate':
     case 'deleteDraft':
+    case 'lookup':
+    case 'grant':
+    case 'consume':
       throw new Error(`subscriptions: unsupported method '${call.method}'`)
   }
 }
