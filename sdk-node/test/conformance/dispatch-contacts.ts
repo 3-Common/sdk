@@ -66,6 +66,9 @@ export function dispatchContacts(
     case 'bill':
     case 'renew':
     case 'previewUpcomingInvoice':
+    case 'lookup':
+    case 'grant':
+    case 'consume':
       throw new Error(`contacts: unsupported method '${call.method}'`)
   }
 }

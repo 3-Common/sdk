@@ -1,0 +1,42 @@
+name: retrieve entitlement — happy path
+call:
+  resource: entitlements
+  method: retrieve
+  args:
+    id: ent_123
+expectedRequest:
+  method: GET
+  path: /v1/entitlements/ent_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-ent-get-001
+  body:
+    data:
+      id: ent_123
+      hostId: hst_1
+      contactId: cnt_42
+      featureKey: api_calls
+      balance: 100
+      grants:
+        - id: grant_1
+          source: manual
+          amount: 100
+          remaining: 100
+          addedAt: '2026-05-01T00:00:00.000Z'
+      totalGranted: 100
+      totalConsumed: 0
+      createdAt: '2026-05-01T00:00:00.000Z'
+      updatedAt: '2026-05-01T00:00:00.000Z'
+expectedResult:
+  id: ent_123
+  contactId: cnt_42
+  featureKey: api_calls
+  balance: 100
+  grants:
+    - id: grant_1
+      source: manual
+      amount: 100
+      remaining: 100
