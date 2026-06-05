@@ -216,7 +216,33 @@ func TestLookup_RequiresParams(t *testing.T) {
 	_, err := cl.Lookup(context.Background(), nil)
 	var v *threecommon.ValidationError
 	require.True(t, errors.As(err, &v))
-	assert.Equal(t, "missing_body", v.Code)
+	assert.Equal(t, "missing_params", v.Code)
+}
+
+func TestLookup_RequiresContactID(t *testing.T) {
+	t.Parallel()
+
+	cl, _ := entitlements.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.Lookup(context.Background(), &entitlements.LookupParams{
+		ContactID:  "",
+		FeatureKey: "api_calls",
+	})
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_contact_id", v.Code)
+}
+
+func TestLookup_RequiresFeatureKey(t *testing.T) {
+	t.Parallel()
+
+	cl, _ := entitlements.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.Lookup(context.Background(), &entitlements.LookupParams{
+		ContactID:  "cnt_7",
+		FeatureKey: "",
+	})
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_feature_key", v.Code)
 }
 
 func TestLookup_404Surfaces(t *testing.T) {

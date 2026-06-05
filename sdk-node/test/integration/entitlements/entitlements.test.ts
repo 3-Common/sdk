@@ -125,6 +125,20 @@ describe('entitlements.lookup', () => {
     expect(entitlement.id).toBe('ent_123')
   })
 
+  it('rejects empty contactId', async () => {
+    const client = buildClient()
+    await expect(
+      client.entitlements.lookup({ contactId: '', featureKey: 'api_calls' }),
+    ).rejects.toThrow(TypeError)
+  })
+
+  it('rejects empty featureKey', async () => {
+    const client = buildClient()
+    await expect(
+      client.entitlements.lookup({ contactId: 'cnt_7', featureKey: '' }),
+    ).rejects.toThrow(TypeError)
+  })
+
   it('throws ThreeCommonNotFoundError when no record exists', async () => {
     server.use(
       http.get(`${TEST_BASE_URL}/v1/entitlements/lookup`, () =>
