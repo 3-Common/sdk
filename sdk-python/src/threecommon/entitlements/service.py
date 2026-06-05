@@ -52,6 +52,19 @@ def _require_id(method: str, entitlement_id: str) -> None:
         raise ValidationError(code="missing_id", message=msg)
 
 
+def _require_lookup_params(params: LookupParams) -> None:
+    if not params.contact_id:
+        raise ValidationError(
+            code="missing_contact_id",
+            message="entitlements.lookup: contact_id must be a non-empty string",
+        )
+    if not params.feature_key:
+        raise ValidationError(
+            code="missing_feature_key",
+            message="entitlements.lookup: feature_key must be a non-empty string",
+        )
+
+
 def _path_for(entitlement_id: str) -> str:
     return f"/entitlements/{quote(entitlement_id, safe='')}"
 
@@ -97,6 +110,7 @@ class EntitlementsService:
 
         Raises [NotFoundError][threecommon.NotFoundError] if no record exists yet.
         """
+        _require_lookup_params(params)
         body = self._http.request(
             Request(method="GET", path="/entitlements/lookup", query=_encode_lookup_params(params))
         )
@@ -181,6 +195,7 @@ class AsyncEntitlementsService:
         return Entitlement.model_validate(body["data"])
 
     async def lookup(self, params: LookupParams) -> Entitlement:
+        _require_lookup_params(params)
         body = await self._http.request(
             Request(method="GET", path="/entitlements/lookup", query=_encode_lookup_params(params))
         )
