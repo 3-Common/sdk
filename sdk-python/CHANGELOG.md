@@ -5,6 +5,19 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.5.0
+
+### Added
+
+- Entitlements resource. The new `client.entitlements` surface covers balance
+  lookups and grant management: `list`, `retrieve`, `lookup` (by contact +
+  feature), `grant` (manual top-up, idempotent on `grant_id`), `consume`
+  (debit balance), and `list_auto_paginate`. Both sync and async surfaces.
+- New public types on `threecommon.entitlements`: `Entitlement`,
+  `EntitlementGrant`, `EntitlementGrantSource`, `GrantBody`, `ConsumeBody`,
+  `ListParams`, `RetrieveParams`, `LookupParams`, and the
+  `ListEntitlementsResponse` envelope.
+
 ## 0.4.0
 
 ### Added

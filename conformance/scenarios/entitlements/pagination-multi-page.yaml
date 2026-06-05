@@ -1,0 +1,43 @@
+name: auto-paginate entitlements walks every page
+call:
+  resource: entitlements
+  method: listAutoPaginate
+  args:
+    featureKey: api_calls
+exchanges:
+  - request:
+      method: GET
+      path: /v1/entitlements
+      query:
+        featureKey: api_calls
+        page: '0'
+    response:
+      status: 200
+      body:
+        data:
+          - id: ent_1
+            balance: 10
+          - id: ent_2
+            balance: 20
+        hasMore: true
+  - request:
+      method: GET
+      path: /v1/entitlements
+      query:
+        featureKey: api_calls
+        page: '1'
+    response:
+      status: 200
+      body:
+        data:
+          - id: ent_3
+            balance: 30
+        hasMore: false
+expectedAutoPaginated:
+  - id: ent_1
+    balance: 10
+  - id: ent_2
+    balance: 20
+  - id: ent_3
+    balance: 30
+expectedCallCount: 2

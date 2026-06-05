@@ -72,6 +72,9 @@ export function dispatchInvoices(
     case 'listActivity':
     case 'listActivityAutoPaginate':
     case 'previewUpcomingInvoice':
+    case 'lookup':
+    case 'grant':
+    case 'consume':
       throw new Error(`invoices: unsupported method '${call.method}'`)
   }
 }

@@ -1,4 +1,5 @@
 export * from './contacts'
+export * from './entitlements'
 export * from './events'
 export * from './invoices'
 export * from './subscriptions'

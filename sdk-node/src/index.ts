@@ -59,6 +59,20 @@ export type {
   ListContactsResponse,
 } from './resources/contacts'
 
+// Entitlements resource (types only — instances live on the client).
+export type {
+  Entitlement,
+  EntitlementConsumeBody,
+  EntitlementGrant,
+  EntitlementGrantBody,
+  EntitlementGrantSource,
+  EntitlementListParams,
+  EntitlementLookupParams,
+  EntitlementRetrieveParams,
+  EntitlementsService,
+  ListEntitlementsResponse,
+} from './resources/entitlements'
+
 // Subscriptions resource (types only — instances live on the client).
 export type {
   BillSubscriptionResult,
