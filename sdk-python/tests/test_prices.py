@@ -132,6 +132,7 @@ def test_retrieve_404_surfaces(httpx_mock: HTTPXMock) -> None:
     with _make_sync() as c, pytest.raises(NotFoundError):
         c.prices.retrieve("price_missing")
 
+
 @pytest.mark.parametrize(
     ("variant_json", "expected_cls"),
     [
