@@ -1,5 +1,3 @@
-.claude/
-
 # Editor / OS
 .DS_Store
 .idea/
@@ -55,3 +53,27 @@ go.work.sum
 docs/api/
 docs/_build/
 site/
+
+# Claude Code / Archon
+# Skills under .claude/skills/ are local developer tooling by default, e.g. the
+# Archon CLI installs `archon` and `manage-run` here via `archon skill install`.
+# Ignore everything under skills/ and explicitly re-include only the
+# project-owned skills we want versioned. Add a matching `!` line when
+# introducing a new one.
+.claude/skills/*
+!.claude/skills/3common-sdk-conventions/
+# Local-only Claude Code settings (a shared .claude/settings.json, if added, is
+# fine).
+.claude/settings.local.json
+# .archon/ (config.yaml, workflows/, commands/, the shared workflow definition)
+# is committed. Per-run artifacts/logs normally live under
+# ~/.archon/workspaces/<owner>/<repo>/, but for an unregistered repo Archon
+# falls back to writing them under <repo>/.archon/, so we ignore those runtime
+# dirs so a 4MB spec snapshot + markers never get swept into a generated PR.
+.archon/artifacts/
+.archon/logs/
+# Codex/agents-side mirror: `archon skill install` also drops the bundled
+# `archon`/`manage-run` skills under .agents/skills/. No project-owned agent
+# skills today, so ignore the whole tree (switch to the .claude/skills/*
+# whitelist pattern above if you ever add a project skill here).
+.agents/

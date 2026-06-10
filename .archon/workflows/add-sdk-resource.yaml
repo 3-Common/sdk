@@ -1,0 +1,545 @@
+name: add-sdk-resource
+description: |
+  Add a new resource (a product domain) to all three 3Common
+  SDKs — Node, Python, and Go — from the canonical OpenAPI spec, and open a
+  single draft PR.
+  Use when: the user asks to add / wrap / scaffold a new SDK resource or domain,
+  e.g. "add the <name> resource", "wrap the <domain> endpoints in the SDK".
+  Does: verifies the spec is current with origin/main, slices it to the target
+  domain, gets human approval on the endpoint set, implements the resource +
+  examples + tests in each language in parallel, validates each against the
+  CI gates, then opens ONE draft PR with all three languages (per-language
+  commits) plus the shared conformance scenarios — they must land together so
+  cross-language conformance CI stays green.
+  NOT for: editing the OpenAPI spec, releasing/publishing packages, or
+  modifying an existing resource.
+
+provider: claude
+# The AI nodes set their own model below (per-node overrides). This workflow
+# default only applies to AI nodes that don't override — currently none, since
+# the deterministic bash/script nodes ignore it.
+# Pin explicit versions everywhere (primary + fallback) for reproducibility;
+# bump deliberately to adopt a newer model.
+model: claude-sonnet-4-6
+
+# Approval gate ⇒ must run interactive so the gate reaches the user.
+interactive: true
+
+# This workflow writes code — always isolate in a worktree (reject --no-worktree).
+worktree:
+  enabled: true
+
+nodes:
+  # ── 0. Preflight — fail fast (before any AI cost) if host prerequisites are
+  # missing, instead of dying cryptically deep inside a validate node after the
+  # expensive implementation. Checks tool presence + gh auth; reports everything
+  # missing at once. Tools the workflow assumes are installed on the host.
+  - id: preflight
+    timeout: 60000
+    bash: |
+      set -uo pipefail
+      missing=""
+      have() { command -v "$1" >/dev/null 2>&1; }
+      add()  { missing+=$'\n  - '"$1"; }
+      have git              || add "git"
+      have make             || add "make — runs the Go SDK's Makefile targets"
+      have bun              || add "bun — runs the spec-slicer script node (https://bun.sh)"
+      have node             || add "node — Node SDK runtime"
+      have yarn             || add "yarn — Node SDK package manager (Yarn 1 Classic)"
+      have go               || add "go — Go SDK toolchain"
+      have uv               || add "uv — Python venv + tooling, manages Python 3.10 (https://docs.astral.sh/uv)"
+      have gh               || add "gh — GitHub CLI, opens the PR (https://cli.github.com)"
+      have gofumpt          || add "gofumpt — Go formatter            (cd sdk-go && make tools)"
+      have go-test-coverage || add "go-test-coverage — Go coverage gate (cd sdk-go && make tools)"
+      have golangci-lint    || add "golangci-lint — Go linter         (install separately: https://golangci-lint.run/welcome/install — NOT covered by 'make tools')"
+      if have gh && ! gh auth status >/dev/null 2>&1; then
+        add "gh is installed but NOT authenticated   (run: gh auth login)"
+      fi
+      # Yarn major version: the repo is Yarn 1 Classic and validate-node runs
+      # `yarn install --frozen-lockfile`, a flag REMOVED in Yarn Berry (4.x). A
+      # Berry host would pass `have yarn` and then die in validate-node — exactly
+      # the cryptic late failure preflight exists to prevent. (We don't version-pin
+      # go/golangci-lint: a mismatch there surfaces as honest lint/test output,
+      # not a flag error.)
+      if have yarn && ! yarn --version 2>/dev/null | grep -q '^1\.'; then
+        add "yarn is present but not Yarn 1 Classic — CI/validate use 'yarn install --frozen-lockfile' (removed in Yarn Berry); install Yarn 1.x"
+      fi
+      if [ -n "$missing" ]; then
+        echo "=== add-sdk-resource: missing host prerequisites — not starting ==="
+        echo "Install/fix the following on the host, then re-run:$missing"
+        exit 1
+      fi
+      echo "Preflight OK — all required tools present and gh authenticated."
+
+  # ── 1. Verify the spec is current, then snapshot it for the slicer ────────
+  # The slice + conformance scenarios AND each language's codegen all read the
+  # WORKTREE's openapi/spec, so they can never drift from each other. We fetch
+  # origin/main and fail if the worktree spec is behind (the daily openapi-sync
+  # may have landed), so we never build a resource against a stale contract.
+  - id: resolve-spec
+    depends_on: [preflight]
+    bash: |
+      set -e
+      git fetch --quiet origin main || { echo "git fetch origin main failed — cannot verify the spec is current"; exit 1; }
+      # Fail fast if the worktree's spec is behind origin/main. Codegen reads the
+      # worktree's openapi/spec.yaml, so slicing/scenarios from a newer origin/main
+      # spec would describe a contract the generated types don't match. Keeping
+      # everything on the worktree spec + this guard removes that drift entirely.
+      if ! git diff --quiet origin/main -- openapi/spec.json openapi/spec.yaml; then
+        echo "=== add-sdk-resource: openapi/ is behind origin/main — not starting ==="
+        echo "The worktree's spec differs from origin/main (likely the daily"
+        echo "openapi-sync has landed newer endpoints). Update local main"
+        echo "(git checkout main && git pull) and re-run, so the worktree is cut"
+        echo "from the current spec."
+        exit 1
+      fi
+      # Snapshot the worktree's spec for the slicer — byte-identical to what every
+      # language's codegen reads, so the slice can never drift from the types.
+      cp openapi/spec.json "$ARTIFACTS_DIR/spec.json"
+      # $ARGUMENTS is the user's message. In a BASH node Archon does NOT splice it
+      # into the script text — under shellSafe it skips user-controlled vars and
+      # passes them as subprocess ENV VARS (dag-executor.ts), so $ARGUMENTS is a
+      # real env var here, expanded by bash at runtime. Double-quoted parameter
+      # expansion writes the value verbatim and is never re-parsed as code, so this
+      # is injection-safe: a message containing quotes or $(...) is captured
+      # literally, not executed. (A single-quoted heredoc would suppress the env
+      # expansion and write the literal string "$ARGUMENTS" — do NOT do that.)
+      # extract-domain lowercases + tokenizes it, so no normalization here.
+      printf '%s\n' "$ARGUMENTS" > "$ARTIFACTS_DIR/domain-input.txt"
+      echo "Spec verified current with origin/main; wrote slice snapshot."
+    timeout: 60000
+
+  # ── 2. Slice the spec down to the target domain (deterministic, no AI) ────
+  - id: extract-domain
+    depends_on: [resolve-spec]
+    runtime: bun
+    timeout: 60000
+    script: |
+      import { readFileSync, writeFileSync } from "node:fs";
+      // Read the artifacts dir from the subprocess env, NOT a spliced literal.
+      // Archon textually substitutes the ARTIFACTS_DIR variable into script
+      // bodies, but on Windows the path has backslashes (node:path.join) and a
+      // spliced `const ART = "...\runs\.."` would corrupt as JS escape sequences
+      // (\r becomes CR, others dropped). The env value is a runtime string — no
+      // escaping — and process.env (no leading dollar) is itself never substituted.
+      const ART = process.env.ARTIFACTS_DIR;
+      if (!ART) { console.error("ARTIFACTS_DIR env var not set"); process.exit(1); }
+      // "$ref" is a safe literal: it isn't one of the fixed workflow-variable names
+      // Archon substitutes, and node-output refs need a ".output" suffix. The real
+      // hazard in this NON-shellSafe script node: the user-message variables
+      // (ARGUMENTS / USER_MESSAGE, written with a leading dollar) ARE spliced in
+      // textually — NEVER reference them here, or raw user text lands in this JS.
+      const REF = "$ref";
+      const spec = JSON.parse(readFileSync(ART + "/spec.json", "utf8"));
+      const input = readFileSync(ART + "/domain-input.txt", "utf8").toLowerCase();
+      const paths = spec.paths || {};
+
+      // Available domains = first path segment after /v1/.
+      const domains = new Set();
+      for (const p of Object.keys(paths)) {
+        const m = p.match(/^\/v1\/([^/]+)/);
+        if (m) domains.add(m[1].toLowerCase());
+      }
+      // Match the user's input against a domain by normalizing both to a
+      // space-delimited, lowercase, alphanumeric word form. This makes
+      // multi-word / hyphenated domains (e.g. "payment-links") matchable
+      // regardless of the separator typed (space, hyphen, underscore); the
+      // space-padding enforces word boundaries so "invoice" != "invoices".
+      const norm = (s) => " " + s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ") + " ";
+      const haystack = norm(input);
+      let matches = [...domains].filter((d) => haystack.includes(norm(d)));
+      // If several domains match (e.g. both "payment" and "payment-links"
+      // appear), keep only the most specific — drop any whose word form is
+      // contained within another match's.
+      if (matches.length > 1) {
+        matches = matches.filter((d) => !matches.some((o) => o !== d && norm(o).includes(norm(d))));
+      }
+      if (matches.length !== 1) {
+        console.error("Could not determine a unique domain from: " + JSON.stringify(input.trim()));
+        console.error("Available domains: " + [...domains].sort().join(", "));
+        console.error(matches.length === 0 ? "No domain matched." : "Ambiguous: " + matches.join(", "));
+        process.exit(1);
+      }
+      const domain = matches[0];
+      const prefix = "/v1/" + domain;
+
+      const refs = new Set();
+      const collect = (obj) => {
+        if (!obj || typeof obj !== "object") return;
+        if (Array.isArray(obj)) { obj.forEach(collect); return; }
+        for (const [k, v] of Object.entries(obj)) {
+          if (k === REF && typeof v === "string") {
+            const name = v.split("/").pop();
+            if (name) refs.add(name);
+          } else collect(v);
+        }
+      };
+
+      const verbs = ["get", "post", "put", "patch", "delete"];
+      const operations = [];
+      for (const [p, item] of Object.entries(paths)) {
+        if (!(p === prefix || p.startsWith(prefix + "/"))) continue;
+        for (const [method, op] of Object.entries(item)) {
+          if (!verbs.includes(method.toLowerCase())) continue;
+          operations.push({
+            method: method.toUpperCase(),
+            path: p,
+            operationId: op.operationId,
+            summary: op.summary,
+            description: op.description,
+            tags: op.tags,
+            parameters: op.parameters,
+            requestBody: op.requestBody,
+            responses: op.responses,
+          });
+          collect(op);
+        }
+      }
+
+      // Resolve referenced component schemas transitively.
+      const components = (spec.components && spec.components.schemas) || {};
+      const schemas = {};
+      const queue = [...refs];
+      while (queue.length) {
+        const name = queue.shift();
+        if (schemas[name] || !components[name]) continue;
+        schemas[name] = components[name];
+        const before = new Set(refs);
+        collect(components[name]);
+        for (const r of refs) if (!before.has(r) && !schemas[r]) queue.push(r);
+      }
+
+      const out = { domain, basePath: prefix, operationCount: operations.length, operations, schemas };
+      writeFileSync(ART + "/resource-spec.json", JSON.stringify(out, null, 2));
+      writeFileSync(ART + "/slug.txt", domain);
+
+      console.log("Domain: " + domain + "  (base path " + prefix + ")");
+      console.log("Endpoints (" + operations.length + "):");
+      for (const op of operations) {
+        const s = op.summary ? "  - " + String(op.summary).split("\n")[0] : "";
+        console.log("  " + op.method + " " + op.path + s);
+      }
+      console.log("Referenced schemas: " + Object.keys(schemas).length);
+
+  # ── 3. Generate the shared cross-language conformance scenarios ──────────
+  # Defines the behavioral contract (method names, args, wire requests, errors)
+  # that all three SDKs implement against. Written once and shared by all three
+  # language implementations in the single PR. Lives in conformance/scenarios/<slug>/.
+  - id: generate-conformance
+    command: generate-conformance
+    depends_on: [extract-domain]
+    context: fresh
+    skills: [3common-sdk-conventions]
+    idle_timeout: 900000
+    # Highest-leverage, weakest-gated node (scenarios ARE the test, only the
+    # human gate checks them). Use Opus and deliberately set NO fallbackModel:
+    # if Opus is unavailable, fail loudly and rerun rather than silently
+    # generating a weaker contract that all three impls would bake in.
+    model: claude-opus-4-8
+
+  # ── 4. Human approval on the endpoints + behavioral contract ─────────────
+  - id: review-gate
+    depends_on: [generate-conformance]
+    # NOTE: approval messages get node-output substitution ($nodeId.output) but
+    # NOT workflow-variable substitution — so $ARTIFACTS_DIR would render
+    # literally here, whereas $extract-domain.output resolves. This is undocumented
+    # in the bundled refs but confirmed in the engine: dag-executor.ts renders
+    # approval.message via substituteNodeOutputRefs; its ref regex allows hyphens
+    # in node ids; and every node's output (incl. a script node's stdout) is stored
+    # in the shared nodeOutputs map keyed by id, available to later layers. So we
+    # inline the endpoint list via $extract-domain.output (the slicer's stdout).
+    # capture_response is omitted by choice — NOT a limitation. Command-node
+    # prompts DO get $nodeId.output substitution (dag-executor.ts:782), so the
+    # impls could read $review-gate.output. We don't wire it in because the
+    # conformance scenarios are fixed before this gate, so an approve-with-note
+    # that changes the contract (e.g. a method rename) would desync them — contract
+    # changes belong in a reject + re-run, keeping this gate go/no-go.
+    approval:
+      message: |
+        Review the resource contract before the 3-language implementation.
+
+        Endpoints to wrap (from the spec slice):
+        $extract-domain.output
+
+        Conformance scenarios for this domain were generated under
+        conformance/scenarios/ — one happy-path per endpoint plus the relevant
+        error/pagination paths — the cross-language behavioral contract all three
+        SDKs implement against (see the generate-conformance step's output above).
+
+        Approve to implement in Node, Python, and Go and open a single draft PR
+        (per-language commits + shared scenarios). Reject with a reason to stop.
+
+  # ── 5. Implement per language, in parallel (no git in these nodes) ───────
+  - id: impl-node
+    command: implement-resource-node
+    depends_on: [review-gate]
+    context: fresh
+    skills: [3common-sdk-conventions]
+    idle_timeout: 1800000
+    # TUNABLE KNOB: impls are strongly gated (strict lint/types + coverage +
+    # conformance), so a Sonnet fallback is safe here. Start on Opus for
+    # first-pass quality + fewer iterations against strict gates; once Opus
+    # proves to be overkill on routine resources, drop these three to
+    # `claude-sonnet-4-6`.
+    model: claude-opus-4-8
+    fallbackModel: claude-sonnet-4-6
+
+  - id: impl-python
+    command: implement-resource-python
+    depends_on: [review-gate]
+    context: fresh
+    skills: [3common-sdk-conventions]
+    idle_timeout: 1800000
+    model: claude-opus-4-8   # tunable knob — see impl-node
+    fallbackModel: claude-sonnet-4-6
+
+  - id: impl-go
+    command: implement-resource-go
+    depends_on: [review-gate]
+    context: fresh
+    skills: [3common-sdk-conventions]
+    idle_timeout: 1800000
+    model: claude-opus-4-8   # tunable knob — see impl-node
+    fallbackModel: claude-sonnet-4-6
+
+  # ── 6. Deterministic CI-gate per language; marker file gates publish ─────
+  - id: validate-node
+    depends_on: [impl-node]
+    # 20 min. These gates are slow on cold caches — Node does a cold `yarn
+    # install` + tsup build; Python's first `uv run --no-sync pyright` downloads a Node
+    # runtime; Go installs oapi-codegen and runs race tests. A timeout here would
+    # discard the already-finished (expensive) implementation, so keep headroom.
+    timeout: 1200000
+    bash: |
+      set -e
+      cd sdk-node
+      # Yarn 1 Classic (no package-lock.json), mirroring .github/workflows/node.yml.
+      yarn install --frozen-lockfile
+      yarn lint
+      yarn format:check
+      yarn typecheck
+      yarn typecheck:build
+      yarn docs:check
+      yarn test:coverage
+      yarn build
+      touch "$ARTIFACTS_DIR/node.ok"
+
+  - id: validate-python
+    depends_on: [impl-python]
+    timeout: 1200000   # 20 min (cold uv install + pyright's Node download) — see validate-node
+    bash: |
+      set -e
+      cd sdk-python
+      # Mirror .github/workflows/python.yml exactly. Strictness lives in
+      # pyproject.toml (mypy strict=true, pyright typeCheckingMode=standard,
+      # curated ruff select) — do NOT pass --strict / --select=ALL, and scope
+      # mypy to src+tests (running over . pulls in examples/, whose reused module
+      # names break mypy with duplicate-module errors).
+      # Self-sufficient (mirror validate-node's `yarn install`): the dev tools live
+      # in [project.optional-dependencies].dev, and `uv run` auto-sync does NOT
+      # install extras — so install them explicitly here (don't trust impl-python's
+      # step 0; idempotent — reuses an existing .venv). Then run every tool with
+      # `uv run --no-sync`: it uses the env exactly as installed (no sync that
+      # could prune the extras under a future uv) and never writes uv.lock.
+      [ -d .venv ] || uv venv --python 3.10 .venv
+      uv pip install -e ".[dev]"
+      uv run --no-sync ruff check .
+      uv run --no-sync ruff format --check .
+      uv run --no-sync mypy src/threecommon tests
+      uv run --no-sync pyright src/threecommon
+      uv run --no-sync pytest --cov=src/threecommon --cov-fail-under=90 --cov-report=term
+      touch "$ARTIFACTS_DIR/python.ok"
+
+  - id: validate-go
+    depends_on: [impl-go]
+    timeout: 1200000   # 20 min (cold go mod + oapi-codegen install + race tests) — see validate-node
+    bash: |
+      set -e
+      cd sdk-go
+      make ci
+      go build ./examples/...
+      touch "$ARTIFACTS_DIR/go.ok"
+
+  # ── 7. Open ONE draft PR with the resource in all three languages ────────
+  # Runs after all validations settle (all_done). The resource ships ATOMICALLY:
+  # the shared conformance scenarios can't pass CI until all three dispatchers
+  # land together, so we require all three languages green and open a single PR
+  # with per-language commits. If any language failed, no PR is opened.
+  - id: publish-pr
+    depends_on: [validate-node, validate-python, validate-go]
+    trigger_rule: all_done
+    timeout: 300000
+    bash: |
+      # set -e: this is an ATOMIC publish — any unexpected failure (a failed
+      # commit, a failed fetch) must abort, not silently proceed and push/open a
+      # partial PR. Every place a non-zero exit is EXPECTED is explicitly guarded
+      # with `|| …` or tested in an `if`, so -e composes cleanly.
+      set -euo pipefail
+      slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing — extract-domain must have run first"; exit 1; }
+
+      # Atomic gate: every language must have passed its validation.
+      missing=""
+      for lang in node python go; do
+        [ -f "$ARTIFACTS_DIR/$lang.ok" ] || missing="$missing $lang"
+      done
+      if [ -n "$missing" ]; then
+        echo "=== add-sdk-resource: FAILED — no PR opened ==="
+        echo "These languages failed validation:$missing"
+        echo "The resource ships as one atomic PR (shared conformance needs all"
+        echo "three dispatchers together), so nothing publishes until all pass."
+        echo "Resolve the failing language(s) and re-run with --resume."
+        # Exit NON-ZERO: the node's job (open the PR) was not done. Archon resume
+        # skips already-completed nodes, so exit 0 here would mark publish-pr
+        # 'completed' and silently skip it on --resume even after the failing
+        # validate dep is fixed — the PR would never open. Failing makes the run
+        # status honest AND lets --resume re-execute this node once deps go green.
+        exit 1
+      fi
+
+      git fetch --quiet origin main || { echo "git fetch origin main failed — cannot establish a fresh base for the PR branch"; exit 1; }
+      branch="feat/$slug"
+      committed=0
+      # Resume-safe rebranch. A prior run may have already committed the impl onto
+      # $branch (e.g. the push or gh pr create below failed and the node exited 1).
+      # In that state the worktree is ON $branch, clean, and ahead of origin/main —
+      # those commits ARE the work. A `git switch -C $branch origin/main` would
+      # reset the branch and ORPHAN them (clean tree → nothing re-carried →
+      # committed stays 0 → a false "nothing to publish" success). So detect that
+      # and reuse the existing commits; otherwise do the normal first-run rebranch.
+      if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
+         && git diff --quiet && git diff --cached --quiet \
+         && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
+        echo "Resuming: $branch already has the implementation commits; re-pushing."
+        committed=1
+      else
+        # Partial-commit guard: we're in the else, so the reuse check above was
+        # false. If we're nonetheless on $branch and it's ahead of origin/main, a
+        # prior run committed some languages but left the tree dirty (e.g. a git
+        # commit failed mid-loop) — rebranching would orphan those commits and open
+        # a PARTIAL PR that looks complete. Bail for manual cleanup instead.
+        if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
+           && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
+          echo "=== add-sdk-resource: $branch has prior-run commits AND uncommitted changes ==="
+          echo "A previous run committed some languages but didn't finish; rebranching"
+          echo "would orphan them and open a partial PR. Inspect, then reset manually:"
+          echo "  git log --oneline origin/main..HEAD ; git status"
+          echo "  git switch - && git branch -D $branch   # then re-run fresh"
+          exit 1
+        fi
+        # First run: `git switch -C` carries the worktree's uncommitted impl changes
+        # onto a fresh branch from origin/main — no stash, so we never touch the
+        # repo-wide shared stash stack. Plain checkout semantics: with no --merge it
+        # REFUSES atomically (no conflict markers) on a conflicting local change —
+        # caught here. (The PR is the validated diff re-based onto fresher main; the
+        # draft's CI re-checks against the real base for any upstream clash.)
+        git switch -C "$branch" origin/main >/dev/null 2>&1 || {
+          echo "=== add-sdk-resource: could not create/switch to $branch ==="
+          echo "Likely one of:"
+          echo "  (a) $branch is already checked out in another worktree — e.g. a"
+          echo "      leftover worktree from a previous run for '$slug' (the branch"
+          echo "      name is deterministic). See 'git worktree list'; clean stale"
+          echo "      Archon worktrees with 'archon isolation cleanup' or"
+          echo "      'archon complete $branch'."
+          echo "  (b) the impl touched a tracked file that also moved on origin/main"
+          echo "      since this worktree was cut — resolve the conflict manually."
+          echo "Then re-run with --resume."
+          exit 1
+        }
+        git reset --quiet
+      fi
+
+      # Commit the impl: one per language + one for the shared conformance scenarios.
+      # On a resume that reused existing commits (above) the tree is clean, so these
+      # are no-ops. gitignored node_modules/.venv/uv.lock/caches never stage;
+      # ARTIFACTS_DIR is normally outside the repo, but an unregistered repo falls
+      # back to <repo>/.archon/artifacts — gitignored, so never staged.
+      for lang in node python go; do
+        git add "sdk-$lang" 2>/dev/null || true
+        # `if !`, not `… || { git commit; committed=1; }`: under set -e a failed
+        # commit aborts the node instead of setting committed=1 and pushing a
+        # partial PR.
+        if ! git diff --cached --quiet; then
+          git commit --quiet -m "feat($lang): add $slug resource"
+          committed=1
+        fi
+      done
+      git add "conformance/scenarios" 2>/dev/null || true
+      if ! git diff --cached --quiet; then
+        git commit --quiet -m "test(conformance): add $slug scenarios"
+        committed=1
+      fi
+      # Catch anything outside the expected paths (should be nothing). Surface
+      # what gets swept in the run output so it's visible here, not a surprise in
+      # the PR diff.
+      git add -A 2>/dev/null || true
+      if ! git diff --cached --quiet; then
+        echo "=== add-sdk-resource: WARNING — unexpected files swept into a misc commit: ==="
+        git diff --cached --name-only | sed 's/^/  /'
+        git commit --quiet -m "chore: $slug resource (misc)"
+        committed=1
+      fi
+
+      if [ "$committed" = "0" ]; then
+        # Legitimate no-op (most likely the resource already exists, so the impls
+        # made no changes) — this is success, not failure. Resume can't change it
+        # (the impl nodes are already 'completed'); if you expected a new resource,
+        # re-run fresh.
+        echo "=== add-sdk-resource: nothing to publish for '$slug' — no changes (the resource may already exist) ==="
+        exit 0
+      fi
+      # --force-with-lease (not a plain push): the branch is deterministic +
+      # workflow-owned, and a --resume after a post-push failure (e.g. gh below)
+      # re-creates commits with new SHAs — a plain push would then be rejected
+      # non-fast-forward. The lease still refuses if anything other than our own
+      # prior push moved the branch. No 2>/dev/null: let git's stderr surface.
+      if ! git push --quiet --force-with-lease -u origin "$branch"; then
+        echo "=== add-sdk-resource: push failed for $branch (see git's error above) ==="
+        exit 1
+      fi
+      # Build the PR body from the repo's PR template. github.com autofills
+      # .github/PULL_REQUEST_TEMPLATE.md in the web UI, but `gh pr create` does NOT
+      # — and the repo rejects PRs that don't follow it. Read the committed template
+      # (so the body's structure never drifts from the repo's), fill the Summary,
+      # and tick the boxes this atomic, all-3-languages, gated PR satisfies. Fills
+      # are best-effort: a relabeled checkbox just stays unticked (still valid).
+      body_file="$ARTIFACTS_DIR/pr-body.md"
+      tmpl=".github/PULL_REQUEST_TEMPLATE.md"
+      # NOTE: $summary is interpolated into a sed replacement below — keep it free
+      # of & \ | and newlines (sed-replacement metacharacters), or escape them.
+      summary="Adds the $slug resource to all three SDKs (Node, Python, Go) — hand-written client, types, per-endpoint examples and tests, plus the shared cross-language conformance scenarios. Generated by the Archon add-sdk-resource workflow; opened as a draft for maintainer review."
+      # One sed pass FROM the template INTO the body file — no `sed -i` (which
+      # needs a backup-suffix arg on BSD/macOS sed); this form is portable across
+      # GNU and BSD sed. Fallback to a minimal body if the template is missing.
+      if [ -f "$tmpl" ]; then
+        sed -e "s|<!-- One or two sentences.*-->|$summary|" \
+            -e 's/- \[ \] Node\.js/- [x] Node.js/' \
+            -e 's/- \[ \] Python/- [x] Python/' \
+            -e 's/- \[ \] Go (/- [x] Go (/' \
+            -e 's|- \[ \] OpenAPI spec / shared|- [x] OpenAPI spec / shared|' \
+            -e 's/- \[ \] New feature/- [x] New feature/' \
+            -e 's|- \[ \] Tests added / updated and passing|- [x] Tests added / updated and passing|' \
+            -e 's/- \[ \] Coverage gate/- [x] Coverage gate/' \
+            -e 's/- \[ \] Lint, type-check/- [x] Lint, type-check/' \
+            -e 's/- \[ \] No secrets/- [x] No secrets/' \
+            -e 's/- \[ \] Conformance scenarios/- [x] Conformance scenarios/' \
+            -e 's/- \[ \] Code examples/- [x] Code examples/' \
+            -e 's/- \[ \] CHANGELOG entry/- [x] CHANGELOG entry/' \
+            -e 's/- \[ \] Follows/- [x] Follows/' \
+            "$tmpl" > "$body_file"
+      else
+        printf '## Summary\n\n%s\n' "$summary" > "$body_file"
+      fi
+      # Do NOT swallow a gh failure: the branch is pushed but the node's job (open
+      # the PR) isn't done. Exit non-zero so the run status is honest and --resume
+      # retries (the force-with-lease push above makes the re-push succeed). exit 0
+      # here would mark publish-pr 'completed' and resume would skip it, leaving a
+      # pushed branch with no PR.
+      if ! url=$(gh pr create --draft --base main --head "$branch" \
+        --title "feat: add $slug resource (node, python, go)" \
+        --body-file "$body_file" 2>&1); then
+        echo "=== add-sdk-resource: pushed $branch but gh pr create FAILED ==="
+        echo "$url"
+        exit 1
+      fi
+      echo "=== add-sdk-resource: opened PR for '$slug' ==="
+      echo "  $branch -> $url"
