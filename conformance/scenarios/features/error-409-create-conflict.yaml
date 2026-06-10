@@ -1,0 +1,31 @@
+name: 409 Conflict — create duplicate feature key
+call:
+  resource: features
+  method: create
+  args:
+    body:
+      key: api_calls
+      name: API calls
+      type: quantity
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/features
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-feat-409-001
+  body:
+    error:
+      code: feature_key_exists
+      message: A feature with key api_calls already exists
+      details:
+        key: api_calls
+expectedError:
+  type: ThreeCommonConflictError
+  code: feature_key_exists
+  httpStatus: 409
+  requestId: req-feat-409-001
+  details:
+    key: api_calls

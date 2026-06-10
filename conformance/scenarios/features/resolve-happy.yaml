@@ -1,0 +1,46 @@
+name: resolve feature for customer — happy path (quantity value)
+call:
+  resource: features
+  method: resolve
+  args:
+    contactId: cnt_7
+    featureKey: api_calls
+expectedRequest:
+  method: GET
+  path: /v1/features/resolve
+  query:
+    contactId: cnt_7
+    featureKey: api_calls
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-feat-resolve-001
+  body:
+    data:
+      feature:
+        id: feat_123
+        hostId: hst_1
+        key: api_calls
+        name: API calls
+        type: quantity
+        active: true
+        createdAt: '2026-05-01T00:00:00.000Z'
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      value:
+        type: quantity
+        quantity: 1000
+        balance: 850
+      contributingSubscriptionIds:
+        - sub_1
+expectedResult:
+  feature:
+    key: api_calls
+    type: quantity
+  value:
+    type: quantity
+    quantity: 1000
+    balance: 850
+  contributingSubscriptionIds:
+    - sub_1
