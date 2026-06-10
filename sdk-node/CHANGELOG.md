@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.0
+
+### Minor Changes
+
+- 2dce39e: Add the `features` resource. The new `client.features` surface covers the
+  feature catalog: `list`, `resolve` (resolve a feature's live value for a
+  customer), `retrieve`, `create`, `update`, `archive`, `unarchive`, and a
+  `listAutoPaginate` iterator. Includes typed `Feature`, `FeatureType`
+  (boolean/quantity/enum/duration), `ResolvedFeature`, and the
+  `ResolvedFeatureValue` discriminated union.
+- a658873: Add the `prices` resource. The new `client.prices` surface covers the price
+  catalog: `list`, `retrieve`, `create`, `update`, `archive`, `unarchive`, and a
+  `listAutoPaginate` iterator. Includes typed `Price`, `PriceFeature` (the
+  boolean/quantity/enum/duration grant union), `PriceRecurring`, and the
+  `PriceType`/`PriceCurrency`/`PriceInterval` unions.
+
 ## 0.5.0
 
 ### Minor Changes
