@@ -1,0 +1,40 @@
+name: list prices — happy path
+call:
+  resource: prices
+  method: list
+  args:
+    productId: prod_7
+    active: true
+    pageSize: 10
+expectedRequest:
+  method: GET
+  path: /v1/prices
+  query:
+    productId: prod_7
+    active: 'true'
+    pageSize: '10'
+  headers:
+    authorization: 'Bearer 3co_test'
+    threecommon-version: '2026-04-29'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-price-list-001
+  body:
+    data:
+      - id: price_a
+        hostId: hst_1
+        productId: prod_7
+        type: recurring
+        currency: USD
+        unitAmount: 1500
+        active: true
+        createdAt: '2026-05-01T00:00:00.000Z'
+        updatedAt: '2026-05-01T00:00:00.000Z'
+    hasMore: false
+expectedResult:
+  data:
+    - id: price_a
+      type: recurring
+      unitAmount: 1500
+  hasMore: false

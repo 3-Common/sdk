@@ -1,0 +1,47 @@
+name: retrieve price — happy path (recurring + feature grant)
+call:
+  resource: prices
+  method: retrieve
+  args:
+    id: price_123
+expectedRequest:
+  method: GET
+  path: /v1/prices/price_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-price-get-001
+  body:
+    data:
+      id: price_123
+      hostId: hst_1
+      productId: prod_7
+      type: recurring
+      currency: USD
+      unitAmount: 1500
+      recurring:
+        interval: month
+        intervalCount: 1
+      features:
+        - featureKey: api_calls
+          type: quantity
+          quantity: 1000
+          rolloverEnabled: false
+      nickname: Pro monthly
+      active: true
+      createdAt: '2026-05-01T00:00:00.000Z'
+      updatedAt: '2026-05-01T00:00:00.000Z'
+expectedResult:
+  id: price_123
+  type: recurring
+  unitAmount: 1500
+  recurring:
+    interval: month
+    intervalCount: 1
+  features:
+    - featureKey: api_calls
+      type: quantity
+      quantity: 1000
+      rolloverEnabled: false

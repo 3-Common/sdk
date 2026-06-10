@@ -1,0 +1,26 @@
+name: unarchive price — happy path
+call:
+  resource: prices
+  method: unarchive
+  args:
+    id: price_123
+expectedRequest:
+  method: POST
+  path: /v1/prices/price_123/unarchive
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-price-unarchive-001
+  body:
+    data:
+      id: price_123
+      productId: prod_7
+      type: recurring
+      currency: USD
+      unitAmount: 1500
+      active: true
+expectedResult:
+  id: price_123
+  active: true
