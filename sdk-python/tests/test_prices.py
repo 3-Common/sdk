@@ -14,6 +14,10 @@ from threecommon import (
 from threecommon.prices import (
     CreateBody,
     ListParams,
+    Price,
+    PriceFeatureBoolean,
+    PriceFeatureDuration,
+    PriceFeatureEnum,
     PriceFeatureQuantity,
     PriceRecurring,
     RetrieveParams,
@@ -127,6 +131,31 @@ def test_retrieve_404_surfaces(httpx_mock: HTTPXMock) -> None:
     )
     with _make_sync() as c, pytest.raises(NotFoundError):
         c.prices.retrieve("price_missing")
+
+@pytest.mark.parametrize(
+    ("variant_json", "expected_cls"),
+    [
+        (
+            {"featureKey": "f", "type": "boolean", "enabled": True},
+            PriceFeatureBoolean,
+        ),
+        (
+            {"featureKey": "f", "type": "enum", "enumValue": "gold"},
+            PriceFeatureEnum,
+        ),
+        (
+            {"featureKey": "f", "type": "duration", "durationDays": 30},
+            PriceFeatureDuration,
+        ),
+    ],
+)
+def test_feature_variant_decodes(
+    variant_json: dict[str, object],
+    expected_cls: type[PriceFeatureBoolean | PriceFeatureEnum | PriceFeatureDuration],
+) -> None:
+    price = Price.model_validate({"id": "p", "features": [variant_json]})
+    assert price.features is not None
+    assert isinstance(price.features[0], expected_cls)
 
 
 def test_create_sends_camelcase_body(httpx_mock: HTTPXMock) -> None:
