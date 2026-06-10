@@ -1,0 +1,43 @@
+name: auto-paginate prices walks every page
+call:
+  resource: prices
+  method: listAutoPaginate
+  args:
+    active: true
+exchanges:
+  - request:
+      method: GET
+      path: /v1/prices
+      query:
+        active: 'true'
+        page: '0'
+    response:
+      status: 200
+      body:
+        data:
+          - id: price_1
+            unitAmount: 1000
+          - id: price_2
+            unitAmount: 2000
+        hasMore: true
+  - request:
+      method: GET
+      path: /v1/prices
+      query:
+        active: 'true'
+        page: '1'
+    response:
+      status: 200
+      body:
+        data:
+          - id: price_3
+            unitAmount: 3000
+        hasMore: false
+expectedAutoPaginated:
+  - id: price_1
+    unitAmount: 1000
+  - id: price_2
+    unitAmount: 2000
+  - id: price_3
+    unitAmount: 3000
+expectedCallCount: 2

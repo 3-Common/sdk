@@ -73,6 +73,22 @@ export type {
   ListEntitlementsResponse,
 } from './resources/entitlements'
 
+// Prices resource (types only — instances live on the client).
+export type {
+  ListPricesResponse,
+  Price,
+  PriceCreateBody,
+  PriceCurrency,
+  PriceFeature,
+  PriceInterval,
+  PriceListParams,
+  PriceRecurring,
+  PriceRetrieveParams,
+  PriceType,
+  PriceUpdateBody,
+  PricesService,
+} from './resources/prices'
+
 // Subscriptions resource (types only — instances live on the client).
 export type {
   BillSubscriptionResult,

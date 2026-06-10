@@ -1,0 +1,32 @@
+name: 400 Validation — create recurring price without cadence
+call:
+  resource: prices
+  method: create
+  args:
+    body:
+      productId: prod_7
+      type: recurring
+      currency: USD
+      unitAmount: 1500
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/prices
+mockResponse:
+  status: 400
+  headers:
+    x-request-id: req-price-400-001
+  body:
+    error:
+      code: validation_error
+      message: recurring is required when type is recurring
+      details:
+        field: recurring
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_error
+  httpStatus: 400
+  requestId: req-price-400-001
+  details:
+    field: recurring
