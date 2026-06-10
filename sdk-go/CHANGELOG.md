@@ -6,6 +6,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.6.0
+
+### Added
+
+- Prices resource. The new `api.Prices` surface covers the price catalog:
+  `List`, `Retrieve`, `Create`, `Update`, `Archive`, `Unarchive`, and a
+  `ListAutoPaginate` iterator. Available as `api.Prices` and via `prices.New`
+  for standalone use.
+- New public types in `resources/prices`: `Price`, `Recurring`, `Feature` (a
+  tagged union over `FeatureType` — boolean/quantity/enum/duration — with a
+  custom `MarshalJSON` that emits each variant's shape and preserves `null`
+  for unlimited quantity/duration grants), `CreateParams`, `UpdateParams`,
+  `ListParams`, `RetrieveParams`, the `ListResponse` envelope, and the
+  `Type`/`Currency`/`Interval` enums.
+
 ## 0.5.0
 
 ### Added

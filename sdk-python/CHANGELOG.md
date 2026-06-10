@@ -5,6 +5,20 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.6.0
+
+### Added
+
+- Prices resource. The new `client.prices` surface covers the price catalog:
+  `list`, `retrieve`, `create`, `update`, `archive`, `unarchive`, and a
+  `list_auto_paginate` iterator. Both sync and async surfaces.
+- New public types on `threecommon.prices`: `Price`, `PriceRecurring`,
+  `PriceFeature` (the boolean/quantity/enum/duration grant union) and its
+  `PriceFeatureBoolean`/`PriceFeatureQuantity`/`PriceFeatureEnum`/
+  `PriceFeatureDuration` members, `CreateBody`, `UpdateBody`, `ListParams`,
+  `RetrieveParams`, the `ListPricesResponse` envelope, and the
+  `PriceType`/`PriceCurrency`/`PriceInterval` literal unions.
+
 ## 0.5.0
 
 ### Added
