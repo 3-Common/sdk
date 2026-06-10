@@ -1,0 +1,73 @@
+"""Features-resource dispatcher for the conformance harness."""
+
+from __future__ import annotations
+
+from typing import Any
+
+import pytest
+
+from threecommon import AsyncThreeCommon, ThreeCommon
+from threecommon.features import (
+    CreateBody,
+    ListParams,
+    ResolveParams,
+    RetrieveParams,
+    UpdateBody,
+)
+
+
+def build_list_params(args: dict[str, Any]) -> ListParams | None:
+    # The scenario args use the wire (camelCase) keys; populate_by_name +
+    # validation aliases let model_validate accept them directly.
+    return ListParams.model_validate(args) if args else None
+
+
+def _retrieve_params(args: dict[str, Any]) -> RetrieveParams | None:
+    params_raw = args.get("params")
+    return RetrieveParams(fields=params_raw["fields"]) if params_raw else None
+
+
+def dispatch_sync(  # noqa: PLR0911
+    client: ThreeCommon, method: str, args: dict[str, Any]
+) -> Any:  # noqa: ANN401
+    if method == "list":
+        return client.features.list(build_list_params(args))
+    if method == "resolve":
+        return client.features.resolve(ResolveParams.model_validate(args))
+    if method == "retrieve":
+        return client.features.retrieve(args["id"], _retrieve_params(args))
+    if method == "create":
+        return client.features.create(CreateBody.model_validate(args.get("body") or {}))
+    if method == "update":
+        return client.features.update(args["id"], UpdateBody.model_validate(args.get("body") or {}))
+    if method == "archive":
+        return client.features.archive(args["id"])
+    if method == "unarchive":
+        return client.features.unarchive(args["id"])
+    if method == "listAutoPaginate":
+        return list(client.features.list_auto_paginate(build_list_params(args)))
+    pytest.fail(f"unsupported feature method: {method}")
+
+
+async def dispatch_async(  # noqa: PLR0911
+    client: AsyncThreeCommon, method: str, args: dict[str, Any]
+) -> Any:  # noqa: ANN401
+    if method == "list":
+        return await client.features.list(build_list_params(args))
+    if method == "resolve":
+        return await client.features.resolve(ResolveParams.model_validate(args))
+    if method == "retrieve":
+        return await client.features.retrieve(args["id"], _retrieve_params(args))
+    if method == "create":
+        return await client.features.create(CreateBody.model_validate(args.get("body") or {}))
+    if method == "update":
+        return await client.features.update(
+            args["id"], UpdateBody.model_validate(args.get("body") or {})
+        )
+    if method == "archive":
+        return await client.features.archive(args["id"])
+    if method == "unarchive":
+        return await client.features.unarchive(args["id"])
+    if method == "listAutoPaginate":
+        return [f async for f in client.features.list_auto_paginate(build_list_params(args))]
+    pytest.fail(f"unsupported feature method: {method}")

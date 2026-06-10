@@ -71,6 +71,7 @@ export function dispatchContacts(
     case 'consume':
     case 'archive':
     case 'unarchive':
+    case 'resolve':
       throw new Error(`contacts: unsupported method '${call.method}'`)
   }
 }

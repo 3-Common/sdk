@@ -1,0 +1,32 @@
+name: update feature — happy path
+call:
+  resource: features
+  method: update
+  args:
+    id: feat_123
+    body:
+      name: API requests
+      description: Monthly API request quota
+expectedRequest:
+  method: PATCH
+  path: /v1/features/feat_123
+  body:
+    name: API requests
+    description: Monthly API request quota
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-feat-update-001
+  body:
+    data:
+      id: feat_123
+      key: api_calls
+      name: API requests
+      type: quantity
+      active: true
+expectedResult:
+  id: feat_123
+  name: API requests

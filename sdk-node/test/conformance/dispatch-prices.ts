@@ -56,6 +56,7 @@ export function dispatchPrices(
     case 'lookup':
     case 'grant':
     case 'consume':
+    case 'resolve':
       throw new Error(`prices: unsupported method '${call.method}'`)
   }
 }
