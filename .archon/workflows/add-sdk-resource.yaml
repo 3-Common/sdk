@@ -470,10 +470,20 @@ nodes:
         git commit --quiet -m "test(conformance): add $slug scenarios"
         committed=1
       fi
-      # Catch anything outside the expected paths (should be nothing). Surface
-      # what gets swept in the run output so it's visible here, not a surprise in
-      # the PR diff.
-      git add -A 2>/dev/null || true
+      # Catch anything outside the expected paths (should be nothing) and surface
+      # it, so a stray file is visible here rather than a surprise in the PR diff.
+      # EXCLUDE the agent/tool working dirs. Archon materializes its own .archon/
+      # (workflow + commands + config) into every worktree, and .claude/ (skills)
+      # or .agents/ can appear too. When this workflow's tooling isn't yet on the
+      # PR base (origin/main) — running from an unmerged branch, or a stale worktree
+      # cut before the tooling landed — those copies look like untracked additions,
+      # and a blind `git add -A` would sweep the tool's own guts into the product
+      # PR. Excluding them keeps this a tripwire for genuinely-unexpected *product*
+      # files only. The positive pathspec ('.') alongside :(exclude) keeps the
+      # behavior consistent across git versions — an exclude-only pathspec is
+      # handled inconsistently (older git matches nothing instead of "everything
+      # else"), so anchoring with '.' is the portable form.
+      git add -A -- . ':(exclude).archon' ':(exclude).claude' ':(exclude).agents' 2>/dev/null || true
       if ! git diff --cached --quiet; then
         echo "=== add-sdk-resource: WARNING — unexpected files swept into a misc commit: ==="
         git diff --cached --name-only | sed 's/^/  /'
