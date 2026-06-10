@@ -361,13 +361,15 @@ nodes:
       touch "$ARTIFACTS_DIR/go.ok"
 
   # ── 7. Open ONE draft PR with the resource in all three languages ────────
-  # Runs after all validations settle (all_done). The resource ships ATOMICALLY:
-  # the shared conformance scenarios can't pass CI until all three dispatchers
-  # land together, so we require all three languages green and open a single PR
-  # with per-language commits. If any language failed, no PR is opened.
+  # trigger_rule all_success: runs ONLY if all three validate-* succeeded. So any
+  # earlier failure (resolve-spec, a failed impl, a failed validate) propagates as
+  # SKIPPED here — the node never runs and never attempts a PR. The resource ships
+  # ATOMICALLY (one PR with all three languages + the shared conformance
+  # scenarios); partial publication is never wanted. The .ok-marker check below is
+  # now a defensive backstop (all_success already guarantees the markers exist).
   - id: publish-pr
     depends_on: [validate-node, validate-python, validate-go]
-    trigger_rule: all_done
+    trigger_rule: all_success
     timeout: 300000
     bash: |
       # set -e: this is an ATOMIC publish — any unexpected failure (a failed
