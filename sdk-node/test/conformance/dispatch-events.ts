@@ -51,6 +51,9 @@ export function dispatchEvents(
     case 'lookup':
     case 'grant':
     case 'consume':
+    case 'archive':
+    case 'unarchive':
+    case 'resolve':
       throw new Error(`events: unsupported method '${call.method}'`)
   }
 }

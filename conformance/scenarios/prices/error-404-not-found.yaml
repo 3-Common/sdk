@@ -1,0 +1,24 @@
+name: 404 Not Found — price missing
+call:
+  resource: prices
+  method: retrieve
+  args:
+    id: price_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/prices/price_missing
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-price-404-001
+  body:
+    error:
+      code: not_found
+      message: Price price_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-price-404-001

@@ -14,7 +14,9 @@ import { setupMockServer, TEST_BASE_URL } from '../helpers/mock-server'
 import { dispatchContacts } from './dispatch-contacts'
 import { dispatchEntitlements } from './dispatch-entitlements'
 import { dispatchEvents } from './dispatch-events'
+import { dispatchFeatures } from './dispatch-features'
 import { dispatchInvoices } from './dispatch-invoices'
+import { dispatchPrices } from './dispatch-prices'
 import { dispatchSubscriptions } from './dispatch-subscriptions'
 
 import type {
@@ -99,6 +101,10 @@ function dispatchCall(
       return dispatchContacts(client, call)
     case 'entitlements':
       return dispatchEntitlements(client, call)
+    case 'prices':
+      return dispatchPrices(client, call)
+    case 'features':
+      return dispatchFeatures(client, call)
   }
 }
 

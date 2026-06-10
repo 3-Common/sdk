@@ -18,7 +18,9 @@ import (
 	"github.com/3-Common/sdk/sdk-go/resources/contacts"
 	"github.com/3-Common/sdk/sdk-go/resources/entitlements"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
+	"github.com/3-Common/sdk/sdk-go/resources/features"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
+	"github.com/3-Common/sdk/sdk-go/resources/prices"
 	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
 )
 
@@ -47,6 +49,14 @@ type API struct {
 	// Grant, Consume, ListAutoPaginate.
 	Entitlements *entitlements.Client
 
+	// Prices is the prices resource — List, Retrieve, Create, Update,
+	// Archive, Unarchive, ListAutoPaginate.
+	Prices *prices.Client
+
+	// Features is the features resource — List, Resolve, Retrieve, Create,
+	// Update, Archive, Unarchive, ListAutoPaginate.
+	Features *features.Client
+
 	backend *core.Client
 }
 
@@ -64,6 +74,8 @@ func New(cfg threecommon.Config) (*API, error) {
 		Subscriptions: subscriptions.FromBackend(backend),
 		Contacts:      contacts.FromBackend(backend),
 		Entitlements:  entitlements.FromBackend(backend),
+		Prices:        prices.FromBackend(backend),
+		Features:      features.FromBackend(backend),
 		backend:       backend,
 	}, nil
 }

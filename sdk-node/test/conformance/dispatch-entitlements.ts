@@ -58,6 +58,9 @@ export function dispatchEntitlements(
     case 'bulkUpsert':
     case 'listActivity':
     case 'listActivityAutoPaginate':
+    case 'archive':
+    case 'unarchive':
+    case 'resolve':
       throw new Error(`entitlements: unsupported method '${call.method}'`)
   }
 }

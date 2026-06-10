@@ -1,0 +1,34 @@
+name: update price — happy path
+call:
+  resource: prices
+  method: update
+  args:
+    id: price_123
+    body:
+      unitAmount: 1200
+      nickname: Pro monthly (promo)
+expectedRequest:
+  method: PATCH
+  path: /v1/prices/price_123
+  body:
+    unitAmount: 1200
+    nickname: Pro monthly (promo)
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-price-update-001
+  body:
+    data:
+      id: price_123
+      productId: prod_7
+      type: recurring
+      currency: USD
+      unitAmount: 1200
+      nickname: Pro monthly (promo)
+      active: true
+expectedResult:
+  id: price_123
+  unitAmount: 1200

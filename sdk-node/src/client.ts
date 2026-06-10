@@ -5,7 +5,9 @@ import { Telemetry } from '@/core/telemetry'
 import { contactsService, type ContactsService } from '@/resources/contacts'
 import { entitlementsService, type EntitlementsService } from '@/resources/entitlements'
 import { eventsService, type EventsService } from '@/resources/events'
+import { featuresService, type FeaturesService } from '@/resources/features'
 import { invoicesService, type InvoicesService } from '@/resources/invoices'
+import { pricesService, type PricesService } from '@/resources/prices'
 import { subscriptionsService, type SubscriptionsService } from '@/resources/subscriptions'
 
 import type { ClientConfig } from '@/types/public'
@@ -40,6 +42,12 @@ export class ThreeCommon {
   /** Entitlements resource — list, retrieve, lookup, grant, consume, plus listAutoPaginate. */
   public readonly entitlements: EntitlementsService
 
+  /** Prices resource — list, retrieve, create, update, archive, unarchive, plus listAutoPaginate. */
+  public readonly prices: PricesService
+
+  /** Features resource — list, resolve, retrieve, create, update, archive, unarchive, plus listAutoPaginate. */
+  public readonly features: FeaturesService
+
   private readonly httpClient: HttpClient
   private readonly telemetry: Telemetry
 
@@ -68,6 +76,8 @@ export class ThreeCommon {
     this.subscriptions = subscriptionsService(this.httpClient)
     this.contacts = contactsService(this.httpClient)
     this.entitlements = entitlementsService(this.httpClient)
+    this.prices = pricesService(this.httpClient)
+    this.features = featuresService(this.httpClient)
   }
 
   /**

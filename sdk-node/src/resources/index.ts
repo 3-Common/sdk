@@ -1,5 +1,7 @@
 export * from './contacts'
 export * from './entitlements'
 export * from './events'
+export * from './features'
 export * from './invoices'
+export * from './prices'
 export * from './subscriptions'

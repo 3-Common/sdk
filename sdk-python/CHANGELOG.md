@@ -5,6 +5,34 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.7.0
+
+### Added
+
+- Features resource. The new `client.features` surface covers the feature
+  catalog: `list`, `resolve` (resolve a feature's live value for a customer),
+  `retrieve`, `create`, `update`, `archive`, `unarchive`, and a
+  `list_auto_paginate` iterator. Both sync and async surfaces.
+- New public types on `threecommon.features`: `Feature`, `FeatureType`,
+  `ResolvedFeature`, the `ResolvedFeatureValue` discriminated union and its
+  `ResolvedFeatureBoolean`/`ResolvedFeatureQuantity`/`ResolvedFeatureEnum`/
+  `ResolvedFeatureDuration` members, `CreateBody`, `UpdateBody`, `ListParams`,
+  `RetrieveParams`, `ResolveParams`, and the `ListFeaturesResponse` envelope.
+
+## 0.6.0
+
+### Added
+
+- Prices resource. The new `client.prices` surface covers the price catalog:
+  `list`, `retrieve`, `create`, `update`, `archive`, `unarchive`, and a
+  `list_auto_paginate` iterator. Both sync and async surfaces.
+- New public types on `threecommon.prices`: `Price`, `PriceRecurring`,
+  `PriceFeature` (the boolean/quantity/enum/duration grant union) and its
+  `PriceFeatureBoolean`/`PriceFeatureQuantity`/`PriceFeatureEnum`/
+  `PriceFeatureDuration` members, `CreateBody`, `UpdateBody`, `ListParams`,
+  `RetrieveParams`, the `ListPricesResponse` envelope, and the
+  `PriceType`/`PriceCurrency`/`PriceInterval` literal unions.
+
 ## 0.5.0
 
 ### Added

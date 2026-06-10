@@ -39,7 +39,14 @@ export interface ClientOverrides {
   readonly maxRetries?: number
 }
 
-export type Resource = 'events' | 'invoices' | 'subscriptions' | 'contacts' | 'entitlements'
+export type Resource =
+  | 'events'
+  | 'invoices'
+  | 'subscriptions'
+  | 'contacts'
+  | 'entitlements'
+  | 'prices'
+  | 'features'
 
 export type Method =
   | 'list'
@@ -68,6 +75,9 @@ export type Method =
   | 'lookup'
   | 'grant'
   | 'consume'
+  | 'archive'
+  | 'unarchive'
+  | 'resolve'
 
 export interface ScenarioCall {
   readonly resource?: Resource
