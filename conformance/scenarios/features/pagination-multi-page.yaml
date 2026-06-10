@@ -1,0 +1,43 @@
+name: auto-paginate features walks every page
+call:
+  resource: features
+  method: listAutoPaginate
+  args:
+    active: true
+exchanges:
+  - request:
+      method: GET
+      path: /v1/features
+      query:
+        active: 'true'
+        page: '0'
+    response:
+      status: 200
+      body:
+        data:
+          - id: feat_1
+            key: api_calls
+          - id: feat_2
+            key: seats
+        hasMore: true
+  - request:
+      method: GET
+      path: /v1/features
+      query:
+        active: 'true'
+        page: '1'
+    response:
+      status: 200
+      body:
+        data:
+          - id: feat_3
+            key: workflows
+        hasMore: false
+expectedAutoPaginated:
+  - id: feat_1
+    key: api_calls
+  - id: feat_2
+    key: seats
+  - id: feat_3
+    key: workflows
+expectedCallCount: 2
