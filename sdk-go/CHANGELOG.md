@@ -6,6 +6,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.7.0
+
+### Added
+
+- Features resource. The new `api.Features` surface covers the feature catalog:
+  `List`, `Resolve` (resolve a feature's live value for a customer),
+  `Retrieve`, `Create`, `Update`, `Archive`, `Unarchive`, and a
+  `ListAutoPaginate` iterator. Available as `api.Features` and via
+  `features.New` for standalone use.
+- New public types in `resources/features`: `Feature`, `ResolvedFeature`,
+  `ResolvedValue` (the resolved per-customer value across the
+  boolean/quantity/enum/duration shapes), `CreateParams`, `UpdateParams`,
+  `ListParams`, `RetrieveParams`, `ResolveParams`, the `ListResponse`
+  envelope, and the `Type` enum.
+
 ## 0.6.0
 
 ### Added

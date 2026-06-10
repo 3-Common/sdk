@@ -1,0 +1,28 @@
+name: 404 Not Found — resolve unknown feature
+call:
+  resource: features
+  method: resolve
+  args:
+    contactId: cnt_7
+    featureKey: unknown_feature
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/features/resolve
+  query:
+    contactId: cnt_7
+    featureKey: unknown_feature
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-feat-404-001
+  body:
+    error:
+      code: not_found
+      message: Feature unknown_feature not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-feat-404-001

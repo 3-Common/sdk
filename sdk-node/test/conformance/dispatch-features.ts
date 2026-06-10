@@ -1,40 +1,44 @@
 /**
- * Prices-resource dispatcher for the conformance harness. Kept in its own file
- * so adding new resources doesn't bloat the shared runner.
+ * Features-resource dispatcher for the conformance harness. Kept in its own
+ * file so adding new resources doesn't bloat the shared runner.
  */
 
 import { expectBody, expectString, type ScenarioCall } from './scenario'
 
 import type { ThreeCommon } from '@/client'
 
-export function dispatchPrices(
+export function dispatchFeatures(
   client: ThreeCommon,
   call: ScenarioCall,
 ): Promise<unknown> | AsyncIterableIterator<unknown> {
   const args = call.args
   switch (call.method) {
     case 'list':
-      return client.prices.list(args)
+      return client.features.list(args)
+    case 'resolve':
+      return client.features.resolve(
+        args as unknown as Parameters<typeof client.features.resolve>[0],
+      )
     case 'retrieve': {
       const id = expectString(args['id'], 'retrieve')
       const params = args['params'] as Record<string, string> | undefined
-      return client.prices.retrieve(id, params)
+      return client.features.retrieve(id, params)
     }
     case 'create': {
       const body = expectBody(args['body'], 'create')
-      return client.prices.create(body as unknown as Parameters<typeof client.prices.create>[0])
+      return client.features.create(body as unknown as Parameters<typeof client.features.create>[0])
     }
     case 'update': {
       const id = expectString(args['id'], 'update')
       const body = expectBody(args['body'], 'update')
-      return client.prices.update(id, body)
+      return client.features.update(id, body)
     }
     case 'archive':
-      return client.prices.archive(expectString(args['id'], 'archive'))
+      return client.features.archive(expectString(args['id'], 'archive'))
     case 'unarchive':
-      return client.prices.unarchive(expectString(args['id'], 'unarchive'))
+      return client.features.unarchive(expectString(args['id'], 'unarchive'))
     case 'listAutoPaginate':
-      return client.prices.listAutoPaginate(args)
+      return client.features.listAutoPaginate(args)
     case 'finalize':
     case 'void':
     case 'recordPayment':
@@ -56,7 +60,6 @@ export function dispatchPrices(
     case 'lookup':
     case 'grant':
     case 'consume':
-    case 'resolve':
-      throw new Error(`prices: unsupported method '${call.method}'`)
+      throw new Error(`features: unsupported method '${call.method}'`)
   }
 }
