@@ -69,6 +69,8 @@ export function dispatchContacts(
     case 'lookup':
     case 'grant':
     case 'consume':
+    case 'archive':
+    case 'unarchive':
       throw new Error(`contacts: unsupported method '${call.method}'`)
   }
 }
