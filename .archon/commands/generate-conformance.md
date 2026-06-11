@@ -36,8 +36,12 @@ dispatchers happen in later steps.
 
 Mirror the coverage depth of the sibling set:
 - One **happy-path** scenario per endpoint in `resource-spec.json`.
-- The relevant **error paths** the endpoints can produce (e.g. 404 not-found,
-  409 conflict, 422 validation), matching the wire shapes in the spec.
+- **Error paths for resource-specific failures only** -- typically 404
+  not-found, 409 conflict, 422/400 validation, and any domain-specific 4xx the
+  endpoints define, matching the wire shapes in the spec. Do NOT author scenarios
+  for generic auth/transport errors (401, 403, 429, 5xx) even if the spec lists
+  them: they are shared client behavior, not per-resource, and no sibling set
+  includes them. Match the closest sibling set's error coverage.
 - **Pagination / auto-paginate** scenarios (multi-call `exchanges`) for any list
   endpoint that paginates.
 - Header/version/telemetry scenarios only if the sibling set includes them.
@@ -46,8 +50,11 @@ Mirror the coverage depth of the sibling set:
 The `call.resource` (= `<slug>`), `call.method`, and `call.args` you write are
 the canonical cross-language API for this resource. Choose method names and arg
 shapes consistent with sibling resources (`list`, `retrieve`, `create`,
-`update`, `delete`, `listAutoPaginate`, ...). The three implementations will be
-written to match exactly what you specify here. Be deliberate and consistent.
+`update`, `delete`, `listAutoPaginate`, ...). Name `call.args` ids per the
+skill's rule: the resource's own id is `id`, and every deeper path id is named
+after its segment (`elementId`, `targetElementId`, ...) -- never a `<resource>Id`
+form for the resource's own id. The three implementations will be written to
+match exactly what you specify here. Be deliberate and consistent.
 
 ## Output
 Write a short summary to `$ARTIFACTS_DIR/conformance-summary.md`: the slug, the

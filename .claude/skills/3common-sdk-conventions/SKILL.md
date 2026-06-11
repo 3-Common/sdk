@@ -109,11 +109,29 @@ Adding a resource requires BOTH of these:
 
 1. **Shared scenarios** (do this once, not per language): create
    `conformance/scenarios/<resource>/` mirroring a sibling's coverage -- a
-   happy-path scenario per endpoint, the relevant error paths (404/409/422/etc.),
-   and pagination/auto-paginate scenarios where the domain paginates. Follow the
-   schema in `conformance/README.md` and copy the structure of a sibling set
-   (e.g. `conformance/scenarios/contacts/`). The method names and arg shapes you
-   choose here are the contract every language must match.
+   happy-path scenario per endpoint, the relevant error paths (see the two rules
+   below), and pagination/auto-paginate scenarios where the domain paginates.
+   Follow the schema in `conformance/README.md` and copy the structure of a
+   sibling set (e.g. `conformance/scenarios/contacts/`). The method names and arg
+   shapes you choose here are the contract every language must match, so follow
+   these two conventions verbatim (they are NOT per-resource judgment calls):
+
+   - **`call.args` id naming.** The resource's own id (the one named by
+     `call.resource`) is always `id`. Every deeper path id is named after its own
+     path segment, singularized + `Id`. So
+     `/v1/forms/{formId}/elements/{elementId}/logic-rules/{targetElementId}`
+     yields args `id`, `elementId`, `targetElementId` -- never `formId` for the
+     form's own id. This holds in every language
+     (`forms.updateElement(id, elementId, body)`) and matches how the flat
+     siblings already use `id` (`contacts.retrieve(id)`).
+   - **Error scenarios = resource-specific failures only.** Cover the meaningful
+     per-resource failure modes (typically `404` not-found, `409` conflict,
+     `422`/`400` validation, plus any domain-specific 4xx the endpoints define),
+     matching the spec's wire shapes. Do NOT author per-resource scenarios for
+     generic auth/transport errors (`401`, `403`, `429`, `5xx`) even when the spec
+     lists them -- they exercise shared client behavior, are identical across
+     every resource, and no sibling set includes them. Match the closest sibling
+     set's error coverage.
 
 2. **A per-language dispatcher**, registered in that language's runner:
 
