@@ -22,6 +22,7 @@ from threecommon.contacts.service import AsyncContactsService, ContactsService
 from threecommon.entitlements.service import AsyncEntitlementsService, EntitlementsService
 from threecommon.events.service import AsyncEventsService, EventsService
 from threecommon.features.service import AsyncFeaturesService, FeaturesService
+from threecommon.forms.service import AsyncFormsService, FormsService
 from threecommon.invoices.service import AsyncInvoicesService, InvoicesService
 from threecommon.prices.service import AsyncPricesService, PricesService
 from threecommon.subscriptions.service import AsyncSubscriptionsService, SubscriptionsService
@@ -76,6 +77,12 @@ class ThreeCommon:
     """Features resource — ``list``, ``resolve``, ``retrieve``, ``create``,
     ``update``, ``archive``, ``unarchive``, plus ``list_auto_paginate``."""
 
+    forms: FormsService
+    """Forms resource - ``list``, ``retrieve``, ``create``, ``update``,
+    ``duplicate``, element ops (``add_element``, ``update_element``,
+    ``delete_element``, ``move_element``), logic rules, the "Other" option
+    toggles, plus ``list_auto_paginate``."""
+
     _http: HTTPClient
     _telemetry: Telemetry
 
@@ -123,6 +130,7 @@ class ThreeCommon:
         self.entitlements = EntitlementsService(self._http)
         self.prices = PricesService(self._http)
         self.features = FeaturesService(self._http)
+        self.forms = FormsService(self._http)
 
     def close(self) -> None:
         """Close the underlying httpx client (no-op if you supplied your own)."""
@@ -155,6 +163,7 @@ class AsyncThreeCommon:
     entitlements: AsyncEntitlementsService
     prices: AsyncPricesService
     features: AsyncFeaturesService
+    forms: AsyncFormsService
 
     _http: AsyncHTTPClient
     _telemetry: Telemetry
@@ -203,6 +212,7 @@ class AsyncThreeCommon:
         self.entitlements = AsyncEntitlementsService(self._http)
         self.prices = AsyncPricesService(self._http)
         self.features = AsyncFeaturesService(self._http)
+        self.forms = AsyncFormsService(self._http)
 
     async def aclose(self) -> None:
         """Close the underlying async httpx client."""
