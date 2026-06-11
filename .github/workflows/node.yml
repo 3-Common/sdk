@@ -92,7 +92,7 @@ jobs:
           cache-dependency-path: sdk-node/yarn.lock
       - run: yarn install --frozen-lockfile
       - run: yarn test:coverage
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v7
         if: always()
         with:
           files: sdk-node/coverage/lcov.info
