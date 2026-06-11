@@ -88,6 +88,28 @@ export type {
   ResolvedFeatureValue,
 } from './resources/features'
 
+// Forms resource (types only - instances live on the client).
+export type {
+  AddElementBody,
+  AddLogicRuleBody,
+  DeletedElement,
+  EnableOtherOptionBody,
+  Form,
+  FormCreateBody,
+  FormDuplicateBody,
+  FormElement,
+  FormListParams,
+  FormStatus,
+  FormSummary,
+  FormType,
+  FormUpdateBody,
+  FormsService,
+  ListFormsResponse,
+  MoveElementBody,
+  SubmitButtonAlign,
+  UpdateElementBody,
+} from './resources/forms'
+
 // Prices resource (types only — instances live on the client).
 export type {
   ListPricesResponse,
