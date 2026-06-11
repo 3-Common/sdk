@@ -1,0 +1,28 @@
+name: disable other option - happy path
+call:
+  resource: forms
+  method: disableOtherOption
+  args:
+    id: frm_123
+    elementId: elm_select
+expectedRequest:
+  method: DELETE
+  path: /v1/forms/frm_123/elements/elm_select/other-option
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-disable-other-001
+  body:
+    data:
+      id: elm_select
+      prompt: How did you hear about us?
+      type: Select One
+      required: true
+      options:
+        - Friend
+        - Social media
+expectedResult:
+  id: elm_select
+  type: Select One

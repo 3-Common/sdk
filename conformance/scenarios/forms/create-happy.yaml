@@ -1,0 +1,37 @@
+name: create form - happy path
+call:
+  resource: forms
+  method: create
+  args:
+    body:
+      name: Customer survey
+      type: standalone
+expectedRequest:
+  method: POST
+  path: /v1/forms
+  body:
+    name: Customer survey
+    type: standalone
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-create-001
+  body:
+    data:
+      id: frm_new
+      name: Customer survey
+      ownerId: hst_1
+      status: draft
+      type: standalone
+      submitButtonText: Submit
+      submitButtonWidth: auto
+      rows: []
+      elements: []
+expectedResult:
+  id: frm_new
+  name: Customer survey
+  type: standalone
+  status: draft

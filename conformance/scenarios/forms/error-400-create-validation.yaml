@@ -1,0 +1,31 @@
+name: 400 Validation - create form without name
+call:
+  resource: forms
+  method: create
+  args:
+    body:
+      type: standalone
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/forms
+  body:
+    type: standalone
+mockResponse:
+  status: 400
+  headers:
+    x-request-id: req-forms-400-001
+  body:
+    error:
+      code: validation_error
+      message: name is required
+      details:
+        field: name
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_error
+  httpStatus: 400
+  requestId: req-forms-400-001
+  details:
+    field: name

@@ -1,0 +1,33 @@
+name: 400 - enable other option on non-selection element
+call:
+  resource: forms
+  method: enableOtherOption
+  args:
+    id: frm_123
+    elementId: elm_text
+    body:
+      otherPrompt: Other (please specify)
+client:
+  maxRetries: 0
+expectedRequest:
+  method: PUT
+  path: /v1/forms/frm_123/elements/elm_text/other-option
+  body:
+    otherPrompt: Other (please specify)
+mockResponse:
+  status: 400
+  headers:
+    x-request-id: req-forms-400-003
+  body:
+    error:
+      code: validation_error
+      message: 'The "Other" option can only be enabled on selection questions'
+      details:
+        elementType: Text
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_error
+  httpStatus: 400
+  requestId: req-forms-400-003
+  details:
+    elementType: Text

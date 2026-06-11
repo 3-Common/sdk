@@ -1,0 +1,42 @@
+name: list forms - happy path
+call:
+  resource: forms
+  method: list
+  args:
+    type: standalone
+    pageSize: 10
+expectedRequest:
+  method: GET
+  path: /v1/forms
+  query:
+    type: standalone
+    pageSize: '10'
+  headers:
+    authorization: 'Bearer 3co_test'
+    threecommon-version: '2026-04-29'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-list-001
+  body:
+    data:
+      - id: frm_a
+        name: Customer survey
+        numElements: 4
+        type: standalone
+        status: active
+      - id: frm_b
+        name: Newsletter signup
+        numElements: 2
+        type: standalone
+        status: draft
+    hasMore: false
+expectedResult:
+  data:
+    - id: frm_a
+      name: Customer survey
+      status: active
+    - id: frm_b
+      name: Newsletter signup
+      status: draft
+  hasMore: false

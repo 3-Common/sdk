@@ -1,0 +1,29 @@
+name: remove logic rule - happy path
+call:
+  resource: forms
+  method: removeLogicRule
+  args:
+    id: frm_123
+    elementId: elm_select
+    targetElementId: elm_followup
+expectedRequest:
+  method: DELETE
+  path: /v1/forms/frm_123/elements/elm_select/logic-rules/elm_followup
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-remove-logic-rule-001
+  body:
+    data:
+      id: elm_select
+      prompt: How did you hear about us?
+      type: Select One
+      required: true
+      options:
+        - Friend
+        - Social media
+expectedResult:
+  id: elm_select
+  type: Select One

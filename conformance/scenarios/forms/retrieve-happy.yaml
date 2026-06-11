@@ -1,0 +1,31 @@
+name: retrieve form - happy path
+call:
+  resource: forms
+  method: retrieve
+  args:
+    id: frm_123
+expectedRequest:
+  method: GET
+  path: /v1/forms/frm_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-retrieve-001
+  body:
+    data:
+      id: frm_123
+      name: Customer survey
+      ownerId: hst_1
+      status: active
+      type: standalone
+      submitButtonText: Submit
+      submitButtonWidth: auto
+      rows: []
+      elements: []
+expectedResult:
+  id: frm_123
+  name: Customer survey
+  status: active
+  type: standalone

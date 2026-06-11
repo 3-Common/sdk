@@ -1,0 +1,36 @@
+name: move form element - happy path
+call:
+  resource: forms
+  method: moveElement
+  args:
+    id: frm_123
+    elementId: elm_123
+    body:
+      position: 2
+expectedRequest:
+  method: PUT
+  path: /v1/forms/frm_123/elements/elm_123/position
+  body:
+    position: 2
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-move-element-001
+  body:
+    data:
+      id: frm_123
+      name: Customer survey
+      ownerId: hst_1
+      status: active
+      type: standalone
+      submitButtonText: Submit
+      submitButtonWidth: auto
+      rows: []
+      elements: []
+expectedResult:
+  id: frm_123
+  status: active
+  type: standalone

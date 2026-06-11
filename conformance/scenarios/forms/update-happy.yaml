@@ -1,0 +1,37 @@
+name: update form settings - happy path
+call:
+  resource: forms
+  method: update
+  args:
+    id: frm_123
+    body:
+      name: Renamed survey
+      status: active
+expectedRequest:
+  method: PATCH
+  path: /v1/forms/frm_123
+  body:
+    name: Renamed survey
+    status: active
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-update-001
+  body:
+    data:
+      id: frm_123
+      name: Renamed survey
+      ownerId: hst_1
+      status: active
+      type: standalone
+      submitButtonText: Submit
+      submitButtonWidth: auto
+      rows: []
+      elements: []
+expectedResult:
+  id: frm_123
+  name: Renamed survey
+  status: active

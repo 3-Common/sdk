@@ -1,0 +1,35 @@
+name: enable other option - happy path
+call:
+  resource: forms
+  method: enableOtherOption
+  args:
+    id: frm_123
+    elementId: elm_select
+    body:
+      otherPrompt: Other (please specify)
+expectedRequest:
+  method: PUT
+  path: /v1/forms/frm_123/elements/elm_select/other-option
+  body:
+    otherPrompt: Other (please specify)
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-forms-enable-other-001
+  body:
+    data:
+      id: elm_select
+      prompt: How did you hear about us?
+      type: 'Select One or "Other"'
+      required: true
+      options:
+        - Friend
+        - Social media
+      otherPrompt: Other (please specify)
+expectedResult:
+  id: elm_select
+  type: 'Select One or "Other"'
+  otherPrompt: Other (please specify)
