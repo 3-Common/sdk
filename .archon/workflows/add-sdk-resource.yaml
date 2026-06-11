@@ -360,22 +360,22 @@ nodes:
       go build ./examples/...
       touch "$ARTIFACTS_DIR/go.ok"
 
-  # ── 7. Open ONE draft PR with the resource in all three languages ────────
-  # trigger_rule all_success: runs ONLY if all three validate-* succeeded. So any
-  # earlier failure (resolve-spec, a failed impl, a failed validate) propagates as
-  # SKIPPED here — the node never runs and never attempts a PR. The resource ships
-  # ATOMICALLY (one PR with all three languages + the shared conformance
-  # scenarios); partial publication is never wanted. The .ok-marker check below is
-  # now a defensive backstop (all_success already guarantees the markers exist).
-  - id: publish-pr
+  # ── 7a. Commit the resource (all 3 languages + conformance) and push ──────
+  # Publishing is split into 7a (commit + push) and 7b (open the PR) so each
+  # bash node's script stays well under the ~8 KB command-line limit Archon hits
+  # on Windows. Past that limit the script is silently TRUNCATED mid-run — bash
+  # executes up to the cut, then hits EOF and exits 0, so a later step never runs
+  # yet the node reports success. Keep both nodes small.
+  # trigger_rule all_success: runs ONLY if all three validate-* passed, so any
+  # earlier failure propagates as SKIPPED and the resource ships atomically (one
+  # branch, all three languages + the shared conformance scenarios).
+  - id: publish-commit
     depends_on: [validate-node, validate-python, validate-go]
     trigger_rule: all_success
     timeout: 300000
     bash: |
-      # set -e: this is an ATOMIC publish — any unexpected failure (a failed
-      # commit, a failed fetch) must abort, not silently proceed and push/open a
-      # partial PR. Every place a non-zero exit is EXPECTED is explicitly guarded
-      # with `|| …` or tested in an `if`, so -e composes cleanly.
+      # ATOMIC publish: any unexpected failure must abort, not push a partial
+      # branch. Every EXPECTED non-zero is guarded with `|| …` or an `if`.
       set -euo pipefail
       slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing — extract-domain must have run first"; exit 1; }
 
@@ -401,24 +401,18 @@ nodes:
       git fetch --quiet origin main || { echo "git fetch origin main failed — cannot establish a fresh base for the PR branch"; exit 1; }
       branch="feat/$slug"
       committed=0
-      # Resume-safe rebranch. A prior run may have already committed the impl onto
-      # $branch (e.g. the push or gh pr create below failed and the node exited 1).
-      # In that state the worktree is ON $branch, clean, and ahead of origin/main —
-      # those commits ARE the work. A `git switch -C $branch origin/main` would
-      # reset the branch and ORPHAN them (clean tree → nothing re-carried →
-      # committed stays 0 → a false "nothing to publish" success). So detect that
-      # and reuse the existing commits; otherwise do the normal first-run rebranch.
+      # Resume-safe rebranch. If a prior (failed) run already committed the impl
+      # onto $branch — worktree ON $branch, clean, ahead of origin/main — those
+      # commits ARE the work; `git switch -C` would orphan them, so reuse instead.
       if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
          && git diff --quiet && git diff --cached --quiet \
          && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
         echo "Resuming: $branch already has the implementation commits; re-pushing."
         committed=1
       else
-        # Partial-commit guard: we're in the else, so the reuse check above was
-        # false. If we're nonetheless on $branch and it's ahead of origin/main, a
-        # prior run committed some languages but left the tree dirty (e.g. a git
-        # commit failed mid-loop) — rebranching would orphan those commits and open
-        # a PARTIAL PR that looks complete. Bail for manual cleanup instead.
+        # Partial-commit guard: on $branch + ahead + dirty means a prior run
+        # committed some languages but didn't finish; rebranching would orphan
+        # them and open a partial PR. Bail for manual cleanup instead.
         if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
            && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
           echo "=== add-sdk-resource: $branch has prior-run commits AND uncommitted changes ==="
@@ -428,12 +422,9 @@ nodes:
           echo "  git switch - && git branch -D $branch   # then re-run fresh"
           exit 1
         fi
-        # First run: `git switch -C` carries the worktree's uncommitted impl changes
-        # onto a fresh branch from origin/main — no stash, so we never touch the
-        # repo-wide shared stash stack. Plain checkout semantics: with no --merge it
-        # REFUSES atomically (no conflict markers) on a conflicting local change —
-        # caught here. (The PR is the validated diff re-based onto fresher main; the
-        # draft's CI re-checks against the real base for any upstream clash.)
+        # First run: `git switch -C` carries the uncommitted impl onto a fresh
+        # branch off origin/main (no stash); it REFUSES atomically on a conflicting
+        # local change — caught below.
         git switch -C "$branch" origin/main >/dev/null 2>&1 || {
           echo "=== add-sdk-resource: could not create/switch to $branch ==="
           echo "Likely one of:"
@@ -470,19 +461,13 @@ nodes:
         git commit --quiet -m "test(conformance): add $slug scenarios"
         committed=1
       fi
-      # Catch anything outside the expected paths (should be nothing) and surface
-      # it, so a stray file is visible here rather than a surprise in the PR diff.
-      # EXCLUDE the agent/tool working dirs. Archon materializes its own .archon/
-      # (workflow + commands + config) into every worktree, and .claude/ (skills)
-      # or .agents/ can appear too. When this workflow's tooling isn't yet on the
-      # PR base (origin/main) — running from an unmerged branch, or a stale worktree
-      # cut before the tooling landed — those copies look like untracked additions,
-      # and a blind `git add -A` would sweep the tool's own guts into the product
-      # PR. Excluding them keeps this a tripwire for genuinely-unexpected *product*
-      # files only. The positive pathspec ('.') alongside :(exclude) keeps the
-      # behavior consistent across git versions — an exclude-only pathspec is
-      # handled inconsistently (older git matches nothing instead of "everything
-      # else"), so anchoring with '.' is the portable form.
+      # Catch any stray files outside the expected paths (should be none) so they
+      # surface here, not as a PR-diff surprise. EXCLUDE the agent/tool dirs:
+      # Archon materializes .archon/ (and sometimes .claude//.agents/) into the
+      # worktree; when this tooling isn't yet on origin/main those look like
+      # untracked additions a blind `git add -A` would sweep into the product PR.
+      # The positive '.' alongside :(exclude) is the portable form (older git
+      # mishandles an exclude-only pathspec).
       git add -A -- . ':(exclude).archon' ':(exclude).claude' ':(exclude).agents' 2>/dev/null || true
       if ! git diff --cached --quiet; then
         echo "=== add-sdk-resource: WARNING — unexpected files swept into a misc commit: ==="
@@ -507,6 +492,33 @@ nodes:
       if ! git push --quiet --force-with-lease -u origin "$branch"; then
         echo "=== add-sdk-resource: push failed for $branch (see git's error above) ==="
         exit 1
+      fi
+      # Signal 7b that a real branch was pushed. Its absence in 7b means "nothing
+      # to publish" (the resource already existed), so no PR is opened. The marker
+      # lives in ARTIFACTS_DIR (outside the repo), so it is never staged.
+      touch "$ARTIFACTS_DIR/pushed.ok"
+      echo "=== add-sdk-resource: pushed $branch — opening the PR in publish-pr ==="
+
+  # ── 7b. Open ONE draft PR for the branch publish-commit pushed ────────────
+  # Deliberately small (see 7a): just body-build + gh, nowhere near the script
+  # truncation limit. Runs in the same worktree, still on $branch.
+  - id: publish-pr
+    depends_on: [publish-commit]
+    timeout: 120000
+    bash: |
+      set -euo pipefail
+      slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing"; exit 1; }
+      branch="feat/$slug"
+      # No marker => publish-commit found nothing to publish; nothing to open.
+      if [ ! -f "$ARTIFACTS_DIR/pushed.ok" ]; then
+        echo "=== add-sdk-resource: nothing to publish for '$slug' — no PR opened ==="
+        exit 0
+      fi
+      # Idempotent on --resume: if a prior attempt already opened the PR, report it
+      # and stop (a second gh pr create would fail with 'already exists').
+      if existing=$(gh pr view "$branch" --json url -q .url 2>/dev/null) && [ -n "$existing" ]; then
+        echo "=== add-sdk-resource: PR already open for $branch -> $existing ==="
+        exit 0
       fi
       # Build the PR body from the repo's PR template. github.com autofills
       # .github/PULL_REQUEST_TEMPLATE.md in the web UI, but `gh pr create` does NOT
@@ -541,11 +553,11 @@ nodes:
       else
         printf '## Summary\n\n%s\n' "$summary" > "$body_file"
       fi
-      # Do NOT swallow a gh failure: the branch is pushed but the node's job (open
-      # the PR) isn't done. Exit non-zero so the run status is honest and --resume
-      # retries (the force-with-lease push above makes the re-push succeed). exit 0
-      # here would mark publish-pr 'completed' and resume would skip it, leaving a
-      # pushed branch with no PR.
+      # Do NOT swallow a gh failure: the branch is already pushed (publish-commit),
+      # but THIS node's job — open the PR — isn't done. Exit non-zero so the status
+      # is honest and --resume re-runs this node; the idempotency check above makes
+      # the retry safe. exit 0 here would mark it 'completed' and resume would skip
+      # it, leaving a pushed branch with no PR.
       if ! url=$(gh pr create --draft --base main --head "$branch" \
         --title "feat: add $slug resource (node, python, go)" \
         --body-file "$body_file" 2>&1); then
