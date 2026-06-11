@@ -19,6 +19,7 @@ import (
 	"github.com/3-Common/sdk/sdk-go/resources/entitlements"
 	"github.com/3-Common/sdk/sdk-go/resources/events"
 	"github.com/3-Common/sdk/sdk-go/resources/features"
+	"github.com/3-Common/sdk/sdk-go/resources/forms"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
 	"github.com/3-Common/sdk/sdk-go/resources/prices"
 	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
@@ -57,6 +58,12 @@ type API struct {
 	// Update, Archive, Unarchive, ListAutoPaginate.
 	Features *features.Client
 
+	// Forms is the forms resource — List, Create, Retrieve, Update,
+	// Duplicate, AddElement, UpdateElement, DeleteElement, MoveElement,
+	// EnableOtherOption, DisableOtherOption, AddLogicRule, RemoveLogicRule,
+	// ListAutoPaginate.
+	Forms *forms.Client
+
 	backend *core.Client
 }
 
@@ -76,6 +83,7 @@ func New(cfg threecommon.Config) (*API, error) {
 		Entitlements:  entitlements.FromBackend(backend),
 		Prices:        prices.FromBackend(backend),
 		Features:      features.FromBackend(backend),
+		Forms:         forms.FromBackend(backend),
 		backend:       backend,
 	}, nil
 }
