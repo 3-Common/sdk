@@ -399,7 +399,7 @@ nodes:
       fi
 
       git fetch --quiet origin main || { echo "git fetch origin main failed — cannot establish a fresh base for the PR branch"; exit 1; }
-      branch="feat/$slug"
+      branch="archon/feat/$slug"
       committed=0
       # Resume-safe rebranch. If a prior (failed) run already committed the impl
       # onto $branch — worktree ON $branch, clean, ahead of origin/main — those
@@ -508,7 +508,7 @@ nodes:
     bash: |
       set -euo pipefail
       slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing"; exit 1; }
-      branch="feat/$slug"
+      branch="archon/feat/$slug"
       # No marker => publish-commit found nothing to publish; nothing to open.
       if [ ! -f "$ARTIFACTS_DIR/pushed.ok" ]; then
         echo "=== add-sdk-resource: nothing to publish for '$slug' — no PR opened ==="
