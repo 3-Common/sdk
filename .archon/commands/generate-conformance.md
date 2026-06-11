@@ -32,7 +32,14 @@ path the downstream publish step stages.
 ## What to produce
 Write YAML files under **`conformance/scenarios/<slug>/`** ONLY. Do not touch any
 `sdk-*/` directory or the OpenAPI spec -- implementation and per-language
-dispatchers happen in later steps.
+dispatchers happen in later steps. Do NOT install packages or otherwise mutate
+the host environment (no `pip install`, `npm install`, etc.) -- but DO validate
+the YAML before finishing: use any parser already available, or fall back to a
+structural check (consistent indentation, no tabs, required keys present,
+special scalars quoted). Its validity is also enforced downstream when the
+`validate-{node,python,go}` nodes parse every scenario, so this is a fast local
+check, not the only gate. Follow `conformance/README.md`'s schema and copy a
+sibling's structure.
 
 Mirror the coverage depth of the sibling set:
 - One **happy-path** scenario per endpoint in `resource-spec.json`.
