@@ -29,11 +29,24 @@ interactive: true
 worktree:
   enabled: true
 
+# CONVENTION for bash/script nodes: each body is handed to the shell as one
+# command-line argument, which Windows truncates at ~8 KB (a longer script is
+# silently cut mid-run, so a later step never executes yet the node exits 0).
+# Keep every `bash:`/`script:` body lean: put general "why" rationale in YAML `#`
+# comments ABOVE the node (free -- they live outside the block scalar and never
+# reach the shell), and keep only short, line-specific notes inline. The node
+# headers below follow this pattern.
 nodes:
   # ── 0. Preflight — fail fast (before any AI cost) if host prerequisites are
   # missing, instead of dying cryptically deep inside a validate node after the
   # expensive implementation. Checks tool presence + gh auth; reports everything
   # missing at once. Tools the workflow assumes are installed on the host.
+  #
+  # Why check the Yarn major version: the repo is Yarn 1 Classic and validate-node
+  # runs `yarn install --frozen-lockfile`, a flag REMOVED in Yarn Berry (4.x). A
+  # Berry host would pass the `have yarn` check, then die in validate-node -- the
+  # cryptic late failure preflight exists to prevent. (go/golangci-lint are not
+  # version-pinned: a mismatch there surfaces as honest lint/test output.)
   - id: preflight
     timeout: 60000
     bash: |
@@ -55,12 +68,7 @@ nodes:
       if have gh && ! gh auth status >/dev/null 2>&1; then
         add "gh is installed but NOT authenticated   (run: gh auth login)"
       fi
-      # Yarn major version: the repo is Yarn 1 Classic and validate-node runs
-      # `yarn install --frozen-lockfile`, a flag REMOVED in Yarn Berry (4.x). A
-      # Berry host would pass `have yarn` and then die in validate-node — exactly
-      # the cryptic late failure preflight exists to prevent. (We don't version-pin
-      # go/golangci-lint: a mismatch there surfaces as honest lint/test output,
-      # not a flag error.)
+      # Yarn must be 1.x, not Berry (see header); validate uses --frozen-lockfile.
       if have yarn && ! yarn --version 2>/dev/null | grep -q '^1\.'; then
         add "yarn is present but not Yarn 1 Classic — CI/validate use 'yarn install --frozen-lockfile' (removed in Yarn Berry); install Yarn 1.x"
       fi
@@ -76,15 +84,22 @@ nodes:
   # WORKTREE's openapi/spec, so they can never drift from each other. We fetch
   # origin/main and fail if the worktree spec is behind (the daily openapi-sync
   # may have landed), so we never build a resource against a stale contract.
+  #
+  # On $ARGUMENTS (the user's message): in a BASH node Archon does NOT splice it
+  # into the script text. Under shellSafe it skips user-controlled vars and passes
+  # them as subprocess ENV VARS (dag-executor.ts), so $ARGUMENTS is a real env var
+  # expanded by bash at runtime. The double-quoted expansion writes the value
+  # verbatim and is never re-parsed as code -- injection-safe even if the message
+  # contains quotes or $(...). (A single-quoted heredoc would suppress expansion
+  # and write the literal "$ARGUMENTS" -- do NOT do that.) extract-domain then
+  # lowercases + tokenizes it, so no normalization is needed here.
   - id: resolve-spec
     depends_on: [preflight]
     bash: |
       set -e
       git fetch --quiet origin main || { echo "git fetch origin main failed — cannot verify the spec is current"; exit 1; }
-      # Fail fast if the worktree's spec is behind origin/main. Codegen reads the
-      # worktree's openapi/spec.yaml, so slicing/scenarios from a newer origin/main
-      # spec would describe a contract the generated types don't match. Keeping
-      # everything on the worktree spec + this guard removes that drift entirely.
+      # Fail fast if the worktree spec is behind origin/main (see header): codegen
+      # reads the worktree spec, so a newer origin/main spec would desync the types.
       if ! git diff --quiet origin/main -- openapi/spec.json openapi/spec.yaml; then
         echo "=== add-sdk-resource: openapi/ is behind origin/main — not starting ==="
         echo "The worktree's spec differs from origin/main (likely the daily"
@@ -93,42 +108,34 @@ nodes:
         echo "from the current spec."
         exit 1
       fi
-      # Snapshot the worktree's spec for the slicer — byte-identical to what every
-      # language's codegen reads, so the slice can never drift from the types.
+      # Snapshot the worktree spec for the slicer (byte-identical to codegen input).
       cp openapi/spec.json "$ARTIFACTS_DIR/spec.json"
-      # $ARGUMENTS is the user's message. In a BASH node Archon does NOT splice it
-      # into the script text — under shellSafe it skips user-controlled vars and
-      # passes them as subprocess ENV VARS (dag-executor.ts), so $ARGUMENTS is a
-      # real env var here, expanded by bash at runtime. Double-quoted parameter
-      # expansion writes the value verbatim and is never re-parsed as code, so this
-      # is injection-safe: a message containing quotes or $(...) is captured
-      # literally, not executed. (A single-quoted heredoc would suppress the env
-      # expansion and write the literal string "$ARGUMENTS" — do NOT do that.)
-      # extract-domain lowercases + tokenizes it, so no normalization here.
+      # $ARGUMENTS = the user's message, passed as an env var (see header); the
+      # double-quoted expansion is injection-safe.
       printf '%s\n' "$ARGUMENTS" > "$ARTIFACTS_DIR/domain-input.txt"
       echo "Spec verified current with origin/main; wrote slice snapshot."
     timeout: 60000
 
   # ── 2. Slice the spec down to the target domain (deterministic, no AI) ────
+  # Reads ARTIFACTS_DIR from process.env, NOT a spliced literal: Archon textually
+  # substitutes the ARTIFACTS_DIR var into script bodies, but on Windows the path
+  # has backslashes and a spliced `const ART = "...\runs\.."` corrupts as JS escape
+  # sequences (\r -> CR, others dropped). The env value is a runtime string (no
+  # escaping), and process.env (no leading dollar) is itself never substituted.
+  # `const REF = "$ref"` is likewise a safe literal (not a substituted var name).
+  # The real hazard in this NON-shellSafe script node: the user-message vars
+  # (ARGUMENTS / USER_MESSAGE, with a leading dollar) ARE spliced in textually --
+  # NEVER reference them here, or raw user text lands in this JS.
   - id: extract-domain
     depends_on: [resolve-spec]
     runtime: bun
     timeout: 60000
     script: |
       import { readFileSync, writeFileSync } from "node:fs";
-      // Read the artifacts dir from the subprocess env, NOT a spliced literal.
-      // Archon textually substitutes the ARTIFACTS_DIR variable into script
-      // bodies, but on Windows the path has backslashes (node:path.join) and a
-      // spliced `const ART = "...\runs\.."` would corrupt as JS escape sequences
-      // (\r becomes CR, others dropped). The env value is a runtime string — no
-      // escaping — and process.env (no leading dollar) is itself never substituted.
+      // ART from env, not a spliced literal -- Windows backslash safety (see header).
       const ART = process.env.ARTIFACTS_DIR;
       if (!ART) { console.error("ARTIFACTS_DIR env var not set"); process.exit(1); }
-      // "$ref" is a safe literal: it isn't one of the fixed workflow-variable names
-      // Archon substitutes, and node-output refs need a ".output" suffix. The real
-      // hazard in this NON-shellSafe script node: the user-message variables
-      // (ARGUMENTS / USER_MESSAGE, written with a leading dollar) ARE spliced in
-      // textually — NEVER reference them here, or raw user text lands in this JS.
+      // "$ref" literal is safe; never reference $ARGUMENTS here (see header).
       const REF = "$ref";
       const spec = JSON.parse(readFileSync(ART + "/spec.json", "utf8"));
       const input = readFileSync(ART + "/domain-input.txt", "utf8").toLowerCase();
@@ -324,23 +331,21 @@ nodes:
       yarn build
       touch "$ARTIFACTS_DIR/node.ok"
 
+  # validate-python mirrors .github/workflows/python.yml exactly. Strictness lives
+  # in pyproject.toml (mypy strict=true, pyright typeCheckingMode=standard, curated
+  # ruff select) -- do NOT pass --strict / --select=ALL, and scope mypy to src+tests
+  # (running over . pulls in examples/, whose reused module names break mypy with
+  # duplicate-module errors). Self-sufficient like validate-node's `yarn install`:
+  # dev tools are in [project.optional-dependencies].dev and `uv run` auto-sync does
+  # NOT install extras, so install them explicitly (idempotent, reuses an existing
+  # .venv). Then run every tool via `uv run --no-sync`: uses the env as installed
+  # (no sync that could prune extras) and never writes uv.lock.
   - id: validate-python
     depends_on: [impl-python]
     timeout: 1200000   # 20 min (cold uv install + pyright's Node download) — see validate-node
     bash: |
       set -e
       cd sdk-python
-      # Mirror .github/workflows/python.yml exactly. Strictness lives in
-      # pyproject.toml (mypy strict=true, pyright typeCheckingMode=standard,
-      # curated ruff select) — do NOT pass --strict / --select=ALL, and scope
-      # mypy to src+tests (running over . pulls in examples/, whose reused module
-      # names break mypy with duplicate-module errors).
-      # Self-sufficient (mirror validate-node's `yarn install`): the dev tools live
-      # in [project.optional-dependencies].dev, and `uv run` auto-sync does NOT
-      # install extras — so install them explicitly here (don't trust impl-python's
-      # step 0; idempotent — reuses an existing .venv). Then run every tool with
-      # `uv run --no-sync`: it uses the env exactly as installed (no sync that
-      # could prune the extras under a future uv) and never writes uv.lock.
       [ -d .venv ] || uv venv --python 3.10 .venv
       uv pip install -e ".[dev]"
       uv run --no-sync ruff check .
@@ -363,19 +368,40 @@ nodes:
   # ── 7a. Commit the resource (all 3 languages + conformance) and push ──────
   # Publishing is split into 7a (commit + push) and 7b (open the PR) so each
   # bash node's script stays well under the ~8 KB command-line limit Archon hits
-  # on Windows. Past that limit the script is silently TRUNCATED mid-run — bash
-  # executes up to the cut, then hits EOF and exits 0, so a later step never runs
-  # yet the node reports success. Keep both nodes small.
+  # on Windows (see the CONVENTION note at the top of `nodes:`).
   # trigger_rule all_success: runs ONLY if all three validate-* passed, so any
   # earlier failure propagates as SKIPPED and the resource ships atomically (one
   # branch, all three languages + the shared conformance scenarios).
+  #
+  # set -euo pipefail: any unexpected failure must abort, not push a partial
+  # branch. Every EXPECTED non-zero is guarded with `|| ...` or an `if`.
+  #
+  # Branch namespacing: the PR branch is <gh-user>/sdk-add-resource/<slug>, keyed
+  # to the GitHub user opening the PR (gh is a required, authenticated prerequisite
+  # and the identity gh pr create uses), so concurrent runs for the same resource
+  # by different people never collide. branch.txt (in ARTIFACTS_DIR, never staged)
+  # hands the exact name to 7b.
+  #
+  # Resume-safe rebranch: if a prior failed run already committed the impl onto
+  # $branch (worktree ON $branch, clean, ahead of origin/main), those commits ARE
+  # the work -- `git switch -C` would orphan them, so reuse instead. If on $branch
+  # AND dirty, a prior run committed some languages but didn't finish; rebranching
+  # would open a partial PR, so bail for manual cleanup.
+  #
+  # Catch-all `git add -A` excludes the agent/tool dirs (.archon, and .claude/
+  # .agents if present): Archon materializes those into the worktree, and when the
+  # tooling isn't yet on origin/main they look like untracked additions a blind add
+  # would sweep into the product PR. The positive '.' alongside :(exclude) is the
+  # portable form (older git mishandles an exclude-only pathspec).
+  #
+  # force-with-lease (not --force): a --resume after a post-push failure re-creates
+  # commits with new SHAs (a plain push would be rejected non-fast-forward), but the
+  # lease still refuses if anyone else's push moved the branch.
   - id: publish-commit
     depends_on: [validate-node, validate-python, validate-go]
     trigger_rule: all_success
     timeout: 300000
     bash: |
-      # ATOMIC publish: any unexpected failure must abort, not push a partial
-      # branch. Every EXPECTED non-zero is guarded with `|| …` or an `if`.
       set -euo pipefail
       slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing — extract-domain must have run first"; exit 1; }
 
@@ -390,29 +416,26 @@ nodes:
         echo "The resource ships as one atomic PR (shared conformance needs all"
         echo "three dispatchers together), so nothing publishes until all pass."
         echo "Resolve the failing language(s) and re-run with --resume."
-        # Exit NON-ZERO: the node's job (open the PR) was not done. Archon resume
-        # skips already-completed nodes, so exit 0 here would mark publish-pr
-        # 'completed' and silently skip it on --resume even after the failing
-        # validate dep is fixed — the PR would never open. Failing makes the run
-        # status honest AND lets --resume re-execute this node once deps go green.
+        # Exit non-zero so --resume re-runs this node once the failing dep is fixed
+        # (exit 0 would mark it completed and skip it, leaving the PR unopened).
         exit 1
       fi
 
       git fetch --quiet origin main || { echo "git fetch origin main failed — cannot establish a fresh base for the PR branch"; exit 1; }
-      branch="archon/feat/$slug"
+      # Namespace the PR branch by the GitHub user opening it (see header).
+      gh_user=$(gh api user --jq .login 2>/dev/null | tr '[:upper:]' '[:lower:]')
+      [ -n "$gh_user" ] || { echo "could not resolve GitHub username (gh api user); is gh authenticated?"; exit 1; }
+      branch="$gh_user/sdk-add-resource/$slug"
+      printf '%s' "$branch" > "$ARTIFACTS_DIR/branch.txt"
       committed=0
-      # Resume-safe rebranch. If a prior (failed) run already committed the impl
-      # onto $branch — worktree ON $branch, clean, ahead of origin/main — those
-      # commits ARE the work; `git switch -C` would orphan them, so reuse instead.
+      # Resume-safe rebranch (see header): reuse this run's prior commits if present.
       if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
          && git diff --quiet && git diff --cached --quiet \
          && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
         echo "Resuming: $branch already has the implementation commits; re-pushing."
         committed=1
       else
-        # Partial-commit guard: on $branch + ahead + dirty means a prior run
-        # committed some languages but didn't finish; rebranching would orphan
-        # them and open a partial PR. Bail for manual cleanup instead.
+        # Partial-commit guard: on $branch + ahead + dirty => prior run didn't finish.
         if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
            && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
           echo "=== add-sdk-resource: $branch has prior-run commits AND uncommitted changes ==="
@@ -422,9 +445,8 @@ nodes:
           echo "  git switch - && git branch -D $branch   # then re-run fresh"
           exit 1
         fi
-        # First run: `git switch -C` carries the uncommitted impl onto a fresh
-        # branch off origin/main (no stash); it REFUSES atomically on a conflicting
-        # local change — caught below.
+        # First run: switch -C carries the uncommitted impl onto a fresh branch off
+        # origin/main; it REFUSES atomically on a conflicting local change.
         git switch -C "$branch" origin/main >/dev/null 2>&1 || {
           echo "=== add-sdk-resource: could not create/switch to $branch ==="
           echo "Likely one of:"
@@ -441,16 +463,11 @@ nodes:
         git reset --quiet
       fi
 
-      # Commit the impl: one per language + one for the shared conformance scenarios.
-      # On a resume that reused existing commits (above) the tree is clean, so these
-      # are no-ops. gitignored node_modules/.venv/uv.lock/caches never stage;
-      # ARTIFACTS_DIR is normally outside the repo, but an unregistered repo falls
-      # back to <repo>/.archon/artifacts — gitignored, so never staged.
+      # Commit one per language + one for the shared conformance scenarios (no-ops
+      # on a clean resume tree). `if !` not `|| {...}`: under set -e a failed commit
+      # must abort, not push a partial PR.
       for lang in node python go; do
         git add "sdk-$lang" 2>/dev/null || true
-        # `if !`, not `… || { git commit; committed=1; }`: under set -e a failed
-        # commit aborts the node instead of setting committed=1 and pushing a
-        # partial PR.
         if ! git diff --cached --quiet; then
           git commit --quiet -m "feat($lang): add $slug resource"
           committed=1
@@ -461,13 +478,7 @@ nodes:
         git commit --quiet -m "test(conformance): add $slug scenarios"
         committed=1
       fi
-      # Catch any stray files outside the expected paths (should be none) so they
-      # surface here, not as a PR-diff surprise. EXCLUDE the agent/tool dirs:
-      # Archon materializes .archon/ (and sometimes .claude//.agents/) into the
-      # worktree; when this tooling isn't yet on origin/main those look like
-      # untracked additions a blind `git add -A` would sweep into the product PR.
-      # The positive '.' alongside :(exclude) is the portable form (older git
-      # mishandles an exclude-only pathspec).
+      # Catch stray files outside the expected paths; exclude agent/tool dirs (see header).
       git add -A -- . ':(exclude).archon' ':(exclude).claude' ':(exclude).agents' 2>/dev/null || true
       if ! git diff --cached --quiet; then
         echo "=== add-sdk-resource: WARNING — unexpected files swept into a misc commit: ==="
@@ -476,64 +487,58 @@ nodes:
         committed=1
       fi
 
+      # committed=0 is a legitimate no-op (the resource already exists): success,
+      # not failure. If you expected a new resource, re-run fresh.
       if [ "$committed" = "0" ]; then
-        # Legitimate no-op (most likely the resource already exists, so the impls
-        # made no changes) — this is success, not failure. Resume can't change it
-        # (the impl nodes are already 'completed'); if you expected a new resource,
-        # re-run fresh.
         echo "=== add-sdk-resource: nothing to publish for '$slug' — no changes (the resource may already exist) ==="
         exit 0
       fi
-      # --force-with-lease (not a plain push): the branch is deterministic +
-      # workflow-owned, and a --resume after a post-push failure (e.g. gh below)
-      # re-creates commits with new SHAs — a plain push would then be rejected
-      # non-fast-forward. The lease still refuses if anything other than our own
-      # prior push moved the branch. No 2>/dev/null: let git's stderr surface.
+      # force-with-lease, not a plain push (see header). No 2>/dev/null: surface git's stderr.
       if ! git push --quiet --force-with-lease -u origin "$branch"; then
         echo "=== add-sdk-resource: push failed for $branch (see git's error above) ==="
         exit 1
       fi
-      # Signal 7b that a real branch was pushed. Its absence in 7b means "nothing
-      # to publish" (the resource already existed), so no PR is opened. The marker
-      # lives in ARTIFACTS_DIR (outside the repo), so it is never staged.
+      # Marker: tells 7b a real branch was pushed (its absence => nothing to publish).
       touch "$ARTIFACTS_DIR/pushed.ok"
       echo "=== add-sdk-resource: pushed $branch — opening the PR in publish-pr ==="
 
   # ── 7b. Open ONE draft PR for the branch publish-commit pushed ────────────
-  # Deliberately small (see 7a): just body-build + gh, nowhere near the script
-  # truncation limit. Runs in the same worktree, still on $branch.
+  # Deliberately small (see 7a): just body-build + gh, nowhere near the truncation
+  # limit. Runs in the same worktree, still on $branch.
+  #
+  # PR body: github.com autofills .github/PULL_REQUEST_TEMPLATE.md in the web UI but
+  # `gh pr create` does not, and the repo rejects PRs that don't follow it. We read
+  # the committed template (so the body structure never drifts), fill the Summary,
+  # and tick the boxes this atomic, all-3-languages, gated PR satisfies (best-effort:
+  # a relabeled checkbox just stays unticked). One `sed` pass template -> body file;
+  # no `sed -i` (BSD/macOS needs a backup-suffix arg), so this form is GNU/BSD-portable.
+  #
+  # gh failure is NOT swallowed: the branch is already pushed (7a) but THIS node's
+  # job -- open the PR -- isn't done, so exit non-zero to keep the status honest and
+  # let --resume re-run it (the idempotency check makes the retry safe). exit 0 here
+  # would mark it completed and resume would skip it, leaving a pushed branch no PR.
   - id: publish-pr
     depends_on: [publish-commit]
     timeout: 120000
     bash: |
       set -euo pipefail
       slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing"; exit 1; }
-      branch="archon/feat/$slug"
+      branch=$(cat "$ARTIFACTS_DIR/branch.txt") || { echo "branch.txt missing -- publish-commit must run first"; exit 1; }
       # No marker => publish-commit found nothing to publish; nothing to open.
       if [ ! -f "$ARTIFACTS_DIR/pushed.ok" ]; then
         echo "=== add-sdk-resource: nothing to publish for '$slug' — no PR opened ==="
         exit 0
       fi
-      # Idempotent on --resume: if a prior attempt already opened the PR, report it
-      # and stop (a second gh pr create would fail with 'already exists').
+      # Idempotent on --resume: if a prior attempt already opened the PR, report and stop.
       if existing=$(gh pr view "$branch" --json url -q .url 2>/dev/null) && [ -n "$existing" ]; then
         echo "=== add-sdk-resource: PR already open for $branch -> $existing ==="
         exit 0
       fi
-      # Build the PR body from the repo's PR template. github.com autofills
-      # .github/PULL_REQUEST_TEMPLATE.md in the web UI, but `gh pr create` does NOT
-      # — and the repo rejects PRs that don't follow it. Read the committed template
-      # (so the body's structure never drifts from the repo's), fill the Summary,
-      # and tick the boxes this atomic, all-3-languages, gated PR satisfies. Fills
-      # are best-effort: a relabeled checkbox just stays unticked (still valid).
+      # Build the PR body from the repo's PR template (see header).
       body_file="$ARTIFACTS_DIR/pr-body.md"
       tmpl=".github/PULL_REQUEST_TEMPLATE.md"
-      # NOTE: $summary is interpolated into a sed replacement below — keep it free
-      # of & \ | and newlines (sed-replacement metacharacters), or escape them.
+      # Keep $summary free of sed metacharacters (& \ | and newlines).
       summary="Adds the $slug resource to all three SDKs (Node, Python, Go) — hand-written client, types, per-endpoint examples and tests, plus the shared cross-language conformance scenarios. Generated by the Archon add-sdk-resource workflow; opened as a draft for maintainer review."
-      # One sed pass FROM the template INTO the body file — no `sed -i` (which
-      # needs a backup-suffix arg on BSD/macOS sed); this form is portable across
-      # GNU and BSD sed. Fallback to a minimal body if the template is missing.
       if [ -f "$tmpl" ]; then
         sed -e "s|<!-- One or two sentences.*-->|$summary|" \
             -e 's/- \[ \] Node\.js/- [x] Node.js/' \
@@ -553,11 +558,7 @@ nodes:
       else
         printf '## Summary\n\n%s\n' "$summary" > "$body_file"
       fi
-      # Do NOT swallow a gh failure: the branch is already pushed (publish-commit),
-      # but THIS node's job — open the PR — isn't done. Exit non-zero so the status
-      # is honest and --resume re-runs this node; the idempotency check above makes
-      # the retry safe. exit 0 here would mark it 'completed' and resume would skip
-      # it, leaving a pushed branch with no PR.
+      # gh failure is not swallowed (see header) -- exit non-zero so --resume retries.
       if ! url=$(gh pr create --draft --base main --head "$branch" \
         --title "feat: add $slug resource (node, python, go)" \
         --body-file "$body_file" 2>&1); then

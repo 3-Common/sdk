@@ -22,7 +22,7 @@ archon workflow run add-sdk-resource --branch feat/<domain>-resource "<domain>"
 ```
 
 - **`"<domain>"`** (the positional argument) is the resource/domain name: the first path segment after `/v1/` in `openapi/spec.json` (e.g. `forms`, `contacts`, `payment-links`). It's matched case-insensitively and tolerates hyphens, underscores, and spaces, so `"forms"`, `"Forms"`, and even a short sentence resolve the same. It must match **exactly one** domain in the spec; if it matches none or several, the run stops and lists the available domains.
-- **`--branch`** names the worktree Archon creates for the run. The PR branch this workflow generates is always `archon/feat/<domain>`, cut fresh from `origin/main` at publish time.
+- **`--branch`** names the worktree Archon creates for the run. The PR branch this workflow generates is `<github-username>/sdk-add-resource/<domain>`, namespaced by the GitHub user who runs it so concurrent runs by different people never collide; it is cut fresh from `origin/main` at publish time.
 
 Monitor a run with `archon workflow status` (or `archon serve` for the web UI), and list past runs with `archon workflow runs`.
 
@@ -35,7 +35,7 @@ Monitor a run with `archon workflow status` (or `archon serve` for the web UI), 
 5. **review-gate**: pauses for you to approve the endpoint set + contract (see [The approval gate](#the-approval-gate)).
 6. **impl-{node,python,go}**: implements the resource + per-endpoint examples + tests in each language, in parallel.
 7. **validate-{node,python,go}**: runs each language's full CI gate (install, lint, type-check, coverage, build).
-8. **publish-commit**: commits per language + the shared conformance scenarios and pushes `archon/feat/<domain>`. **Only runs if all three validations pass**. If any fails, nothing is committed or pushed and no PR is opened.
+8. **publish-commit**: commits per language + the shared conformance scenarios and pushes the namespaced branch `<github-username>/sdk-add-resource/<domain>`. **Only runs if all three validations pass**. If any fails, nothing is committed or pushed and no PR is opened.
 9. **publish-pr**: opens the draft PR for the pushed branch. If `publish-commit` found nothing to publish, this is skipped cleanly with no PR.
 
 Publishing is two steps (`publish-commit` then `publish-pr`) rather than one so each step's script stays well under the command-line length limit Archon hits on Windows, where a longer script is silently truncated mid-run.
