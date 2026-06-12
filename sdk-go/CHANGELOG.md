@@ -14,13 +14,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `RemoveLogicRule`, `EnableOtherOption`, `DisableOtherOption`, and a
   `ListAutoPaginate` iterator. Available as `api.Forms` and via `forms.New`
   for standalone use.
-- New public types in `resources/forms`: `Form`, `FormDetail`, `Element`,
-  `LogicGroup`, `CreateParams`, `UpdateParams`, `DuplicateParams`,
-  `AddElementParams`, `UpdateElementParams`, `MoveElementParams`,
-  `AddLogicRuleParams`, `LogicCondition`, `EnableOtherOptionParams`,
-  `ListParams`, the `ListResponse` and `DeleteElementResult` shapes, and the
+- New public types in `resources/forms`: `Form`, `FormSummary`, `Element`,
+  `LogicGroup`, `EventItemRef`, `CreateParams`, `UpdateParams`,
+  `DuplicateParams`, `AddElementParams`, `UpdateElementParams`,
+  `MoveElementParams`, `AddLogicRuleParams`, `LogicCondition`,
+  `EnableOtherOptionParams`, `ListParams`, the `ListResponse` and
+  `DeleteElementResult` shapes, and the
   `Type`/`Status`/`ElementType`/`LogicOperator`/`SelectionType`/`MoveSection`/
-  `SubmitButtonWidth`/`SubmitButtonAlign` enums.
+  `SubmitButtonWidth`/`SubmitButtonAlign`/`EventItemRefType` enums.
+- `threecommon.Nullable[T]` with the `NullableOf` and `Null` constructors.
+  The forms `UpdateParams`/`UpdateElementParams` use it for spec-nullable
+  fields, so an explicit JSON `null` (the API's "clear this setting" signal)
+  is expressible; optional non-nullable strings on those params are `*string`
+  (use `threecommon.String`), so explicit empty strings are expressible too.
 
 ## 0.7.0
 

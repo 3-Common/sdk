@@ -49,7 +49,7 @@ func (c *Client) List(ctx context.Context, params *ListParams) (*ListResponse, e
 }
 
 // Retrieve fetches a single form, including its element tree, by id.
-func (c *Client) Retrieve(ctx context.Context, id string) (*FormDetail, error) {
+func (c *Client) Retrieve(ctx context.Context, id string) (*Form, error) {
 	if err := requireID("Retrieve", "id", id); err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *Client) Retrieve(ctx context.Context, id string) (*FormDetail, error) {
 }
 
 // Create makes a new form. Name and Type are required.
-func (c *Client) Create(ctx context.Context, params *CreateParams) (*FormDetail, error) {
+func (c *Client) Create(ctx context.Context, params *CreateParams) (*Form, error) {
 	if params == nil {
 		return nil, missingBody("Create")
 	}
@@ -83,8 +83,10 @@ func (c *Client) Create(ctx context.Context, params *CreateParams) (*FormDetail,
 	return &env.Data, nil
 }
 
-// Update changes a form's settings. Only the fields set on params are changed.
-func (c *Client) Update(ctx context.Context, id string, params *UpdateParams) (*FormDetail, error) {
+// Update changes a form's settings. Only the fields set on params are
+// changed; nullable fields accept [threecommon.Null] to clear the setting
+// server-side.
+func (c *Client) Update(ctx context.Context, id string, params *UpdateParams) (*Form, error) {
 	if err := requireID("Update", "id", id); err != nil {
 		return nil, err
 	}
@@ -106,7 +108,7 @@ func (c *Client) Update(ctx context.Context, id string, params *UpdateParams) (*
 
 // Duplicate copies a form. The optional params override the copy's name and
 // status.
-func (c *Client) Duplicate(ctx context.Context, id string, params *DuplicateParams) (*FormDetail, error) {
+func (c *Client) Duplicate(ctx context.Context, id string, params *DuplicateParams) (*Form, error) {
 	if err := requireID("Duplicate", "id", id); err != nil {
 		return nil, err
 	}
@@ -151,7 +153,8 @@ func (c *Client) AddElement(ctx context.Context, id string, params *AddElementPa
 }
 
 // UpdateElement edits an existing element. Only the fields set on params are
-// changed.
+// changed; every field except Prompt accepts [threecommon.Null] to clear the
+// setting server-side.
 func (c *Client) UpdateElement(ctx context.Context, id, elementID string, params *UpdateElementParams) (*Element, error) {
 	if err := requireID("UpdateElement", "id", id); err != nil {
 		return nil, err
@@ -196,7 +199,7 @@ func (c *Client) DeleteElement(ctx context.Context, id, elementID string) (*Dele
 }
 
 // MoveElement repositions an element within the form. Returns the updated form.
-func (c *Client) MoveElement(ctx context.Context, id, elementID string, params *MoveElementParams) (*FormDetail, error) {
+func (c *Client) MoveElement(ctx context.Context, id, elementID string, params *MoveElementParams) (*Form, error) {
 	if err := requireID("MoveElement", "id", id); err != nil {
 		return nil, err
 	}
@@ -317,13 +320,13 @@ func (c *Client) DisableOtherOption(ctx context.Context, id, elementID string) (
 // ListAutoPaginate returns a [*pagination.Iter] that walks every form matching
 // params. Pages are fetched lazily, one HTTP call per page, only when the
 // previous page's buffer drains.
-func (c *Client) ListAutoPaginate(ctx context.Context, params *ListParams) *pagination.Iter[Form] {
+func (c *Client) ListAutoPaginate(ctx context.Context, params *ListParams) *pagination.Iter[FormSummary] {
 	startPage := 0
 	if params != nil && params.Page != nil {
 		startPage = *params.Page
 	}
 
-	return pagination.NewIter(startPage, func(page int) ([]Form, bool, error) {
+	return pagination.NewIter(startPage, func(page int) ([]FormSummary, bool, error) {
 		pageParams := ListParams{}
 		if params != nil {
 			pageParams = *params

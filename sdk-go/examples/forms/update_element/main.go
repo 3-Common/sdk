@@ -19,10 +19,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	notRequired := false
 	element, err := api.Forms.UpdateElement(context.Background(), "frm_123", "elm_1", &forms.UpdateElementParams{
-		Prompt:   "What is your full name?",
-		Required: &notRequired,
+		Prompt:   threecommon.String("What is your full name?"),
+		Required: threecommon.NullableOf(false),
+		// Null clears a nullable setting server-side (removes the helper text).
+		HelperText: threecommon.Null[string](),
 	})
 	if err != nil {
 		log.Fatal(err)

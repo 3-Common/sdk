@@ -18,8 +18,13 @@
 // The element-level methods (AddElement, UpdateElement, MoveElement, the
 // logic-rule and "other"-option toggles) mutate that tree. Type names inside
 // this package omit the "Form" prefix to avoid stutter (e.g. forms.ListParams,
-// not forms.FormListParams).
+// not forms.FormListParams); the [Form] document and its compact [FormSummary]
+// list projection are the exception, named to match the other SDKs.
 package forms
+
+import (
+	threecommon "github.com/3-Common/sdk/sdk-go"
+)
 
 // Type is the kind of form. Standalone forms are independent; order forms are
 // attached to a checkout flow.
@@ -109,9 +114,9 @@ const (
 	MoveSectionTicketHolder MoveSection = "ticket-holder"
 )
 
-// Form is the compact projection returned by [Client.List] in each page's
-// data array.
-type Form struct {
+// FormSummary is the compact projection returned by [Client.List] in each
+// page's data array.
+type FormSummary struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	NumElements int    `json:"numElements"`
@@ -119,10 +124,10 @@ type Form struct {
 	Status      Status `json:"status"`
 }
 
-// FormDetail is the full form projection returned by Retrieve, Create, Update,
+// Form is the full form projection returned by Retrieve, Create, Update,
 // Duplicate, and MoveElement. It carries the form's settings plus its element
 // tree.
-type FormDetail struct {
+type Form struct {
 	ID                string            `json:"id"`
 	Name              string            `json:"name"`
 	NameHidden        bool              `json:"nameHidden,omitempty"`
@@ -152,6 +157,28 @@ type LogicGroup struct {
 	Value                *bool         `json:"value,omitempty"`
 }
 
+// EventItemRefType discriminates the variants of [EventItemRef].
+type EventItemRefType string
+
+// EventItemRefType values.
+const (
+	EventItemRefEventItem       EventItemRefType = "eventItem"
+	EventItemRefEventProduct    EventItemRefType = "eventProduct"
+	EventItemRefCheckoutProduct EventItemRefType = "checkoutProduct"
+)
+
+// EventItemRef points at one purchasable item that gates an order-form
+// element's visibility. Type selects the variant and which ID fields apply:
+// "eventItem" uses EventID + ItemID, "eventProduct" uses EventID + ProductID,
+// and "checkoutProduct" uses CheckoutID + ProductID.
+type EventItemRef struct {
+	Type       EventItemRefType `json:"type"`
+	EventID    string           `json:"eventId,omitempty"`
+	ItemID     string           `json:"itemId,omitempty"`
+	ProductID  string           `json:"productId,omitempty"`
+	CheckoutID string           `json:"checkoutId,omitempty"`
+}
+
 // Element is a single form element. It is a wide union over every element type
 // (text, selection, date, file, static content, ...); only the fields relevant
 // to a given Type are populated.
@@ -171,13 +198,21 @@ type Element struct {
 	OtherPrompt  string         `json:"otherPrompt,omitempty"`
 	MinChoices   *int           `json:"minChoices,omitempty"`
 	MaxChoices   *int           `json:"maxChoices,omitempty"`
-	Min          *float64       `json:"min,omitempty"`
-	Max          *float64       `json:"max,omitempty"`
-	Accept       string         `json:"accept,omitempty"`
-	LogicGroups  []LogicGroup   `json:"logicGroups,omitempty"`
-	Content      string         `json:"content,omitempty"`
-	ImageURL     string         `json:"imageUrl,omitempty"`
-	ImageWidth   *int           `json:"imageWidth,omitempty"`
+	// Min and Max are the earliest/latest selectable date for Date elements,
+	// in YYYY-MM-DD format.
+	Min         *string      `json:"min,omitempty"`
+	Max         *string      `json:"max,omitempty"`
+	Accept      string       `json:"accept,omitempty"`
+	LogicGroups []LogicGroup `json:"logicGroups,omitempty"`
+	Content     string       `json:"content,omitempty"`
+	ImageURL    string       `json:"imageUrl,omitempty"`
+	ImageWidth  *int         `json:"imageWidth,omitempty"`
+	// ForEventItems restricts an order-form element to appear only when at
+	// least one of the referenced items is in the cart.
+	ForEventItems []EventItemRef `json:"forEventItems,omitempty"`
+	// AskAllAttendees is only present on order forms. True means the element
+	// sits in the per-attendee section and repeats for every ticket.
+	AskAllAttendees *bool `json:"askAllAttendees,omitempty"`
 }
 
 // ListParams are the query parameters accepted by [Client.List] and
@@ -207,14 +242,17 @@ type CreateParams struct {
 }
 
 // UpdateParams is the body shape accepted by [Client.Update]. Every field is
-// optional; only the fields you set are changed.
+// optional: nil fields are omitted from the request and only the fields you
+// set are changed. Pointer strings distinguish "unset" from an explicit empty
+// string. NameHidden and SubmitButtonAlign accept [threecommon.Null] to send
+// an explicit JSON null, which clears the setting server-side.
 type UpdateParams struct {
-	Name              string            `json:"name,omitempty"`
-	NameHidden        *bool             `json:"nameHidden,omitempty"`
-	Status            Status            `json:"status,omitempty"`
-	SubmitButtonText  string            `json:"submitButtonText,omitempty"`
-	SubmitButtonWidth SubmitButtonWidth `json:"submitButtonWidth,omitempty"`
-	SubmitButtonAlign SubmitButtonAlign `json:"submitButtonAlign,omitempty"`
+	Name              *string                                  `json:"name,omitempty"`
+	NameHidden        *threecommon.Nullable[bool]              `json:"nameHidden,omitempty"`
+	Status            Status                                   `json:"status,omitempty"`
+	SubmitButtonText  *string                                  `json:"submitButtonText,omitempty"`
+	SubmitButtonWidth SubmitButtonWidth                        `json:"submitButtonWidth,omitempty"`
+	SubmitButtonAlign *threecommon.Nullable[SubmitButtonAlign] `json:"submitButtonAlign,omitempty"`
 }
 
 // DuplicateParams is the body shape accepted by [Client.Duplicate]. Both
@@ -241,37 +279,45 @@ type AddElementParams struct {
 	OtherPrompt  string         `json:"otherPrompt,omitempty"`
 	MinChoices   *int           `json:"minChoices,omitempty"`
 	MaxChoices   *int           `json:"maxChoices,omitempty"`
-	Min          *float64       `json:"min,omitempty"`
-	Max          *float64       `json:"max,omitempty"`
-	Accept       string         `json:"accept,omitempty"`
-	Content      string         `json:"content,omitempty"`
-	ImageURL     string         `json:"imageUrl,omitempty"`
-	ImageWidth   *int           `json:"imageWidth,omitempty"`
+	// Min and Max are the earliest/latest selectable date for Date elements,
+	// in YYYY-MM-DD format.
+	Min         *string      `json:"min,omitempty"`
+	Max         *string      `json:"max,omitempty"`
+	Accept      string       `json:"accept,omitempty"`
+	LogicGroups []LogicGroup `json:"logicGroups,omitempty"`
+	Content     string       `json:"content,omitempty"`
+	ImageURL    string       `json:"imageUrl,omitempty"`
+	ImageWidth  *int         `json:"imageWidth,omitempty"`
 }
 
 // UpdateElementParams is the body shape accepted by [Client.UpdateElement].
-// Every field is optional; only the fields you set are changed.
+// Every field is optional: nil fields are omitted from the request and only
+// the fields you set are changed. Every field except Prompt is nullable
+// server-side: pass [threecommon.Null] to send an explicit JSON null, which
+// clears the setting; use [threecommon.NullableOf] to set a concrete value.
 type UpdateElementParams struct {
-	Prompt        string       `json:"prompt,omitempty"`
-	PromptHidden  *bool        `json:"promptHidden,omitempty"`
-	HelperText    string       `json:"helperText,omitempty"`
-	Placeholder   string       `json:"placeholder,omitempty"`
-	Required      *bool        `json:"required,omitempty"`
-	PropertyID    string       `json:"propertyId,omitempty"`
-	ContactField  string       `json:"contactField,omitempty"`
-	Options       []string     `json:"options,omitempty"`
-	Dropdown      *bool        `json:"dropdown,omitempty"`
-	OtherPrompt   string       `json:"otherPrompt,omitempty"`
-	MinChoices    *int         `json:"minChoices,omitempty"`
-	MaxChoices    *int         `json:"maxChoices,omitempty"`
-	Min           *float64     `json:"min,omitempty"`
-	Max           *float64     `json:"max,omitempty"`
-	Accept        string       `json:"accept,omitempty"`
-	LogicGroups   []LogicGroup `json:"logicGroups,omitempty"`
-	Content       string       `json:"content,omitempty"`
-	ImageURL      string       `json:"imageUrl,omitempty"`
-	ImageWidth    *int         `json:"imageWidth,omitempty"`
-	ForEventItems []string     `json:"forEventItems,omitempty"`
+	Prompt       *string                         `json:"prompt,omitempty"`
+	PromptHidden *threecommon.Nullable[bool]     `json:"promptHidden,omitempty"`
+	HelperText   *threecommon.Nullable[string]   `json:"helperText,omitempty"`
+	Placeholder  *threecommon.Nullable[string]   `json:"placeholder,omitempty"`
+	Required     *threecommon.Nullable[bool]     `json:"required,omitempty"`
+	PropertyID   *threecommon.Nullable[string]   `json:"propertyId,omitempty"`
+	ContactField *threecommon.Nullable[string]   `json:"contactField,omitempty"`
+	Options      *threecommon.Nullable[[]string] `json:"options,omitempty"`
+	Dropdown     *threecommon.Nullable[bool]     `json:"dropdown,omitempty"`
+	OtherPrompt  *threecommon.Nullable[string]   `json:"otherPrompt,omitempty"`
+	MinChoices   *threecommon.Nullable[int]      `json:"minChoices,omitempty"`
+	MaxChoices   *threecommon.Nullable[int]      `json:"maxChoices,omitempty"`
+	// Min and Max are the earliest/latest selectable date for Date elements,
+	// in YYYY-MM-DD format.
+	Min           *threecommon.Nullable[string]         `json:"min,omitempty"`
+	Max           *threecommon.Nullable[string]         `json:"max,omitempty"`
+	Accept        *threecommon.Nullable[string]         `json:"accept,omitempty"`
+	LogicGroups   *threecommon.Nullable[[]LogicGroup]   `json:"logicGroups,omitempty"`
+	Content       *threecommon.Nullable[string]         `json:"content,omitempty"`
+	ImageURL      *threecommon.Nullable[string]         `json:"imageUrl,omitempty"`
+	ImageWidth    *threecommon.Nullable[int]            `json:"imageWidth,omitempty"`
+	ForEventItems *threecommon.Nullable[[]EventItemRef] `json:"forEventItems,omitempty"`
 }
 
 // MoveElementParams is the body shape accepted by [Client.MoveElement].
@@ -306,8 +352,8 @@ type EnableOtherOptionParams struct {
 
 // ListResponse is the body returned by GET /v1/forms.
 type ListResponse struct {
-	Data    []Form `json:"data"`
-	HasMore bool   `json:"hasMore"`
+	Data    []FormSummary `json:"data"`
+	HasMore bool          `json:"hasMore"`
 }
 
 // DeleteElementResult is the data shape unwrapped from
@@ -316,10 +362,10 @@ type DeleteElementResult struct {
 	DeletedElementID string `json:"deletedElementId"`
 }
 
-// formEnvelope is the {"data": FormDetail} shape used by form-returning
+// formEnvelope is the {"data": Form} shape used by form-returning
 // endpoints.
 type formEnvelope struct {
-	Data FormDetail `json:"data"`
+	Data Form `json:"data"`
 }
 
 // elementEnvelope is the {"data": Element} shape used by element-returning

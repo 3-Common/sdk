@@ -194,6 +194,44 @@ func TestRetrieve_404Surfaces(t *testing.T) {
 	require.True(t, errors.As(err, &nf))
 }
 
+func TestRetrieve_DecodesDateBoundsAndOrderFields(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"data":{
+			"id":"frm_123","name":"Order Form","ownerId":"hst_1","type":"order","status":"active",
+			"attendeeRowsStart":2,
+			"elements":[{
+				"id":"elm_1","type":"Date","prompt":"Arrival date",
+				"min":"2024-01-01","max":"2024-12-31",
+				"askAllAttendees":true,
+				"forEventItems":[{"type":"eventItem","eventId":"evt_1","itemId":"itm_1"}]
+			}]
+		}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.Retrieve(context.Background(), "frm_123")
+	require.NoError(t, err)
+
+	require.NotNil(t, got.AttendeeRowsStart)
+	assert.Equal(t, 2, *got.AttendeeRowsStart)
+
+	require.Len(t, got.Elements, 1)
+	el := got.Elements[0]
+	require.NotNil(t, el.Min)
+	assert.Equal(t, "2024-01-01", *el.Min)
+	require.NotNil(t, el.Max)
+	assert.Equal(t, "2024-12-31", *el.Max)
+	require.NotNil(t, el.AskAllAttendees)
+	assert.True(t, *el.AskAllAttendees)
+	require.Len(t, el.ForEventItems, 1)
+	assert.Equal(t, forms.EventItemRefEventItem, el.ForEventItems[0].Type)
+	assert.Equal(t, "evt_1", el.ForEventItems[0].EventID)
+	assert.Equal(t, "itm_1", el.ForEventItems[0].ItemID)
+}
+
 func TestCreate_SendsBody(t *testing.T) {
 	t.Parallel()
 
@@ -265,13 +303,51 @@ func TestUpdate_SendsBody(t *testing.T) {
 
 	cl := newTestClient(t, srv)
 	got, err := cl.Update(context.Background(), "frm_123", &forms.UpdateParams{
-		Name:             "Updated Registration",
+		Name:             threecommon.String("Updated Registration"),
 		Status:           forms.StatusActive,
-		SubmitButtonText: "Sign up",
+		SubmitButtonText: threecommon.String("Sign up"),
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "frm_123", got.ID)
 	assert.Equal(t, "Sign up", got.SubmitButtonText)
+}
+
+func TestUpdate_SendsEmptyStringAndNullClears(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+
+		// An explicitly set empty string must reach the wire.
+		name, ok := got["name"]
+		require.True(t, ok, "name must be present")
+		assert.Equal(t, "", name)
+
+		// Nullable fields set to Null must arrive as explicit JSON null.
+		nameHidden, ok := got["nameHidden"]
+		require.True(t, ok, "nameHidden must be present as explicit null")
+		assert.Nil(t, nameHidden)
+		align, ok := got["submitButtonAlign"]
+		require.True(t, ok, "submitButtonAlign must be present as explicit null")
+		assert.Nil(t, align)
+
+		// Unset fields stay omitted.
+		_, ok = got["status"]
+		assert.False(t, ok, "status must be omitted")
+
+		_, _ = w.Write([]byte(`{"data":{"id":"frm_123","name":"","ownerId":"hst_1","type":"standalone","status":"active"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.Update(context.Background(), "frm_123", &forms.UpdateParams{
+		Name:              threecommon.String(""),
+		NameHidden:        threecommon.Null[bool](),
+		SubmitButtonAlign: threecommon.Null[forms.SubmitButtonAlign](),
+	})
+	require.NoError(t, err)
 }
 
 func TestUpdate_RequiresID(t *testing.T) {
@@ -391,6 +467,44 @@ func TestAddElement_RequiresParams(t *testing.T) {
 	assert.Equal(t, "missing_body", v.Code)
 }
 
+func TestAddElement_SendsDateBoundsAndLogicGroups(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+		assert.Equal(t, "2024-01-01", got["min"])
+		assert.Equal(t, "2024-12-31", got["max"])
+		groups, _ := got["logicGroups"].([]any)
+		require.Len(t, groups, 1)
+		group, _ := groups[0].(map[string]any)
+		assert.Equal(t, "any_of", group["operator"])
+		assert.Equal(t, []any{float64(0)}, group["optionIndices"])
+
+		_, _ = w.Write([]byte(`{"data":{"id":"elm_1","type":"Date","prompt":"Arrival date","min":"2024-01-01","max":"2024-12-31"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.AddElement(context.Background(), "frm_123", &forms.AddElementParams{
+		Type:   forms.ElementDate,
+		Prompt: "Arrival date",
+		Min:    threecommon.String("2024-01-01"),
+		Max:    threecommon.String("2024-12-31"),
+		LogicGroups: []forms.LogicGroup{{
+			RevealedElementIndex: threecommon.Int(1),
+			OptionIndices:        []int{0},
+			Operator:             forms.LogicOperatorAnyOf,
+		}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, got.Min)
+	assert.Equal(t, "2024-01-01", *got.Min)
+	require.NotNil(t, got.Max)
+	assert.Equal(t, "2024-12-31", *got.Max)
+}
+
 func TestUpdateElement_SendsBody(t *testing.T) {
 	t.Parallel()
 
@@ -409,15 +523,45 @@ func TestUpdateElement_SendsBody(t *testing.T) {
 	defer srv.Close()
 
 	cl := newTestClient(t, srv)
-	notRequired := false
 	got, err := cl.UpdateElement(context.Background(), "frm_123", "elm_1", &forms.UpdateElementParams{
-		Prompt:   "What is your full name?",
-		Required: &notRequired,
+		Prompt:   threecommon.String("What is your full name?"),
+		Required: threecommon.NullableOf(false),
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "elm_1", got.ID)
 	require.NotNil(t, got.Required)
 	assert.False(t, *got.Required)
+}
+
+func TestUpdateElement_SendsNullClears(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+
+		assert.Equal(t, "Choose...", got["placeholder"])
+		helperText, ok := got["helperText"]
+		require.True(t, ok, "helperText must be present as explicit null")
+		assert.Nil(t, helperText)
+		logicGroups, ok := got["logicGroups"]
+		require.True(t, ok, "logicGroups must be present as explicit null")
+		assert.Nil(t, logicGroups)
+		_, ok = got["prompt"]
+		assert.False(t, ok, "prompt must be omitted")
+
+		_, _ = w.Write([]byte(`{"data":{"id":"elm_1","type":"Select One","prompt":"Pick one"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.UpdateElement(context.Background(), "frm_123", "elm_1", &forms.UpdateElementParams{
+		Placeholder: threecommon.NullableOf("Choose..."),
+		HelperText:  threecommon.Null[string](),
+		LogicGroups: threecommon.Null[[]forms.LogicGroup](),
+	})
+	require.NoError(t, err)
 }
 
 func TestUpdateElement_RequiresID(t *testing.T) {
@@ -457,9 +601,41 @@ func TestUpdateElement_404Surfaces(t *testing.T) {
 	defer srv.Close()
 
 	cl := newTestClient(t, srv)
-	_, err := cl.UpdateElement(context.Background(), "frm_123", "elm_missing", &forms.UpdateElementParams{Prompt: "x"})
+	_, err := cl.UpdateElement(context.Background(), "frm_123", "elm_missing", &forms.UpdateElementParams{Prompt: threecommon.String("x")})
 	var nf *threecommon.NotFoundError
 	require.True(t, errors.As(err, &nf))
+}
+
+func TestUpdateElement_SendsForEventItems(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+		items, _ := got["forEventItems"].([]any)
+		require.Len(t, items, 2)
+		assert.Equal(t, map[string]any{
+			"type": "eventItem", "eventId": "evt_1", "itemId": "itm_1",
+		}, items[0])
+		assert.Equal(t, map[string]any{
+			"type": "checkoutProduct", "checkoutId": "chk_1", "productId": "prd_1",
+		}, items[1])
+
+		_, _ = w.Write([]byte(`{"data":{"id":"elm_1","type":"Text","prompt":"Name","forEventItems":[{"type":"eventItem","eventId":"evt_1","itemId":"itm_1"}]}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.UpdateElement(context.Background(), "frm_123", "elm_1", &forms.UpdateElementParams{
+		ForEventItems: threecommon.NullableOf([]forms.EventItemRef{
+			{Type: forms.EventItemRefEventItem, EventID: "evt_1", ItemID: "itm_1"},
+			{Type: forms.EventItemRefCheckoutProduct, CheckoutID: "chk_1", ProductID: "prd_1"},
+		}),
+	})
+	require.NoError(t, err)
+	require.Len(t, got.ForEventItems, 1)
+	assert.Equal(t, forms.EventItemRefEventItem, got.ForEventItems[0].Type)
 }
 
 func TestDeleteElement_HappyPath(t *testing.T) {

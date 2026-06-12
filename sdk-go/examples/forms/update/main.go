@@ -20,9 +20,11 @@ func main() {
 	}
 
 	form, err := api.Forms.Update(context.Background(), "frm_123", &forms.UpdateParams{
-		Name:             "Updated Registration",
+		Name:             threecommon.String("Updated Registration"),
 		Status:           forms.StatusActive,
-		SubmitButtonText: "Sign up",
+		SubmitButtonText: threecommon.String("Sign up"),
+		// Null clears a nullable setting server-side (resets the alignment).
+		SubmitButtonAlign: threecommon.Null[forms.SubmitButtonAlign](),
 	})
 	if err != nil {
 		log.Fatal(err)
