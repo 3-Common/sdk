@@ -57,6 +57,15 @@ export function dispatchPrices(
     case 'grant':
     case 'consume':
     case 'resolve':
+    case 'duplicate':
+    case 'addElement':
+    case 'updateElement':
+    case 'deleteElement':
+    case 'moveElement':
+    case 'enableOtherOption':
+    case 'disableOtherOption':
+    case 'addLogicRule':
+    case 'removeLogicRule':
       throw new Error(`prices: unsupported method '${call.method}'`)
   }
 }
