@@ -3,6 +3,7 @@ import { expectAssignable, expectError, expectType } from 'tsd'
 import type {
   DeletedElement,
   Form,
+  FormAddLogicRuleBody,
   FormCreateBody,
   FormElement,
   FormListParams,
@@ -17,7 +18,6 @@ declare const client: ThreeCommon
 // list - accepts the documented params and returns a typed ListFormsResponse.
 expectType<Promise<ListFormsResponse>>(client.forms.list({ type: 'standalone', pageSize: 50 }))
 expectAssignable<FormListParams>({ type: 'order', page: 1 })
-// @ts-expect-error testing an invalid type intentionally
 expectError<FormListParams>({ type: 'not-a-form-type' })
 
 // retrieve - id is a string; returns Form.
@@ -53,13 +53,28 @@ expectType<Promise<FormElement>>(
 )
 expectType<Promise<FormElement>>(client.forms.disableOtherOption('frm_123', 'elm_1'))
 
-// logic rules.
+// logic rules - the condition accepts the selection-question shape...
 expectType<Promise<FormElement>>(
   client.forms.addLogicRule('frm_123', 'elm_1', {
     revealedElementId: 'elm_2',
     condition: { optionIndices: [0], operator: 'any_of' },
   }),
 )
+// ...and the Yes/No-question shape.
+expectType<Promise<FormElement>>(
+  client.forms.addLogicRule('frm_123', 'elm_1', {
+    revealedElementId: 'elm_2',
+    condition: { selectionType: 'is', value: true },
+  }),
+)
+expectAssignable<FormAddLogicRuleBody>({
+  revealedElementId: 'elm_2',
+  condition: { selectionType: 'is_not', value: false },
+})
+expectError<FormAddLogicRuleBody>({
+  revealedElementId: 'elm_2',
+  condition: { selectionType: 'not-a-selection-type', value: true },
+})
 expectType<Promise<FormElement>>(client.forms.removeLogicRule('frm_123', 'elm_1', 'elm_2'))
 
 // listAutoPaginate - returns AsyncIterableIterator<FormSummary>.

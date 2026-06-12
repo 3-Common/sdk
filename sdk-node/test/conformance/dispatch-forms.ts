@@ -28,7 +28,7 @@ export function dispatchForms(
     }
     case 'duplicate': {
       const id = expectString(args['id'], 'duplicate')
-      const body = expectBody(args['body'], 'duplicate')
+      const body = args['body'] === undefined ? undefined : expectBody(args['body'], 'duplicate')
       return client.forms.duplicate(id, body)
     }
     case 'addElement': {

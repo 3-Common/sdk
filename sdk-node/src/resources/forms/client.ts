@@ -181,14 +181,23 @@ export interface FormsService {
 
   /**
    * Add a conditional-logic rule to a selection or Yes/No element: when the
-   * condition matches, the `revealedElementId` element is shown. Returns the
+   * condition matches, the `revealedElementId` element is shown. Selection
+   * questions take an `{ optionIndices, operator }` condition; Yes/No
+   * questions take a `{ selectionType, value }` condition. Returns the
    * updated source element.
    *
    * @example
    * ```ts
+   * // Selection question: reveal when the first option is chosen.
    * const element = await client.forms.addLogicRule('frm_123', 'elm_1', {
    *   revealedElementId: 'elm_2',
    *   condition: { optionIndices: [0], operator: 'any_of' },
+   * })
+   *
+   * // Yes/No question: reveal when the respondent answers "yes".
+   * const yesNo = await client.forms.addLogicRule('frm_123', 'elm_3', {
+   *   revealedElementId: 'elm_4',
+   *   condition: { selectionType: 'is', value: true },
    * })
    * ```
    */

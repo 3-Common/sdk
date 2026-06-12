@@ -418,6 +418,29 @@ describe('forms.addLogicRule / removeLogicRule', () => {
     })
   })
 
+  it('POSTs a Yes/No logic rule and returns the source element', async () => {
+    let body: unknown
+    server.use(
+      http.post(
+        `${TEST_BASE_URL}/v1/forms/frm_123/elements/elm_1/logic-rules`,
+        async ({ request }) => {
+          body = await request.json()
+          return HttpResponse.json({ data: { ...sampleElement, type: 'Yes/No' } })
+        },
+      ),
+    )
+    const client = buildClient()
+    const element = await client.forms.addLogicRule('frm_123', 'elm_1', {
+      revealedElementId: 'elm_2',
+      condition: { selectionType: 'is', value: true },
+    })
+    expect(element.id).toBe('elm_1')
+    expect(body).toEqual({
+      revealedElementId: 'elm_2',
+      condition: { selectionType: 'is', value: true },
+    })
+  })
+
   it('remove rejects empty id, elementId, and targetElementId', async () => {
     const client = buildClient()
     await expect(client.forms.removeLogicRule('', 'elm_1', 'elm_2')).rejects.toThrow(TypeError)
