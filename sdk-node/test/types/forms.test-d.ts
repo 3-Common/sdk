@@ -3,6 +3,7 @@ import { expectAssignable, expectError, expectType } from 'tsd'
 import type {
   DeletedElement,
   Form,
+  FormAddLogicRuleBody,
   FormCreateBody,
   FormElement,
   FormListParams,
@@ -32,8 +33,9 @@ declare const updateBody: FormUpdateBody
 expectType<Promise<Form>>(client.forms.update('frm_123', updateBody))
 expectAssignable<FormUpdateBody>({ status: 'active', submitButtonText: 'Sign up' })
 
-// duplicate - id + body; returns Form.
+// duplicate - id + optional body; returns Form.
 expectType<Promise<Form>>(client.forms.duplicate('frm_123', { name: 'Copy', status: 'draft' }))
+expectType<Promise<Form>>(client.forms.duplicate('frm_123'))
 
 // element CRUD.
 expectType<Promise<FormElement>>(
@@ -51,13 +53,28 @@ expectType<Promise<FormElement>>(
 )
 expectType<Promise<FormElement>>(client.forms.disableOtherOption('frm_123', 'elm_1'))
 
-// logic rules.
+// logic rules - the condition accepts the selection-question shape...
 expectType<Promise<FormElement>>(
   client.forms.addLogicRule('frm_123', 'elm_1', {
     revealedElementId: 'elm_2',
     condition: { optionIndices: [0], operator: 'any_of' },
   }),
 )
+// ...and the Yes/No-question shape.
+expectType<Promise<FormElement>>(
+  client.forms.addLogicRule('frm_123', 'elm_1', {
+    revealedElementId: 'elm_2',
+    condition: { selectionType: 'is', value: true },
+  }),
+)
+expectAssignable<FormAddLogicRuleBody>({
+  revealedElementId: 'elm_2',
+  condition: { selectionType: 'is_not', value: false },
+})
+expectError<FormAddLogicRuleBody>({
+  revealedElementId: 'elm_2',
+  condition: { selectionType: 'not-a-selection-type', value: true },
+})
 expectType<Promise<FormElement>>(client.forms.removeLogicRule('frm_123', 'elm_1', 'elm_2'))
 
 // listAutoPaginate - returns AsyncIterableIterator<FormSummary>.
