@@ -33,13 +33,20 @@ if TYPE_CHECKING:
     from threecommon._core.http_client import AsyncHTTPClient, HTTPClient
 
 
+def _qval(value: object) -> str:
+    # The wire (and every other SDK) renders query booleans lowercase.
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
 def _encode_list_params(params: ListParams | None) -> dict[str, str] | None:
     if params is None:
         return None
     raw = params.model_dump(by_alias=True, exclude_none=True)
     if not raw:
         return None
-    return {k: str(v) for k, v in raw.items()}
+    return {k: _qval(v) for k, v in raw.items()}
 
 
 def _require(method: str, label: str, value: str) -> None:

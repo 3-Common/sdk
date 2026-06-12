@@ -1,11 +1,11 @@
 """Public types for the forms resource.
 
 Hand-curated Pydantic models that mirror the wire shape (camelCase aliases
-preserved). All response models use ``extra="ignore"`` so newer server-side
-fields don't break older SDK versions. The form-element bodies are the
-exception: the API accepts a wide, element-type-dependent set of fields, so the
-request bodies use ``extra="allow"`` to forward anything the SDK doesn't model
-explicitly.
+preserved). Most response models use ``extra="ignore"`` so newer server-side
+fields don't break older SDK versions. ``FormElement`` is the exception: form
+elements carry a wide, element-type-dependent set of fields, so both the
+element request bodies and ``FormElement`` itself use ``extra="allow"`` to
+preserve anything the SDK doesn't model explicitly rather than drop it.
 """
 
 from __future__ import annotations
@@ -73,9 +73,66 @@ class FormSummary(_BaseModel):
     status: FormStatus | None = None
 
 
+class FormColumn(_BaseModel):
+    """One column in a form-layout row. Points at an element by its index in the
+    form's ``elements`` array and how much of the row's width it occupies."""
+
+    element_index: int = Field(
+        serialization_alias="elementIndex", validation_alias="elementIndex"
+    )
+    width_fraction: float = Field(
+        serialization_alias="widthFraction", validation_alias="widthFraction"
+    )
+
+
+class FormRow(_BaseModel):
+    """One row in a form's layout. ``columns`` lists the elements shown in the
+    row, left to right, with their relative widths."""
+
+    columns: list[FormColumn]
+
+
+class FormElement(BaseModel):
+    """A single element (question or static element) on a form.
+
+    The ``type`` field is a free-form label (e.g. ``"Text"``, ``"Select One"``,
+    ``'Select One or "Other"'``). The commonly used fields are modeled
+    explicitly; element-type-specific fields (``dropdown``, ``logicGroups``,
+    ``propertyData``, etc.) are preserved verbatim via ``extra="allow"`` rather
+    than dropped. ``required`` is optional because several element types
+    (``Select Multiple`` and the static text/image elements) omit it.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+        str_strip_whitespace=False,
+    )
+
+    id: str
+    type: str
+    prompt: str
+    required: bool | None = None
+    prompt_hidden: bool | None = Field(
+        default=None, serialization_alias="promptHidden", validation_alias="promptHidden"
+    )
+    helper_text: str | None = Field(
+        default=None, serialization_alias="helperText", validation_alias="helperText"
+    )
+    placeholder: str | None = None
+    options: list[Any] | None = None
+    property_id: str | None = Field(
+        default=None, serialization_alias="propertyId", validation_alias="propertyId"
+    )
+    other_prompt: str | None = Field(
+        default=None, serialization_alias="otherPrompt", validation_alias="otherPrompt"
+    )
+
+
 class Form(_BaseModel):
     """A form in the full projection returned by ``retrieve``, ``create``,
-    ``update``, ``duplicate``, and ``move_element``."""
+    ``update``, ``duplicate``, and ``move_element`` - including its ``elements``
+    and layout ``rows``."""
 
     id: str
     name: str
@@ -100,23 +157,8 @@ class Form(_BaseModel):
         serialization_alias="submitButtonAlign",
         validation_alias="submitButtonAlign",
     )
-
-
-class FormElement(_BaseModel):
-    """A single element (question) on a form.
-
-    The ``type`` field is a free-form label (e.g. ``"Text"``, ``"Select One"``,
-    ``'Select One or "Other"'``); element-type-specific fields beyond those
-    declared here are dropped by ``extra="ignore"``.
-    """
-
-    id: str
-    prompt: str
-    type: str
-    required: bool
-    other_prompt: str | None = Field(
-        default=None, serialization_alias="otherPrompt", validation_alias="otherPrompt"
-    )
+    elements: list[FormElement] | None = None
+    rows: list[FormRow] | None = None
 
 
 class DeleteElementResult(_BaseModel):

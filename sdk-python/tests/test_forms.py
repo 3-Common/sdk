@@ -99,6 +99,53 @@ def test_retrieve_uses_envelope(httpx_mock: HTTPXMock) -> None:
     assert form.submit_button_text == "Sign up"
 
 
+def test_retrieve_preserves_elements_and_layout(httpx_mock: HTTPXMock) -> None:
+    full_form = {
+        **SAMPLE_FORM,
+        "elements": [
+            {
+                "id": "elm_1",
+                "type": "Select One",
+                "prompt": "Pick one",
+                "required": True,
+                "options": ["A", "B"],
+                "dropdown": True,
+                "logicGroups": [
+                    {"revealedElementIndex": 1, "optionIndices": [0], "operator": "any_of"}
+                ],
+            },
+            {"id": "elm_2", "type": "Static Image", "prompt": "Banner", "src": "https://x.test/a.png"},
+        ],
+        "rows": [{"columns": [{"elementIndex": 0, "widthFraction": 1.0}]}],
+    }
+    httpx_mock.add_response(url="http://test.local/v1/forms/frm_123", json={"data": full_form})
+    with _make_sync() as c:
+        form = c.forms.retrieve("frm_123")
+
+    assert form.elements is not None
+    assert [e.id for e in form.elements] == ["elm_1", "elm_2"]
+
+    select = form.elements[0]
+    assert select.type == "Select One"
+    assert select.options == ["A", "B"]
+    # element-type-specific fields are preserved verbatim, not dropped.
+    assert select.model_extra is not None
+    assert select.model_extra["dropdown"] is True
+    assert select.model_extra["logicGroups"][0]["operator"] == "any_of"
+
+    # a static element (no `required`) still parses; `required` defaults to None.
+    image = form.elements[1]
+    assert image.prompt == "Banner"
+    assert image.required is None
+    assert image.model_extra is not None
+    assert image.model_extra["src"] == "https://x.test/a.png"
+
+    # layout rows are modeled with snake_case access.
+    assert form.rows is not None
+    assert form.rows[0].columns[0].element_index == 0
+    assert form.rows[0].columns[0].width_fraction == 1.0
+
+
 def test_retrieve_requires_id() -> None:
     with _make_sync() as c, pytest.raises(ValidationError) as exc:
         c.forms.retrieve("")
