@@ -1,0 +1,43 @@
+name: auto-paginate walks every page of forms
+call:
+  resource: forms
+  method: listAutoPaginate
+  args:
+    type: standalone
+exchanges:
+  - request:
+      method: GET
+      path: /v1/forms
+      query:
+        type: standalone
+        page: '0'
+    response:
+      status: 200
+      body:
+        data:
+          - id: frm_1
+            name: First
+          - id: frm_2
+            name: Second
+        hasMore: true
+  - request:
+      method: GET
+      path: /v1/forms
+      query:
+        type: standalone
+        page: '1'
+    response:
+      status: 200
+      body:
+        data:
+          - id: frm_3
+            name: Third
+        hasMore: false
+expectedAutoPaginated:
+  - id: frm_1
+    name: First
+  - id: frm_2
+    name: Second
+  - id: frm_3
+    name: Third
+expectedCallCount: 2

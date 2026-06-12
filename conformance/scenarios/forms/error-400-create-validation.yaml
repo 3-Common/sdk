@@ -1,0 +1,35 @@
+name: 400 Validation - create form with invalid type
+call:
+  resource: forms
+  method: create
+  args:
+    body:
+      name: Bad Form
+      type: invalid
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/forms
+  body:
+    name: Bad Form
+    type: invalid
+mockResponse:
+  status: 400
+  headers:
+    x-request-id: req-frm-400-001
+  body:
+    error:
+      code: validation_failed
+      message: type must be one of "standalone" or "order"
+      details:
+        field: type
+        rule: enum
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_failed
+  httpStatus: 400
+  requestId: req-frm-400-001
+  details:
+    field: type
+    rule: enum
