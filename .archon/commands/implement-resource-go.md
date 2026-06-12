@@ -39,7 +39,11 @@ path the publish step stages.
 
 ## Steps
 0. **Fetch dependencies**: `cd sdk-go && go mod download`.
-1. **Regenerate bindings from the spec** (idempotent): `cd sdk-go && make gen`.
+1. **No codegen: hand-write the types.** The Go SDK does NOT use a generated
+   layer: `sdk-go/generated/` is vestigial (no resource imports it), so you write
+   all request/response types by hand in step 3. Do NOT run `make gen` or try to
+   regenerate it (it may fail to run, which is expected and harmless, and CI never
+   runs it).
 2. **Study a sibling.** Read `sdk-go/resources/contacts/{client.go,types.go,client_test.go}` (or the closest-shaped sibling) and mirror its package structure, doc comments, and idioms, including both `New(cfg)` and `FromBackend(backend)` constructors.
 3. **Write the resource** under `sdk-go/resources/<slug>/`: `types.go`, `client.go` (`package <slug>`) -- one method per endpoint in `resource-spec.json`.
 4. **Mount it** in `sdk-go/client/api.go`: add the `<Name> *<slug>.Client` field to `type API struct` and assign `<Name>: <slug>.FromBackend(backend)` in `New` (`<Name>` = the capitalized slug).

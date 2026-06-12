@@ -20,21 +20,27 @@ fetched from the live server, **never hand-edited**.
 
 Each SDK has a **generated** layer (types produced mechanically from the spec)
 and a **hand-curated** layer (the ergonomic, public resource API). You only ever
-write the hand-curated layer. The generated layer is regenerated from the spec.
+write the hand-curated layer. For Node and Python the generated layer is
+regenerated from the spec; the **Go** SDK is the exception -- its
+`sdk-go/generated/` is vestigial (nothing imports it) and Go resources hand-write
+all their types.
 
 | Language | Generated (do NOT hand-edit) | Hand-curated (you write this) |
 |----------|------------------------------|-------------------------------|
 | Node | `sdk-node/src/generated/types.ts` | `sdk-node/src/resources/<name>/` |
 | Python | `sdk-python/src/threecommon/_generated/models.py` | `sdk-python/src/threecommon/<name>/` |
-| Go | `sdk-go/generated/` | `sdk-go/resources/<name>/` |
+| Go | `sdk-go/generated/` (vestigial; unused -- see below) | `sdk-go/resources/<name>/` |
 
-**Always regenerate the generated layer from the spec before writing the
-wrapper**, as the new domain's types may not be present yet. The commands are
-idempotent (no-op if already current):
+**For Node and Python, always regenerate the generated layer from the spec
+before writing the wrapper**, as the new domain's types may not be present yet
+(the commands are idempotent, no-op if already current). The **Go** SDK has no
+codegen step, see its entry below.
 
 - **Node:** `cd sdk-node && yarn generate:types`
 - **Python:** `cd sdk-python && datamodel-codegen --input ../openapi/spec.yaml --input-file-type openapi --output src/threecommon/_generated/models.py --output-model-type pydantic_v2.BaseModel --target-python-version 3.10 --use-standard-collections --use-union-operator --use-double-quotes --field-constraints --use-schema-description --capitalise-enum-members --reuse-model --openapi-scopes paths schemas parameters`
-- **Go:** `cd sdk-go && make gen`
+- **Go:** none. The Go SDK hand-writes all types; `sdk-go/generated/` is a
+  vestigial, unused codegen layer. Do NOT run `make gen` or regenerate it (it may
+  fail to run, which is expected and harmless, as nothing imports its output).
 
 ## Per-resource file layout
 
@@ -72,8 +78,8 @@ read-heavy resource; a CRUD domain -> mirror `contacts`).
 - `client.go`: `package <name>` with a `Client` struct and both a
   `New(cfg threecommon.Config) (*Client, error)` constructor and a
   `FromBackend(backend *core.Client) *Client` constructor.
-- `types.go`: hand-curated response shapes (request types come from
-  `sdk-go/generated`).
+- `types.go`: hand-curated request AND response shapes. The Go SDK hand-writes
+  every type; do not import or rely on `sdk-go/generated` (it is unused).
 - `client_test.go`: table-driven tests (see coverage gate below).
 - **Mount in `sdk-go/client/api.go`:** add a `<Name> *<name>.Client` field to
   `type API struct` and assign `<Name>: <name>.FromBackend(backend)` in `New`.
