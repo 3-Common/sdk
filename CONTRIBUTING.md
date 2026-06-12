@@ -24,7 +24,7 @@ The repository contains one SDK per language under `sdk-*/`. Each has its own RE
 
 ## Adding a new resource
 
-New resources (product domains like `forms` or `contacts`) get added to all three SDKs from the canonical OpenAPI spec. If you have [Archon](https://github.com/coleam00/Archon) installed, the `add-sdk-resource` workflow automates the whole thing: parse the spec, generate the shared conformance scenarios, implement + test in Node, Python, and Go, and open a single draft PR:
+New resources (product domains like `forms` or `contacts`) get added to all three SDKs from the canonical OpenAPI spec. If you have [Archon](https://github.com/coleam00/Archon) installed, the `add-sdk-resource` workflow automates the whole thing: parse the spec, generate the shared conformance scenarios, implement + test in Node, Python, and Go, and open a stack of draft PRs (one per language plus a conformance PR on top), to be reviewed and merged bottom-up:
 
 ```bash
 archon workflow run add-sdk-resource --branch feat/<domain>-resource "<domain>"

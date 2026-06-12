@@ -2,15 +2,17 @@ name: add-sdk-resource
 description: |
   Add a new resource (a product domain) to all three 3Common
   SDKs (Node, Python, and Go) from the canonical OpenAPI spec, and open a
-  single draft PR.
+  stack of draft PRs.
   Use when: the user asks to add / wrap / scaffold a new SDK resource or domain,
   e.g. "add the <name> resource", "wrap the <domain> endpoints in the SDK".
   Does: verifies the spec is current with origin/main, slices it to the target
   domain, gets human approval on the endpoint set, implements the resource +
   examples + tests in each language in parallel, validates each against the
-  CI gates, then opens ONE draft PR with all three languages (per-language
-  commits) plus the shared conformance scenarios; they must land together so
-  cross-language conformance CI stays green.
+  CI gates, then opens a stacked set of draft PRs - one per language plus a
+  top conformance PR - layered main <- node <- python <- go <- conformance.
+  The shared conformance scenarios land last (the top PR) because they activate
+  every language's conformance suite at once, so they require all three
+  implementations to already be present.
   NOT for: editing the OpenAPI spec, releasing/publishing packages, or
   modifying an existing resource.
 
@@ -273,8 +275,9 @@ nodes:
         error/pagination paths - the cross-language behavioral contract all three
         SDKs implement against (see the generate-conformance step's output above).
 
-        Approve to implement in Node, Python, and Go and open a single draft PR
-        (per-language commits + shared scenarios). Reject with a reason to stop.
+        Approve to implement in Node, Python, and Go and open a stack of draft
+        PRs (one per language, then the shared conformance scenarios on top).
+        Reject with a reason to stop.
 
   # -- 5. Implement per language, in parallel (no git in these nodes) -------
   - id: impl-node
@@ -365,38 +368,64 @@ nodes:
       go build ./examples/...
       touch "$ARTIFACTS_DIR/go.ok"
 
-  # -- 7a. Commit the resource (all 3 languages + conformance) and push ------
-  # Publishing is split into 7a (commit + push) and 7b (open the PR) so each
-  # bash node's script stays well under the ~8 KB command-line limit Archon hits
-  # on Windows (see the CONVENTION note at the top of `nodes:`).
+  # -- 7a. Build the stacked branches (one per language + conformance), push --
+  # Publishing is split into 7a (build + push the stack) and 7b (open the PRs) so
+  # each bash node's script stays well under the ~8 KB command-line limit Archon
+  # hits on Windows (see the CONVENTION note at the top of `nodes:`).
+  #
   # trigger_rule all_success: runs ONLY if all three validate-* passed, so any
-  # earlier failure propagates as SKIPPED and the resource ships atomically (one
-  # branch, all three languages + the shared conformance scenarios).
+  # earlier failure propagates as SKIPPED and nothing is published.
   #
-  # set -euo pipefail: any unexpected failure must abort, not push a partial
-  # branch. Every EXPECTED non-zero is guarded with `|| ...` or an `if`.
+  # The stack, bottom -> top:
+  #   main <- <user>/sdk-add-resource/<slug>/node <- .../python <- .../go
+  #        <- .../conformance
+  # Each language branch carries ONLY its own sdk-<lang>/ tree (the impl plus that
+  # language's conformance dispatcher, which lives under sdk-<lang>/); the top
+  # branch carries ONLY the shared conformance/scenarios/<slug>/ YAML. Scenarios
+  # go last on purpose: the per-language conformance runners glob EVERY scenario
+  # and hard-error on a resource with no dispatcher, so a branch holding the
+  # scenarios must already have all three dispatchers present. With the scenarios
+  # on top, every lower branch (and every intermediate main state as the stack
+  # merges bottom-up) has dispatchers but no scenarios yet -> inert and green; the
+  # cross-language contract is actually exercised on the top conformance PR, whose
+  # CI sees all three impls + the scenarios. (node.yml must list conformance/** in
+  # its path filter for the top PR to trigger Node CI - it now does, alongside
+  # go.yml and python.yml.)
   #
-  # Branch namespacing: the PR branch is <gh-user>/sdk-add-resource/<slug>, keyed
-  # to the GitHub user opening the PR (gh is a required, authenticated prerequisite
-  # and the identity gh pr create uses), so concurrent runs for the same resource
-  # by different people never collide. branch.txt (in ARTIFACTS_DIR, never staged)
-  # hands the exact name to 7b.
+  # Branch namespacing: keyed to the GitHub user opening the PRs (gh is a required,
+  # authenticated prerequisite), so concurrent runs for the same resource by
+  # different people never collide. stack.txt (in ARTIFACTS_DIR, never staged)
+  # hands the four branch names, in order, to 7b.
   #
-  # Resume-safe rebranch: if a prior failed run already committed the impl onto
-  # $branch (worktree ON $branch, clean, ahead of origin/main), those commits ARE
-  # the work -- `git switch -C` would orphan them, so reuse instead. If on $branch
-  # AND dirty, a prior run committed some languages but didn't finish; rebranching
-  # would open a partial PR, so bail for manual cleanup.
+  # set -euo pipefail: any unexpected failure must abort, not push a partial stack.
+  # Every EXPECTED non-zero is guarded with `|| ...` or an `if`.
   #
-  # Catch-all `git add -A` excludes the agent/tool dirs (.archon, and .claude/
-  # .agents if present): Archon materializes those into the worktree, and when the
-  # tooling isn't yet on origin/main they look like untracked additions a blind add
-  # would sweep into the product PR. The positive '.' alongside :(exclude) is the
-  # portable form (older git mishandles an exclude-only pathspec).
+  # Build model: the impl arrives as ONE uncommitted change set spanning all three
+  # sdk-<lang>/ trees + conformance/scenarios. We carve it into the stack by
+  # switching to each branch in turn (`switch -C` carries the still-uncommitted
+  # remainder forward) and committing one path at a time. This relies on the
+  # worktree being cut from a base equal to origin/main (resolve-spec enforces the
+  # spec is current; Archon cuts the worktree from main), so switching the first
+  # branch onto origin/main does not conflict with the local modifications.
+  #
+  # Resume model keys off a `pending` check = "is there impl work to commit?",
+  # computed as `git status` over the same paths the catch-all stages (so the
+  # ever-present untracked .archon/.claude/.agents dirs never count, but a
+  # half-finished tree of NEW untracked files still does - a plain `git diff`
+  # would miss those and wrongly rebuild). A fully-built stack leaves HEAD on the
+  # top branch, nothing pending, ahead of origin/main -> reuse those commits and
+  # just re-push. A half-built stack leaves HEAD on a stack branch WITH work still
+  # pending -> bail for manual cleanup (rebuilding from a partial tree would orphan
+  # the already-committed branches). Otherwise it is a fresh pre-build tree -> build.
+  #
+  # Catch-all `git add -A` (excludes the agent/tool dirs .archon/.claude/.agents
+  # Archon materializes into the worktree) sweeps any stray file onto the top
+  # branch so nothing is silently dropped. The positive '.' alongside :(exclude)
+  # is the portable form (older git mishandles an exclude-only pathspec).
   #
   # force-with-lease (not --force): a --resume after a post-push failure re-creates
   # commits with new SHAs (a plain push would be rejected non-fast-forward), but the
-  # lease still refuses if anyone else's push moved the branch.
+  # lease still refuses if anyone else's push moved a branch.
   - id: publish-commit
     depends_on: [validate-node, validate-python, validate-go]
     trigger_rule: all_success
@@ -411,160 +440,197 @@ nodes:
         [ -f "$ARTIFACTS_DIR/$lang.ok" ] || missing="$missing $lang"
       done
       if [ -n "$missing" ]; then
-        echo "=== add-sdk-resource: FAILED - no PR opened ==="
+        echo "=== add-sdk-resource: FAILED - no PRs opened ==="
         echo "These languages failed validation:$missing"
-        echo "The resource ships as one atomic PR (shared conformance needs all"
-        echo "three dispatchers together), so nothing publishes until all pass."
-        echo "Resolve the failing language(s) and re-run with --resume."
-        # Exit non-zero so --resume re-runs this node once the failing dep is fixed
-        # (exit 0 would mark it completed and skip it, leaving the PR unopened).
+        echo "The stack is built and pushed only once all three pass. Resolve the"
+        echo "failing language(s) and re-run with --resume."
+        # Exit non-zero so --resume re-runs this node once the failing dep is fixed.
         exit 1
       fi
 
-      git fetch --quiet origin main || { echo "git fetch origin main failed - cannot establish a fresh base for the PR branch"; exit 1; }
-      # Namespace the PR branch by the GitHub user opening it (see header).
+      git fetch --quiet origin main || { echo "git fetch origin main failed - cannot establish a fresh base for the stack"; exit 1; }
+      # Namespace the stack by the GitHub user opening the PRs (see header).
       gh_user=$(gh api user --jq .login 2>/dev/null | tr '[:upper:]' '[:lower:]')
       [ -n "$gh_user" ] || { echo "could not resolve GitHub username (gh api user); is gh authenticated?"; exit 1; }
-      branch="$gh_user/sdk-add-resource/$slug"
-      printf '%s' "$branch" > "$ARTIFACTS_DIR/branch.txt"
-      committed=0
-      # Resume-safe rebranch (see header): reuse this run's prior commits if present.
-      if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
-         && git diff --quiet && git diff --cached --quiet \
-         && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
-        echo "Resuming: $branch already has the implementation commits; re-pushing."
-        committed=1
-      else
-        # Partial-commit guard: on $branch + ahead + dirty => prior run didn't finish.
-        if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$branch" ] \
-           && [ "$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
-          echo "=== add-sdk-resource: $branch has prior-run commits AND uncommitted changes ==="
-          echo "A previous run committed some languages but didn't finish; rebranching"
-          echo "would orphan them and open a partial PR. Inspect, then reset manually:"
-          echo "  git log --oneline origin/main..HEAD ; git status"
-          echo "  git switch - && git branch -D $branch   # then re-run fresh"
-          exit 1
-        fi
-        # First run: switch -C carries the uncommitted impl onto a fresh branch off
-        # origin/main; it REFUSES atomically on a conflicting local change.
-        git switch -C "$branch" origin/main >/dev/null 2>&1 || {
-          echo "=== add-sdk-resource: could not create/switch to $branch ==="
-          echo "Likely one of:"
-          echo "  (a) $branch is already checked out in another worktree - e.g. a"
-          echo "      leftover worktree from a previous run for '$slug' (the branch"
-          echo "      name is deterministic). See 'git worktree list'; clean stale"
-          echo "      Archon worktrees with 'archon isolation cleanup' or"
-          echo "      'archon complete $branch'."
-          echo "  (b) the impl touched a tracked file that also moved on origin/main"
-          echo "      since this worktree was cut - resolve the conflict manually."
-          echo "Then re-run with --resume."
-          exit 1
-        }
-        git reset --quiet
-      fi
+      base="$gh_user/sdk-add-resource/$slug"
+      nb="$base/node"; pb="$base/python"; gb="$base/go"; cb="$base/conformance"
+      printf '%s\n%s\n%s\n%s\n' "$nb" "$pb" "$gb" "$cb" > "$ARTIFACTS_DIR/stack.txt"
 
-      # Commit one per language + one for the shared conformance scenarios (no-ops
-      # on a clean resume tree). `if !` not `|| {...}`: under set -e a failed commit
-      # must abort, not push a partial PR.
-      for lang in node python go; do
-        git add "sdk-$lang" 2>/dev/null || true
-        if ! git diff --cached --quiet; then
-          git commit --quiet -m "feat($lang): add $slug resource"
-          committed=1
-        fi
-      done
-      git add "conformance/scenarios" 2>/dev/null || true
-      if ! git diff --cached --quiet; then
-        git commit --quiet -m "test(conformance): add $slug scenarios"
-        committed=1
-      fi
-      # Catch stray files outside the expected paths; exclude agent/tool dirs (see header).
-      git add -A -- . ':(exclude).archon' ':(exclude).claude' ':(exclude).agents' 2>/dev/null || true
-      if ! git diff --cached --quiet; then
-        echo "=== add-sdk-resource: WARNING - unexpected files swept into a misc commit: ==="
-        git diff --cached --name-only | sed 's/^/  /'
-        git commit --quiet -m "chore: $slug resource (misc)"
-        committed=1
-      fi
+      head_now=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+      ahead=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+      on_stack=0
+      for b in "$nb" "$pb" "$gb" "$cb"; do [ "$head_now" = "$b" ] && on_stack=1; done
+      # pending: is there impl work to commit? Same paths the catch-all stages, so
+      # untracked agent dirs are ignored but untracked impl files still count (see header).
+      pending() { [ -n "$(git status --porcelain -- . ':(exclude).archon' ':(exclude).claude' ':(exclude).agents' 2>/dev/null)" ]; }
 
-      # committed=0 is a legitimate no-op (the resource already exists): success,
-      # not failure. If you expected a new resource, re-run fresh.
-      if [ "$committed" = "0" ]; then
-        echo "=== add-sdk-resource: nothing to publish for '$slug' - no changes (the resource may already exist) ==="
-        exit 0
-      fi
-      # force-with-lease, not a plain push (see header). No 2>/dev/null: surface git's stderr.
-      if ! git push --quiet --force-with-lease -u origin "$branch"; then
-        echo "=== add-sdk-resource: push failed for $branch (see git's error above) ==="
+      if [ "$head_now" = "$cb" ] && ! pending && [ "$ahead" -gt 0 ]; then
+        # Resume: the full stack is already built on the top branch; just re-push.
+        echo "Resuming: stack already built on $cb; re-pushing."
+      elif [ "$on_stack" = "1" ] && pending; then
+        # Mid-build: a prior run committed some branches but didn't finish (see header).
+        echo "=== add-sdk-resource: $head_now is a stack branch with uncommitted changes ==="
+        echo "A previous run built part of the stack but didn't finish; rebuilding now"
+        echo "would orphan its commits. Inspect, then reset manually before re-running:"
+        echo "  git log --oneline origin/main..HEAD ; git status"
+        echo "  git switch - && git branch -D $nb $pb $gb $cb 2>/dev/null   # then re-run fresh"
         exit 1
+      else
+        # Fresh build: carve the one uncommitted change set into the stack, bottom -> top.
+        # Nothing pending => no resource changes (it may already exist): success, no branches.
+        if ! pending; then
+          echo "=== add-sdk-resource: nothing to publish for '$slug' - no changes (the resource may already exist) ==="
+          exit 0
+        fi
+        built=0
+        # carve: $1 branch  $2 start-point (empty = current HEAD)  $3 pathspec  $4 message
+        carve() {
+          if [ -n "$2" ]; then
+            git switch -C "$1" "$2" >/dev/null 2>&1 || {
+              echo "=== add-sdk-resource: could not create $1 from $2 ==="
+              echo "Likely $1 is checked out in another worktree (a stale run for"
+              echo "'$slug' - see 'git worktree list'), or the impl touched a tracked"
+              echo "file that also moved on origin/main since this worktree was cut."
+              echo "Resolve, then re-run with --resume."
+              exit 1
+            }
+          else
+            git switch -C "$1" >/dev/null 2>&1 || { echo "could not create branch $1"; exit 1; }
+          fi
+          git reset --quiet
+          git add -- $3 2>/dev/null || true
+          # `if !` not `|| {...}`: under set -e a failed commit must abort.
+          if ! git diff --cached --quiet; then git commit --quiet -m "$4"; built=1; fi
+        }
+        carve "$nb" "origin/main" "sdk-node"              "feat(node): add $slug resource"
+        carve "$pb" ""            "sdk-python"            "feat(python): add $slug resource"
+        carve "$gb" ""            "sdk-go"                "feat(go): add $slug resource"
+        carve "$cb" ""            "conformance/scenarios" "test(conformance): add $slug scenarios"
+        # Sweep stray files onto the top branch; exclude agent/tool dirs (see header).
+        git add -A -- . ':(exclude).archon' ':(exclude).claude' ':(exclude).agents' 2>/dev/null || true
+        if ! git diff --cached --quiet; then
+          echo "=== add-sdk-resource: WARNING - unexpected files committed to $cb (misc): ==="
+          git diff --cached --name-only | sed 's/^/  /'
+          git commit --quiet -m "chore: $slug resource (misc)"
+          built=1
+        fi
+        # built=0 is a legitimate no-op (the resource already exists): success.
+        if [ "$built" = "0" ]; then
+          echo "=== add-sdk-resource: nothing to publish for '$slug' - no changes (the resource may already exist) ==="
+          exit 0
+        fi
       fi
-      # Marker: tells 7b a real branch was pushed (its absence => nothing to publish).
-      touch "$ARTIFACTS_DIR/pushed.ok"
-      echo "=== add-sdk-resource: pushed $branch - opening the PR in publish-pr ==="
 
-  # -- 7b. Open ONE draft PR for the branch publish-commit pushed ------------
+      # Push the whole stack (force-with-lease, see header). No 2>/dev/null: surface git's stderr.
+      while IFS= read -r b; do
+        [ -n "$b" ] || continue
+        if ! git push --quiet --force-with-lease -u origin "$b"; then
+          echo "=== add-sdk-resource: push failed for $b (see git's error above) ==="
+          exit 1
+        fi
+      done < "$ARTIFACTS_DIR/stack.txt"
+      # Marker: tells 7b a real stack was pushed (its absence => nothing to publish).
+      touch "$ARTIFACTS_DIR/pushed.ok"
+      echo "=== add-sdk-resource: pushed 4-branch stack for '$slug' (base $base) - opening PRs in publish-pr ==="
+
+  # -- 7b. Open the stacked PRs for the branches publish-commit pushed --------
   # Deliberately small (see 7a): just body-build + gh, nowhere near the truncation
-  # limit. Runs in the same worktree, still on $branch.
+  # limit. Runs in the same worktree. Reads the four branch names (in stack order)
+  # from stack.txt and opens one draft PR per branch, each based on the branch below
+  # it (the node PR targets main).
   #
   # PR body: github.com autofills .github/PULL_REQUEST_TEMPLATE.md in the web UI but
-  # `gh pr create` does not, and the repo rejects PRs that don't follow it. We read
-  # the committed template (so the body structure never drifts), fill the Summary,
-  # and tick the boxes this atomic, all-3-languages, gated PR satisfies (best-effort:
-  # a relabeled checkbox just stays unticked). One `sed` pass template -> body file;
-  # no `sed -i` (BSD/macOS needs a backup-suffix arg), so this form is GNU/BSD-portable.
+  # `gh pr create` does not, and the repo expects PRs to follow it, so we fill the
+  # template for every PR: set the Summary, tick the one affected SDK (the shared
+  # scenarios PR ticks "OpenAPI spec / shared"), tick "New feature", and tick the
+  # checklist items that apply (the language PRs also tick Code examples + CHANGELOG;
+  # the scenarios PR omits those two). We tick by substring-matching each checkbox
+  # line in a read loop, not via sed, to avoid escaping the parens/slashes/`>=` in
+  # the template labels. A shared note explaining the stack is appended after the body.
   #
-  # gh failure is NOT swallowed: the branch is already pushed (7a) but THIS node's
-  # job -- open the PR -- isn't done, so exit non-zero to keep the status honest and
-  # let --resume re-run it (the idempotency check makes the retry safe). exit 0 here
-  # would mark it completed and resume would skip it, leaving a pushed branch no PR.
+  # Idempotent on --resume: each PR is skipped if one is already open for its head
+  # branch, and any gh failure exits non-zero (NOT swallowed) so --resume retries
+  # the rest. The branches are already pushed (7a); leaving a PR unopened must keep
+  # the node status honest rather than reporting success.
   - id: publish-pr
     depends_on: [publish-commit]
     timeout: 120000
     bash: |
       set -euo pipefail
       slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing"; exit 1; }
-      branch=$(cat "$ARTIFACTS_DIR/branch.txt") || { echo "branch.txt missing -- publish-commit must run first"; exit 1; }
+      [ -f "$ARTIFACTS_DIR/stack.txt" ] || { echo "stack.txt missing -- publish-commit must run first"; exit 1; }
       # No marker => publish-commit found nothing to publish; nothing to open.
       if [ ! -f "$ARTIFACTS_DIR/pushed.ok" ]; then
-        echo "=== add-sdk-resource: nothing to publish for '$slug' - no PR opened ==="
+        echo "=== add-sdk-resource: nothing to publish for '$slug' - no PRs opened ==="
         exit 0
       fi
-      # Idempotent on --resume: if a prior attempt already opened the PR, report and stop.
-      if existing=$(gh pr view "$branch" --json url -q .url 2>/dev/null) && [ -n "$existing" ]; then
-        echo "=== add-sdk-resource: PR already open for $branch -> $existing ==="
-        exit 0
-      fi
-      # Build the PR body from the repo's PR template (see header).
-      body_file="$ARTIFACTS_DIR/pr-body.md"
+      { read -r nb; read -r pb; read -r gb; read -r cb; } < "$ARTIFACTS_DIR/stack.txt"
+
       tmpl=".github/PULL_REQUEST_TEMPLATE.md"
-      # Keep $summary free of sed metacharacters (& \ | and newlines).
-      summary="Adds the $slug resource to all three SDKs (Node, Python, Go): a typed wrapper layer (client + types) over the generated models, per-endpoint examples and tests, plus the shared cross-language conformance scenarios. Generated by the Archon add-sdk-resource workflow; opened as a draft for maintainer review."
-      if [ -f "$tmpl" ]; then
-        sed -e "s|<!-- One or two sentences.*-->|$summary|" \
-            -e 's/- \[ \] Node\.js/- [x] Node.js/' \
-            -e 's/- \[ \] Python/- [x] Python/' \
-            -e 's/- \[ \] Go (/- [x] Go (/' \
-            -e 's|- \[ \] OpenAPI spec / shared|- [x] OpenAPI spec / shared|' \
-            -e 's/- \[ \] New feature/- [x] New feature/' \
-            -e 's|- \[ \] Tests added / updated and passing|- [x] Tests added / updated and passing|' \
-            -e 's/- \[ \] Coverage gate/- [x] Coverage gate/' \
-            -e 's/- \[ \] Lint, type-check/- [x] Lint, type-check/' \
-            -e 's/- \[ \] No secrets/- [x] No secrets/' \
-            -e 's/- \[ \] Conformance scenarios/- [x] Conformance scenarios/' \
-            -e 's/- \[ \] Code examples/- [x] Code examples/' \
-            -e 's/- \[ \] CHANGELOG entry/- [x] CHANGELOG entry/' \
-            -e 's/- \[ \] Follows/- [x] Follows/' \
-            "$tmpl" > "$body_file"
-      else
-        printf '## Summary\n\n%s\n' "$summary" > "$body_file"
-      fi
-      # gh failure is not swallowed (see header) -- exit non-zero so --resume retries.
-      if ! url=$(gh pr create --draft --base main --head "$branch" \
-        --title "feat: add $slug resource (node, python, go)" \
-        --body-file "$body_file" 2>&1); then
-        echo "=== add-sdk-resource: pushed $branch but gh pr create FAILED ==="
-        echo "$url"
+      bf="$ARTIFACTS_DIR/pr-body.md"
+      note="Stacked PR set for the \`$slug\` resource: main <- node <- python <- go <- conformance. Generated by the Archon add-sdk-resource workflow; opened as drafts. Each lower PR adds one language; the top conformance PR adds the shared scenarios and is where cross-language conformance CI actually runs (it carries all three implementations). Review and merge bottom-up - after each merge, GitHub retargets the next PR onto main."
+
+      # build_body: $1 summary  $2 affected-SDK label substring  $3 mode (lang|shared).
+      # Fills the PR template (or a minimal body if it is missing), then appends $note.
+      # Ticks any checkbox line containing one of $marks; everything else is verbatim.
+      build_body() {
+        local summary="$1" affected="$2" mode="$3"
+        if [ ! -f "$tmpl" ]; then
+          printf '## Summary\n\n%s\n\n---\n\n%s\n' "$summary" "$note"
+          return 0
+        fi
+        local marks=("$affected" "New feature" "Tests added" "Coverage gate" "Lint, type-check" "No secrets" "Conformance scenarios" "Conventional Commits")
+        [ "$mode" = "lang" ] && marks+=("Code examples" "CHANGELOG")
+        local line out m
+        while IFS= read -r line; do
+          case "$line" in
+            *"One or two sentences"*) printf '%s\n' "$summary"; continue ;;
+          esac
+          case "$line" in
+            "- [ ] "*)
+              out="$line"
+              for m in "${marks[@]}"; do
+                case "$line" in *"$m"*) out="${line/- \[ \]/- [x]}"; break ;; esac
+              done
+              printf '%s\n' "$out" ;;
+            *) printf '%s\n' "$line" ;;
+          esac
+        done < "$tmpl"
+        printf '\n---\n\n%s\n' "$note"
+      }
+
+      # open_pr: $1 head  $2 base  $3 title  $4 summary  $5 affected-label  $6 mode.
+      open_pr() {
+        if existing=$(gh pr view "$1" --json url -q .url 2>/dev/null) && [ -n "$existing" ]; then
+          echo "  $1 -> already open: $existing"
+          return 0
+        fi
+        build_body "$4" "$5" "$6" > "$bf"
+        if ! url=$(gh pr create --draft --base "$2" --head "$1" --title "$3" --body-file "$bf" 2>&1); then
+          echo "=== add-sdk-resource: gh pr create FAILED for $1 (base $2) ==="
+          echo "$url"
+          return 1
+        fi
+        echo "  $1 (base $2) -> $url"
+        return 0
+      }
+
+      rc=0
+      open_pr "$nb" "main" "feat(node): add $slug resource" \
+        "Adds the \`$slug\` resource to the Node SDK: client + types, per-endpoint examples, unit tests, and the conformance dispatcher." \
+        "Node.js" "lang" || rc=1
+      open_pr "$pb" "$nb" "feat(python): add $slug resource" \
+        "Adds the \`$slug\` resource to the Python SDK. Stacked on the Node PR." \
+        "Python" "lang" || rc=1
+      open_pr "$gb" "$pb" "feat(go): add $slug resource" \
+        "Adds the \`$slug\` resource to the Go SDK. Stacked on the Python PR." \
+        "Go (" "lang" || rc=1
+      open_pr "$cb" "$gb" "test(conformance): add $slug scenarios" \
+        "Adds the shared cross-language conformance scenarios for \`$slug\`. Stacked on the Go PR; merging it activates the conformance suites across all three SDKs." \
+        "OpenAPI spec" "shared" || rc=1
+
+      if [ "$rc" != "0" ]; then
+        echo "=== add-sdk-resource: one or more PRs failed to open; re-run with --resume (idempotent) ==="
         exit 1
       fi
-      echo "=== add-sdk-resource: opened PR for '$slug' ==="
-      echo "  $branch -> $url"
+      echo "=== add-sdk-resource: opened 4-PR stack for '$slug' (review/merge bottom-up) ==="

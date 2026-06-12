@@ -11,7 +11,7 @@ This directory holds the [Archon](https://github.com/coleam00/Archon) automation
 
 ## `add-sdk-resource`
 
-Adds a new **resource** (a product domain such as `forms` or `contacts`) to all three SDKs (Node, Python, and Go) from the canonical OpenAPI spec, generates the shared cross-language conformance scenarios, and opens a single draft PR.
+Adds a new **resource** (a product domain such as `forms` or `contacts`) to all three SDKs (Node, Python, and Go) from the canonical OpenAPI spec, generates the shared cross-language conformance scenarios, and opens a **stack of draft PRs** (one per language plus a conformance PR on top) so each language is reviewed on its own small diff.
 
 ### Invocation
 
@@ -22,7 +22,7 @@ archon workflow run add-sdk-resource --branch feat/<domain>-resource "<domain>"
 ```
 
 - **`"<domain>"`** (the positional argument) is the resource/domain name: the first path segment after `/v1/` in `openapi/spec.json` (e.g. `forms`, `contacts`, `payment-links`). It's matched case-insensitively and tolerates hyphens, underscores, and spaces, so `"forms"`, `"Forms"`, and even a short sentence resolve the same. It must match **exactly one** domain in the spec; if it matches none or several, the run stops and lists the available domains.
-- **`--branch`** names the worktree Archon creates for the run. The PR branch this workflow generates is `<github-username>/sdk-add-resource/<domain>`, namespaced by the GitHub user who runs it so concurrent runs by different people never collide; it is cut fresh from `origin/main` at publish time.
+- **`--branch`** names the worktree Archon creates for the run. The PR branches this workflow generates are `<github-username>/sdk-add-resource/<domain>/{node,python,go,conformance}`, namespaced by the GitHub user who runs it so concurrent runs by different people never collide; the bottom branch is cut fresh from `origin/main` at publish time and each higher branch is stacked on the one below it.
 
 Monitor a run with `archon workflow status` (or `archon serve` for the web UI), and list past runs with `archon workflow runs`.
 
@@ -35,10 +35,12 @@ Monitor a run with `archon workflow status` (or `archon serve` for the web UI), 
 5. **review-gate**: pauses for you to approve the endpoint set + contract (see [The approval gate](#the-approval-gate)).
 6. **impl-{node,python,go}**: implements the resource + per-endpoint examples + tests in each language, in parallel.
 7. **validate-{node,python,go}**: runs each language's full CI gate (install, lint, type-check, coverage, build).
-8. **publish-commit**: commits per language + the shared conformance scenarios and pushes the namespaced branch `<github-username>/sdk-add-resource/<domain>`. **Only runs if all three validations pass**. If any fails, nothing is committed or pushed and no PR is opened.
-9. **publish-pr**: opens the draft PR for the pushed branch. If `publish-commit` found nothing to publish, this is skipped cleanly with no PR.
+8. **publish-commit**: carves the implementation into a four-branch stack (`.../node` off `origin/main`, then `.../python`, `.../go`, `.../conformance` each stacked on the one below) and pushes all four. **Only runs if all three validations pass**. If any fails, nothing is committed or pushed and no PRs are opened.
+9. **publish-pr**: opens one draft PR per branch, each based on the branch below it (the node PR targets `main`). If `publish-commit` found nothing to publish, this is skipped cleanly with no PRs.
 
 Publishing is two steps (`publish-commit` then `publish-pr`) rather than one so each step's script stays well under the command-line length limit Archon hits on Windows, where a longer script is silently truncated mid-run.
+
+The shared conformance scenarios sit at the **top** of the stack on purpose. Each language's conformance harness globs every scenario file and hard-errors on a resource with no dispatcher, so the scenarios can only land once all three dispatchers are present. With them on top, every lower branch has its dispatcher but no scenarios yet (inert and green), and the cross-language contract is actually exercised on the top conformance PR, whose CI sees all three implementations plus the scenarios. The trade-off is that the per-language PRs are not conformance-checked until the conformance PR runs - so review and merge the stack **bottom-up**, and treat the conformance PR as the gate that validates the set.
 
 The run executes in an isolated worktree and is resume-safe: if a late step fails (e.g. `gh pr create`), fix the cause and resume the run rather than starting over.
 
@@ -97,11 +99,16 @@ re-run. The gate is intentionally go/no-go.
 
 ### Output
 
-A single **draft** PR against `main`, with:
+A stack of four **draft** PRs, layered `main <- node <- python <- go <- conformance`:
 
-- one commit per language: `feat(node|python|go): add <domain> resource`,
-- one commit for the shared scenarios: `test(conformance): add <domain> scenarios`,
-- a body filled in from `.github/PULL_REQUEST_TEMPLATE.md`.
+- `feat(node): add <domain> resource` (base `main`),
+- `feat(python): add <domain> resource` (base = the node branch),
+- `feat(go): add <domain> resource` (base = the python branch),
+- `test(conformance): add <domain> scenarios` (base = the go branch).
+
+Review and merge them **bottom-up**. After you merge the node PR, GitHub
+retargets the python PR onto `main` (and so on up the stack); the conformance PR
+is where cross-language conformance CI runs for all three SDKs.
 
 If the resource already exists and the implementations make no changes, the run
-reports "nothing to publish" and exits cleanly without opening a PR.
+reports "nothing to publish" and exits cleanly without opening any PRs.
