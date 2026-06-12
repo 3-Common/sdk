@@ -18,6 +18,7 @@ from threecommon.forms.types import (
     Form,
     FormColumn,
     FormElement,
+    FormElementType,
     FormRow,
     FormStatus,
     FormSummary,
@@ -25,11 +26,14 @@ from threecommon.forms.types import (
     ListFormsResponse,
     ListParams,
     LogicCondition,
+    LogicOperator,
     MoveElementBody,
+    SelectionLogicCondition,
     SubmitButtonAlign,
     SubmitButtonWidth,
     UpdateBody,
     UpdateElementBody,
+    YesNoLogicCondition,
 )
 
 __all__ = (
@@ -44,6 +48,7 @@ __all__ = (
     "Form",
     "FormColumn",
     "FormElement",
+    "FormElementType",
     "FormRow",
     "FormStatus",
     "FormSummary",
@@ -52,9 +57,12 @@ __all__ = (
     "ListFormsResponse",
     "ListParams",
     "LogicCondition",
+    "LogicOperator",
     "MoveElementBody",
+    "SelectionLogicCondition",
     "SubmitButtonAlign",
     "SubmitButtonWidth",
     "UpdateBody",
     "UpdateElementBody",
+    "YesNoLogicCondition",
 )

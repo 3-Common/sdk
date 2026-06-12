@@ -15,9 +15,14 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 - New public types on `threecommon.forms`: `Form`, `FormSummary`,
   `FormElement`, `DeleteElementResult`, `CreateBody`, `UpdateBody`,
   `DuplicateBody`, `AddElementBody`, `UpdateElementBody`, `MoveElementBody`,
-  `EnableOtherOptionBody`, `AddLogicRuleBody`, `LogicCondition`, `ListParams`,
-  the `ListFormsResponse` envelope, and the `FormType`/`FormStatus`/
-  `SubmitButtonWidth`/`SubmitButtonAlign`/`ElementSection` literal unions.
+  `EnableOtherOptionBody`, `AddLogicRuleBody`, `SelectionLogicCondition` and
+  `YesNoLogicCondition` (the two `condition` shapes, with `LogicCondition` as
+  their union), `ListParams`, the `ListFormsResponse` envelope, and the
+  `FormType`/`FormStatus`/`FormElementType`/`SubmitButtonWidth`/
+  `SubmitButtonAlign`/`ElementSection`/`LogicOperator` literal unions.
+- Forms request bodies serialize with `exclude_unset`, so a field explicitly
+  set to `None` is sent as JSON `null` (the API's "clear this setting"
+  signal) while unset fields stay omitted.
 
 ## 0.7.0
 

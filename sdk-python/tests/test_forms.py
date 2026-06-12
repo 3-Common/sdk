@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError as PydanticValidationError
 from pytest_httpx import HTTPXMock
 
 from threecommon import (
@@ -17,11 +18,13 @@ from threecommon.forms import (
     CreateBody,
     DuplicateBody,
     EnableOtherOptionBody,
+    FormSummary,
     ListParams,
-    LogicCondition,
     MoveElementBody,
+    SelectionLogicCondition,
     UpdateBody,
     UpdateElementBody,
+    YesNoLogicCondition,
 )
 
 
@@ -74,6 +77,13 @@ def test_list_decodes_response(httpx_mock: HTTPXMock) -> None:
     assert result.data[0].id == "frm_a"
     assert result.data[0].num_elements == 3
     assert result.has_more is False
+
+
+def test_form_summary_requires_wire_fields() -> None:
+    # The list endpoint always returns these; a missing one should fail fast
+    # rather than silently default to None.
+    with pytest.raises(PydanticValidationError):
+        FormSummary.model_validate({"id": "frm_1", "name": "First"})
 
 
 def test_list_nil_params(httpx_mock: HTTPXMock) -> None:
@@ -151,6 +161,14 @@ def test_retrieve_preserves_elements_and_layout(httpx_mock: HTTPXMock) -> None:
     assert form.rows[0].columns[0].width_fraction == 1.0
 
 
+def test_retrieve_order_form_keeps_attendee_rows_start(httpx_mock: HTTPXMock) -> None:
+    order_form = {**SAMPLE_FORM, "type": "order", "attendeeRowsStart": 2}
+    httpx_mock.add_response(url="http://test.local/v1/forms/frm_123", json={"data": order_form})
+    with _make_sync() as c:
+        form = c.forms.retrieve("frm_123")
+    assert form.attendee_rows_start == 2
+
+
 def test_retrieve_requires_id() -> None:
     with _make_sync() as c, pytest.raises(ValidationError) as exc:
         c.forms.retrieve("")
@@ -190,11 +208,17 @@ def test_create_400_surfaces(httpx_mock: HTTPXMock) -> None:
         url="http://test.local/v1/forms",
         method="POST",
         status_code=400,
-        json={"error": {"code": "validation_failed", "message": "bad type"}},
+        json={"error": {"code": "validation_failed", "message": "bad name"}},
     )
     with _make_sync() as c, pytest.raises(ValidationError) as exc:
-        c.forms.create(CreateBody(name="Bad", type="invalid"))
+        c.forms.create(CreateBody(name="Bad", type="standalone"))
     assert exc.value.code == "validation_failed"
+
+
+def test_create_rejects_invalid_type() -> None:
+    # `type` is a closed two-value enum; typos fail client-side.
+    with pytest.raises(PydanticValidationError):
+        CreateBody.model_validate({"name": "Bad", "type": "not-a-form-type"})
 
 
 def test_update_sends_body(httpx_mock: HTTPXMock) -> None:
@@ -207,6 +231,19 @@ def test_update_sends_body(httpx_mock: HTTPXMock) -> None:
     with _make_sync() as c:
         form = c.forms.update("frm_123", UpdateBody(name="Updated", status="active"))
     assert form.name == "Updated"
+
+
+def test_update_sends_explicit_null_to_clear(httpx_mock: HTTPXMock) -> None:
+    # Fields explicitly set to None go over the wire as JSON null (the API's
+    # "clear this setting" signal); unset fields are omitted entirely.
+    httpx_mock.add_response(
+        url="http://test.local/v1/forms/frm_123",
+        method="PATCH",
+        match_json={"submitButtonAlign": None},
+        json={"data": SAMPLE_FORM},
+    )
+    with _make_sync() as c:
+        c.forms.update("frm_123", UpdateBody(submit_button_align=None))
 
 
 def test_update_validates_id() -> None:
@@ -277,6 +314,12 @@ def test_add_element_validates_body() -> None:
     assert exc.value.code == "missing_body"
 
 
+def test_add_element_rejects_unknown_type() -> None:
+    # `type` is pinned to the element kinds in the OpenAPI union.
+    with pytest.raises(PydanticValidationError):
+        AddElementBody.model_validate({"type": "Carousel"})
+
+
 def test_update_element_sends_body(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/forms/frm_123/elements/elm_1",
@@ -292,6 +335,19 @@ def test_update_element_sends_body(httpx_mock: HTTPXMock) -> None:
         )
     assert element.prompt == "What is your full name?"
     assert element.required is False
+
+
+def test_update_element_sends_explicit_null_to_clear(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/forms/frm_123/elements/elm_1",
+        method="PATCH",
+        match_json={"helperText": None, "placeholder": None},
+        json={"data": SAMPLE_ELEMENT},
+    )
+    with _make_sync() as c:
+        c.forms.update_element(
+            "frm_123", "elm_1", UpdateElementBody(helper_text=None, placeholder=None)
+        )
 
 
 def test_update_element_validates_element_id() -> None:
@@ -363,11 +419,46 @@ def test_add_logic_rule_sends_body(httpx_mock: HTTPXMock) -> None:
             "elm_1",
             AddLogicRuleBody(
                 revealed_element_id="elm_2",
-                condition=LogicCondition(option_indices=[0], operator="any_of"),
+                condition=SelectionLogicCondition(option_indices=[0], operator="any_of"),
             ),
         )
     assert element.id == "elm_1"
     assert element.type == "Select One"
+
+
+def test_add_logic_rule_yes_no_condition(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/forms/frm_123/elements/elm_1/logic-rules",
+        method="POST",
+        match_json={
+            "revealedElementId": "elm_2",
+            "condition": {"selectionType": "is", "value": True},
+        },
+        json={"data": {**SAMPLE_ELEMENT, "type": "Yes/No"}},
+    )
+    with _make_sync() as c:
+        element = c.forms.add_logic_rule(
+            "frm_123",
+            "elm_1",
+            AddLogicRuleBody(
+                revealed_element_id="elm_2",
+                condition=YesNoLogicCondition(selection_type="is", value=True),
+            ),
+        )
+    assert element.type == "Yes/No"
+
+
+def test_add_logic_rule_body_accepts_both_condition_shapes() -> None:
+    # Wire-shaped (camelCase) input, as the conformance harness supplies it.
+    selection = AddLogicRuleBody.model_validate(
+        {"revealedElementId": "elm_2", "condition": {"optionIndices": [0], "operator": "any_of"}}
+    )
+    assert isinstance(selection.condition, SelectionLogicCondition)
+
+    yes_no = AddLogicRuleBody.model_validate(
+        {"revealedElementId": "elm_2", "condition": {"selectionType": "is_not", "value": False}}
+    )
+    assert isinstance(yes_no.condition, YesNoLogicCondition)
 
 
 def test_add_logic_rule_validates_body() -> None:
@@ -436,13 +527,16 @@ def test_list_auto_paginate_walks_pages(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/forms?type=standalone&page=0",
         json={
-            "data": [{"id": "frm_1", "name": "First"}, {"id": "frm_2", "name": "Second"}],
+            "data": [
+                {**SAMPLE_SUMMARY, "id": "frm_1", "name": "First"},
+                {**SAMPLE_SUMMARY, "id": "frm_2", "name": "Second"},
+            ],
             "hasMore": True,
         },
     )
     httpx_mock.add_response(
         url="http://test.local/v1/forms?type=standalone&page=1",
-        json={"data": [{"id": "frm_3", "name": "Third"}], "hasMore": False},
+        json={"data": [{**SAMPLE_SUMMARY, "id": "frm_3", "name": "Third"}], "hasMore": False},
     )
     with _make_sync() as c:
         ids = [form.id for form in c.forms.list_auto_paginate(ListParams(type="standalone"))]
@@ -632,10 +726,33 @@ async def test_async_add_logic_rule(httpx_mock: HTTPXMock) -> None:
             "elm_1",
             AddLogicRuleBody(
                 revealed_element_id="elm_2",
-                condition=LogicCondition(option_indices=[0], operator="any_of"),
+                condition=SelectionLogicCondition(option_indices=[0], operator="any_of"),
             ),
         )
     assert element.id == "elm_1"
+
+
+@pytest.mark.asyncio
+async def test_async_add_logic_rule_yes_no_condition(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/forms/frm_123/elements/elm_1/logic-rules",
+        method="POST",
+        match_json={
+            "revealedElementId": "elm_2",
+            "condition": {"selectionType": "is", "value": True},
+        },
+        json={"data": {**SAMPLE_ELEMENT, "type": "Yes/No"}},
+    )
+    async with _make_async() as c:
+        element = await c.forms.add_logic_rule(
+            "frm_123",
+            "elm_1",
+            AddLogicRuleBody(
+                revealed_element_id="elm_2",
+                condition=YesNoLogicCondition(selection_type="is", value=True),
+            ),
+        )
+    assert element.type == "Yes/No"
 
 
 @pytest.mark.asyncio
@@ -709,13 +826,16 @@ async def test_async_list_auto_paginate(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/forms?page=0",
         json={
-            "data": [{"id": "a", "name": "A"}, {"id": "b", "name": "B"}],
+            "data": [
+                {**SAMPLE_SUMMARY, "id": "a", "name": "A"},
+                {**SAMPLE_SUMMARY, "id": "b", "name": "B"},
+            ],
             "hasMore": True,
         },
     )
     httpx_mock.add_response(
         url="http://test.local/v1/forms?page=1",
-        json={"data": [{"id": "c", "name": "C"}], "hasMore": False},
+        json={"data": [{**SAMPLE_SUMMARY, "id": "c", "name": "C"}], "hasMore": False},
     )
     async with _make_async() as c:
         ids = [form.id async for form in c.forms.list_auto_paginate()]

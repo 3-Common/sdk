@@ -112,15 +112,16 @@ class FormsService:
     def create(self, body: CreateBody) -> Form:
         """Create a new form."""
         _require_body("create", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(Request(method="POST", path=_forms_path(), body=payload))
         return Form.model_validate(response["data"])
 
     def update(self, form_id: str, body: UpdateBody) -> Form:
-        """Edit a form's settings. Only the supplied fields are changed."""
+        """Edit a form's settings. Only the supplied fields are changed; set a
+        nullable field to ``None`` explicitly to clear it."""
         _require("update", "id", form_id)
         _require_body("update", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(
             Request(method="PATCH", path=_form_path(form_id), body=payload)
         )
@@ -129,7 +130,7 @@ class FormsService:
     def duplicate(self, form_id: str, body: DuplicateBody | None = None) -> Form:
         """Duplicate a form, optionally overriding its name and status."""
         _require("duplicate", "id", form_id)
-        payload = (body or DuplicateBody()).model_dump(by_alias=True, exclude_none=True)
+        payload = (body or DuplicateBody()).model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(
             Request(method="POST", path=f"{_form_path(form_id)}/duplicate", body=payload)
         )
@@ -139,18 +140,19 @@ class FormsService:
         """Add an element (question) to a form."""
         _require("add_element", "id", form_id)
         _require_body("add_element", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(
             Request(method="POST", path=_elements_path(form_id), body=payload)
         )
         return FormElement.model_validate(response["data"])
 
     def update_element(self, form_id: str, element_id: str, body: UpdateElementBody) -> FormElement:
-        """Edit an element. Only the supplied fields are changed."""
+        """Edit an element. Only the supplied fields are changed; set a
+        nullable field to ``None`` explicitly to clear it."""
         _require("update_element", "id", form_id)
         _require("update_element", "element_id", element_id)
         _require_body("update_element", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(
             Request(method="PATCH", path=_element_path(form_id, element_id), body=payload)
         )
@@ -170,7 +172,7 @@ class FormsService:
         _require("move_element", "id", form_id)
         _require("move_element", "element_id", element_id)
         _require_body("move_element", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(
             Request(
                 method="PUT",
@@ -181,11 +183,11 @@ class FormsService:
         return Form.model_validate(response["data"])
 
     def add_logic_rule(self, form_id: str, element_id: str, body: AddLogicRuleBody) -> FormElement:
-        """Add a conditional-logic rule to a selection element."""
+        """Add a conditional-logic rule to a selection or Yes/No element."""
         _require("add_logic_rule", "id", form_id)
         _require("add_logic_rule", "element_id", element_id)
         _require_body("add_logic_rule", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(
             Request(method="POST", path=_logic_rules_path(form_id, element_id), body=payload)
         )
@@ -209,7 +211,7 @@ class FormsService:
         _require("enable_other_option", "id", form_id)
         _require("enable_other_option", "element_id", element_id)
         _require_body("enable_other_option", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = self._http.request(
             Request(
                 method="PUT",
@@ -273,7 +275,7 @@ class AsyncFormsService:
 
     async def create(self, body: CreateBody) -> Form:
         _require_body("create", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(method="POST", path=_forms_path(), body=payload)
         )
@@ -282,7 +284,7 @@ class AsyncFormsService:
     async def update(self, form_id: str, body: UpdateBody) -> Form:
         _require("update", "id", form_id)
         _require_body("update", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(method="PATCH", path=_form_path(form_id), body=payload)
         )
@@ -290,7 +292,7 @@ class AsyncFormsService:
 
     async def duplicate(self, form_id: str, body: DuplicateBody | None = None) -> Form:
         _require("duplicate", "id", form_id)
-        payload = (body or DuplicateBody()).model_dump(by_alias=True, exclude_none=True)
+        payload = (body or DuplicateBody()).model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(method="POST", path=f"{_form_path(form_id)}/duplicate", body=payload)
         )
@@ -299,7 +301,7 @@ class AsyncFormsService:
     async def add_element(self, form_id: str, body: AddElementBody) -> FormElement:
         _require("add_element", "id", form_id)
         _require_body("add_element", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(method="POST", path=_elements_path(form_id), body=payload)
         )
@@ -311,7 +313,7 @@ class AsyncFormsService:
         _require("update_element", "id", form_id)
         _require("update_element", "element_id", element_id)
         _require_body("update_element", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(method="PATCH", path=_element_path(form_id, element_id), body=payload)
         )
@@ -329,7 +331,7 @@ class AsyncFormsService:
         _require("move_element", "id", form_id)
         _require("move_element", "element_id", element_id)
         _require_body("move_element", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(
                 method="PUT",
@@ -345,7 +347,7 @@ class AsyncFormsService:
         _require("add_logic_rule", "id", form_id)
         _require("add_logic_rule", "element_id", element_id)
         _require_body("add_logic_rule", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(method="POST", path=_logic_rules_path(form_id, element_id), body=payload)
         )
@@ -367,7 +369,7 @@ class AsyncFormsService:
         _require("enable_other_option", "id", form_id)
         _require("enable_other_option", "element_id", element_id)
         _require_body("enable_other_option", body)
-        payload = body.model_dump(by_alias=True, exclude_none=True)
+        payload = body.model_dump(by_alias=True, exclude_unset=True)
         response = await self._http.request(
             Request(
                 method="PUT",
