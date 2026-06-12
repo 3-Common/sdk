@@ -220,6 +220,8 @@ func dispatch(t *testing.T, api *client.API, sc scenario) (any, error) {
 		return dispatchPrices(t, api, ctx, sc)
 	case "features":
 		return dispatchFeatures(t, api, ctx, sc)
+	case "forms":
+		return dispatchForms(t, api, ctx, sc)
 	}
 	t.Fatalf("unsupported scenario resource %q", resource)
 	return nil, nil

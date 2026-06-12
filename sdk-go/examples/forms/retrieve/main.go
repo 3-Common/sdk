@@ -1,0 +1,28 @@
+// Run with: go run ./examples/forms/retrieve
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	threecommon "github.com/3-Common/sdk/sdk-go"
+	"github.com/3-Common/sdk/sdk-go/client"
+)
+
+func main() {
+	api, err := client.New(threecommon.Config{
+		APIKey: "3co_your_api_key_here",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	form, err := api.Forms.Retrieve(context.Background(), "frm_123")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s - %s (%s)\n", form.ID, form.Name, form.Status)
+	fmt.Printf("%d elements\n", len(form.Elements))
+}

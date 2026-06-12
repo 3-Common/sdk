@@ -6,6 +6,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Forms resource. The new `api.Forms` surface covers form authoring:
+  `List`, `Retrieve`, `Create`, `Update`, `Duplicate`, `AddElement`,
+  `UpdateElement`, `DeleteElement`, `MoveElement`, `AddLogicRule`,
+  `RemoveLogicRule`, `EnableOtherOption`, `DisableOtherOption`, and a
+  `ListAutoPaginate` iterator. Available as `api.Forms` and via `forms.New`
+  for standalone use.
+- New public types in `resources/forms`: `Form`, `FormDetail`, `Element`,
+  `LogicGroup`, `CreateParams`, `UpdateParams`, `DuplicateParams`,
+  `AddElementParams`, `UpdateElementParams`, `MoveElementParams`,
+  `AddLogicRuleParams`, `LogicCondition`, `EnableOtherOptionParams`,
+  `ListParams`, the `ListResponse` and `DeleteElementResult` shapes, and the
+  `Type`/`Status`/`ElementType`/`LogicOperator`/`SelectionType`/`MoveSection`/
+  `SubmitButtonWidth`/`SubmitButtonAlign` enums.
+
 ## 0.7.0
 
 ### Added
