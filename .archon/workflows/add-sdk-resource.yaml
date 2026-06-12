@@ -395,7 +395,9 @@ nodes:
   # Branch namespacing: keyed to the GitHub user opening the PRs (gh is a required,
   # authenticated prerequisite), so concurrent runs for the same resource by
   # different people never collide. stack.txt (in ARTIFACTS_DIR, never staged)
-  # hands the four branch names, in order, to 7b.
+  # hands the four branch names, in order, to 7b. A preflight rejects the build up
+  # front if a leaf branch named exactly $base (an old pre-stacking branch) exists
+  # locally or on origin, since it would D/F-conflict with $base/<lang>.
   #
   # set -euo pipefail: any unexpected failure must abort, not push a partial stack.
   # Every EXPECTED non-zero is guarded with `|| ...` or an `if`.
@@ -456,6 +458,27 @@ nodes:
       nb="$base/node"; pb="$base/python"; gb="$base/go"; cb="$base/conformance"
       printf '%s\n%s\n%s\n%s\n' "$nb" "$pb" "$gb" "$cb" > "$ARTIFACTS_DIR/stack.txt"
 
+      # Preflight the branch namespace: a leaf ref named exactly $base blocks creating
+      # the stacked branches $base/node, $base/python, ... - git forbids a ref and a
+      # directory of refs sharing a name (a D/F conflict). This bites when an old
+      # pre-stacking branch <user>/sdk-add-resource/<slug> lingers (local or on origin;
+      # origin is best-effort - a network hiccup must not block, and push surfaces it too).
+      conflict=""
+      git show-ref --verify --quiet "refs/heads/$base" && conflict="local"
+      if git ls-remote --heads origin "refs/heads/$base" 2>/dev/null | grep -qE "[[:space:]]refs/heads/$base$"; then
+        conflict="${conflict:+$conflict + }origin"
+      fi
+      if [ -n "$conflict" ]; then
+        echo "=== add-sdk-resource: branch-name conflict - cannot build the stack ==="
+        echo "A branch named '$base' exists ($conflict). It blocks creating the stacked"
+        echo "branches '$base/node', '$base/python', etc.: git cannot have both a branch"
+        echo "and a directory of branches with the same name. Remove the old branch, then"
+        echo "re-run:"
+        echo "  git branch -D $base               # if it exists locally"
+        echo "  git push origin --delete $base    # if on origin (deletes the branch / any PR head)"
+        exit 1
+      fi
+
       head_now=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
       ahead=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
       on_stack=0
@@ -483,19 +506,20 @@ nodes:
           exit 0
         fi
         built=0
-        # carve: $1 branch  $2 start-point (empty = current HEAD)  $3 pathspec  $4 message
+        # carve: $1 branch  $2 start-point ("" = current HEAD)  $3 pathspec  $4 message.
+        # Capture git's stderr (do NOT suppress it) so a failure - a D/F ref conflict,
+        # the branch checked out in another worktree, a tracked-file conflict with
+        # origin/main - is self-explaining instead of a bare "could not create".
         carve() {
-          if [ -n "$2" ]; then
-            git switch -C "$1" "$2" >/dev/null 2>&1 || {
-              echo "=== add-sdk-resource: could not create $1 from $2 ==="
-              echo "Likely $1 is checked out in another worktree (a stale run for"
-              echo "'$slug' - see 'git worktree list'), or the impl touched a tracked"
-              echo "file that also moved on origin/main since this worktree was cut."
-              echo "Resolve, then re-run with --resume."
-              exit 1
-            }
-          else
-            git switch -C "$1" >/dev/null 2>&1 || { echo "could not create branch $1"; exit 1; }
+          local err
+          if ! err=$(git switch -C "$1" "${2:-HEAD}" 2>&1 >/dev/null); then
+            echo "=== add-sdk-resource: could not create branch $1 ==="
+            echo "git: $err"
+            echo "Likely $1 is checked out in another worktree (a stale run - see"
+            echo "'git worktree list'), a ref conflicts with the name, or the impl"
+            echo "touched a tracked file that also moved on origin/main. Resolve, then"
+            echo "re-run with --resume."
+            exit 1
           fi
           git reset --quiet
           git add -- $3 2>/dev/null || true
