@@ -89,7 +89,7 @@ export interface FormsService {
    * const copy = await client.forms.duplicate('frm_123', { name: 'Registration (Copy)', status: 'draft' })
    * ```
    */
-  duplicate(id: string, body: FormDuplicateBody, options?: RequestOptions): Promise<Form>
+  duplicate(id: string, body?: FormDuplicateBody, options?: RequestOptions): Promise<Form>
 
   /**
    * Append a new element (question or static element) to a form. Returns the
@@ -278,7 +278,7 @@ export function formsService(http: HttpClient): FormsService {
       return response.data
     },
 
-    async duplicate(id: string, body: FormDuplicateBody, options?: RequestOptions): Promise<Form> {
+    async duplicate(id: string, body: FormDuplicateBody = {}, options?: RequestOptions): Promise<Form> {
       requireString('duplicate', 'id', id)
       const response = await http.request<DetailEnvelope<Form>>({
         method: 'POST',

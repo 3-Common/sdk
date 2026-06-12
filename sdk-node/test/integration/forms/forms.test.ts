@@ -206,6 +206,20 @@ describe('forms.duplicate', () => {
     const copy = await client.forms.duplicate('frm_123', { name: 'Registration (Copy)' })
     expect(copy.id).toBe('frm_copy')
   })
+
+  it('defaults to an empty body when none is given', async () => {
+    let body: unknown
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/forms/frm_123/duplicate`, async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({ data: { ...sampleForm, id: 'frm_copy', name: '[Copy] Registration' } })
+      }),
+    )
+    const client = buildClient()
+    const copy = await client.forms.duplicate('frm_123')
+    expect(copy.id).toBe('frm_copy')
+    expect(body).toEqual({})
+  })
 })
 
 describe('forms.addElement', () => {

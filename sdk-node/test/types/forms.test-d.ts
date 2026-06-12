@@ -17,6 +17,7 @@ declare const client: ThreeCommon
 // list - accepts the documented params and returns a typed ListFormsResponse.
 expectType<Promise<ListFormsResponse>>(client.forms.list({ type: 'standalone', pageSize: 50 }))
 expectAssignable<FormListParams>({ type: 'order', page: 1 })
+// @ts-expect-error testing an invalid type intentionally
 expectError<FormListParams>({ type: 'not-a-form-type' })
 
 // retrieve - id is a string; returns Form.
@@ -32,8 +33,9 @@ declare const updateBody: FormUpdateBody
 expectType<Promise<Form>>(client.forms.update('frm_123', updateBody))
 expectAssignable<FormUpdateBody>({ status: 'active', submitButtonText: 'Sign up' })
 
-// duplicate - id + body; returns Form.
+// duplicate - id + optional body; returns Form.
 expectType<Promise<Form>>(client.forms.duplicate('frm_123', { name: 'Copy', status: 'draft' }))
+expectType<Promise<Form>>(client.forms.duplicate('frm_123'))
 
 // element CRUD.
 expectType<Promise<FormElement>>(
