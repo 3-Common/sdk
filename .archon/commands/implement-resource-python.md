@@ -38,7 +38,7 @@ stages.
 
 ## Steps
 0. **Install dependencies** (the worktree has no `.venv`): `cd sdk-python && uv venv --python 3.10 .venv && uv pip install -e ".[dev]"`. Run all Python tooling below via `uv run --no-sync <tool>`, as it uses this venv exactly as installed (cross-platform, no `Scripts/`-vs-`bin/` issues; and `--no-sync` avoids a re-sync that could prune the dev extras, and never writes `uv.lock`).
-1. **Regenerate models from the spec** (idempotent): from `sdk-python/`, run the `datamodel-codegen` command from the conventions skill prefixed with `uv run --no-sync` (`uv run --no-sync datamodel-codegen ...`). Confirm `<slug>`'s shapes now appear in `src/threecommon/_generated/models.py`.
+1. **No codegen - hand-write the types.** The Python SDK does NOT use a generated layer at runtime: `src/threecommon/_generated/models.py` is a contract-reference artifact that nothing imports, so you write all request/response models by hand in step 3. Do NOT run `datamodel-codegen` or regenerate `_generated/` (it rewrites the whole file from the full spec, producing a large diff unrelated to this resource, and CI never runs it).
 2. **Study a sibling.** Read `sdk-python/src/threecommon/contacts/{service.py,types.py,__init__.py}` (or the closest-shaped sibling) and mirror its structure, docstrings, and idioms, including providing BOTH a sync and an async service.
 3. **Write the resource** under `sdk-python/src/threecommon/<slug>/`: `types.py`, `service.py` (sync `Service` + `AsyncService`), `__init__.py` (alphabetized `__all__`) -- one method per endpoint in `resource-spec.json`.
 4. **Mount it** in `sdk-python/src/threecommon/client.py` in BOTH `ThreeCommon` and `AsyncThreeCommon`: import, declare the attribute, assign in `__init__`.

@@ -20,24 +20,31 @@ fetched from the live server, **never hand-edited**.
 
 Each SDK has a **generated** layer (types produced mechanically from the spec)
 and a **hand-curated** layer (the ergonomic, public resource API). You only ever
-write the hand-curated layer. For Node and Python the generated layer is
-regenerated from the spec; the **Go** SDK is the exception -- its
-`sdk-go/generated/` is vestigial (nothing imports it) and Go resources hand-write
-all their types.
+write the hand-curated layer. **Node** is the only SDK whose generated layer is
+actually imported and regenerated from the spec. **Python and Go are the
+exceptions** -- their generated layers are NOT imported (Python's
+`_generated/models.py` is a contract-reference artifact; Go's `sdk-go/generated/`
+is unused), so resources hand-write all their types and the resource-add flow does
+NOT regenerate them.
 
 | Language | Generated (do NOT hand-edit) | Hand-curated (you write this) |
 |----------|------------------------------|-------------------------------|
 | Node | `sdk-node/src/generated/types.ts` | `sdk-node/src/resources/<name>/` |
-| Python | `sdk-python/src/threecommon/_generated/models.py` | `sdk-python/src/threecommon/<name>/` |
+| Python | `sdk-python/src/threecommon/_generated/models.py` (reference artifact; not imported -- see below) | `sdk-python/src/threecommon/<name>/` |
 | Go | `sdk-go/generated/` (vestigial; unused -- see below) | `sdk-go/resources/<name>/` |
 
-**For Node and Python, always regenerate the generated layer from the spec
-before writing the wrapper**, as the new domain's types may not be present yet
-(the commands are idempotent, no-op if already current). The **Go** SDK has no
-codegen step, see its entry below.
+**For Node, always regenerate the generated layer from the spec before writing
+the wrapper**, as the new domain's types may not be present yet (the command is
+idempotent, a no-op if already current). **Python and Go have no codegen step in
+this flow** -- their generated layers are not imported, so do NOT regenerate them
+when adding a resource (see their entries below).
 
 - **Node:** `cd sdk-node && yarn generate:types`
-- **Python:** `cd sdk-python && datamodel-codegen --input ../openapi/spec.yaml --input-file-type openapi --output src/threecommon/_generated/models.py --output-model-type pydantic_v2.BaseModel --target-python-version 3.10 --use-standard-collections --use-union-operator --use-double-quotes --field-constraints --use-schema-description --capitalise-enum-members --reuse-model --openapi-scopes paths schemas parameters`
+- **Python:** none. `sdk-python/src/threecommon/_generated/models.py` is a
+  contract-reference artifact that nothing imports; the resource hand-writes its
+  own Pydantic models in `types.py`. Do NOT run `datamodel-codegen` or otherwise
+  regenerate it when adding a resource -- it rewrites the whole file from the full
+  spec, producing a huge diff unrelated to the resource, and CI never runs it.
 - **Go:** none. The Go SDK hand-writes all types; `sdk-go/generated/` is a
   vestigial, unused codegen layer. Do NOT run `make gen` or regenerate it (it may
   fail to run, which is expected and harmless, as nothing imports its output).
@@ -67,7 +74,9 @@ read-heavy resource; a CRUD domain -> mirror `contacts`).
 
 ### Python (`sdk-python/src/threecommon/<name>/`)
 - `service.py`: both a sync `XService` and an async `AsyncXService`.
-- `types.py`: hand-curated public types over `_generated/models.py`.
+- `types.py`: hand-curated public Pydantic models. The Python SDK hand-writes
+  every type; do not import or rely on `_generated/models.py` (it is an unused
+  reference artifact).
 - `__init__.py`: barrel exporting the services + types with an explicit
   `__all__` tuple (alphabetized).
 - **Mount in `sdk-python/src/threecommon/client.py`** in BOTH `ThreeCommon`
