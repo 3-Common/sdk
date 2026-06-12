@@ -278,7 +278,11 @@ export function formsService(http: HttpClient): FormsService {
       return response.data
     },
 
-    async duplicate(id: string, body: FormDuplicateBody = {}, options?: RequestOptions): Promise<Form> {
+    async duplicate(
+      id: string,
+      body: FormDuplicateBody = {},
+      options?: RequestOptions,
+    ): Promise<Form> {
       requireString('duplicate', 'id', id)
       const response = await http.request<DetailEnvelope<Form>>({
         method: 'POST',

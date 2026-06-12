@@ -212,7 +212,9 @@ describe('forms.duplicate', () => {
     server.use(
       http.post(`${TEST_BASE_URL}/v1/forms/frm_123/duplicate`, async ({ request }) => {
         body = await request.json()
-        return HttpResponse.json({ data: { ...sampleForm, id: 'frm_copy', name: '[Copy] Registration' } })
+        return HttpResponse.json({
+          data: { ...sampleForm, id: 'frm_copy', name: '[Copy] Registration' },
+        })
       }),
     )
     const client = buildClient()
