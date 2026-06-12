@@ -5,6 +5,20 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Forms resource. The new `client.forms` surface covers form authoring:
+  `list`, `retrieve`, `create`, `update`, `duplicate`, `add_element`,
+  `update_element`, `delete_element`, `move_element`, `add_logic_rule`,
+  `remove_logic_rule`, `enable_other_option`, `disable_other_option`, and a
+  `list_auto_paginate` iterator. Both sync and async surfaces.
+- New public types on `threecommon.forms`: `Form`, `FormSummary`,
+  `FormElement`, `DeleteElementResult`, `CreateBody`, `UpdateBody`,
+  `DuplicateBody`, `AddElementBody`, `UpdateElementBody`, `MoveElementBody`,
+  `EnableOtherOptionBody`, `AddLogicRuleBody`, `LogicCondition`, `ListParams`,
+  the `ListFormsResponse` envelope, and the `FormType`/`FormStatus`/
+  `SubmitButtonWidth`/`SubmitButtonAlign`/`ElementSection` literal unions.
+
 ## 0.7.0
 
 ### Added
