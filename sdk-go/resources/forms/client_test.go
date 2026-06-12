@@ -575,6 +575,42 @@ func TestAddLogicRule_SendsBody(t *testing.T) {
 	assert.Equal(t, forms.ElementSelectOne, got.Type)
 }
 
+func TestAddLogicRule_SendsYesNoCondition(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/forms/frm_123/elements/elm_1/logic-rules", r.URL.Path)
+
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+		assert.Equal(t, "elm_2", got["revealedElementId"])
+		cond, _ := got["condition"].(map[string]any)
+		assert.Equal(t, "is", cond["selectionType"])
+		assert.Equal(t, true, cond["value"])
+		// The selection-rule fields must be omitted for a Yes/No condition.
+		_, hasOperator := cond["operator"]
+		assert.False(t, hasOperator, "operator must be omitted for a Yes/No condition")
+		_, hasOptionIndices := cond["optionIndices"]
+		assert.False(t, hasOptionIndices, "optionIndices must be omitted for a Yes/No condition")
+
+		_, _ = w.Write([]byte(`{"data":{"id":"elm_1","type":"Yes/No","prompt":"Are you attending?"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.AddLogicRule(context.Background(), "frm_123", "elm_1", &forms.AddLogicRuleParams{
+		RevealedElementID: "elm_2",
+		Condition: forms.LogicCondition{
+			SelectionType: forms.SelectionTypeIs,
+			Value:         threecommon.Bool(true),
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, forms.ElementYesNo, got.Type)
+}
+
 func TestAddLogicRule_RequiresID(t *testing.T) {
 	t.Parallel()
 	cl, _ := forms.New(threecommon.Config{APIKey: "k"})
