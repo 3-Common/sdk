@@ -114,7 +114,12 @@ def test_retrieve_preserves_elements_and_layout(httpx_mock: HTTPXMock) -> None:
                     {"revealedElementIndex": 1, "optionIndices": [0], "operator": "any_of"}
                 ],
             },
-            {"id": "elm_2", "type": "Static Image", "prompt": "Banner", "src": "https://x.test/a.png"},
+            {
+                "id": "elm_2",
+                "type": "Static Image",
+                "prompt": "Banner",
+                "src": "https://x.test/a.png",
+            },
         ],
         "rows": [{"columns": [{"elementIndex": 0, "widthFraction": 1.0}]}],
     }

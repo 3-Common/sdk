@@ -77,9 +77,7 @@ class FormColumn(_BaseModel):
     """One column in a form-layout row. Points at an element by its index in the
     form's ``elements`` array and how much of the row's width it occupies."""
 
-    element_index: int = Field(
-        serialization_alias="elementIndex", validation_alias="elementIndex"
-    )
+    element_index: int = Field(serialization_alias="elementIndex", validation_alias="elementIndex")
     width_fraction: float = Field(
         serialization_alias="widthFraction", validation_alias="widthFraction"
     )
