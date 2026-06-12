@@ -1,7 +1,8 @@
 """Run with: python examples/forms/create.py
 
-Fails with ``ValidationError`` if the supplied ``type`` is not one of
-``"standalone"`` or ``"order"``.
+``type`` must be ``"standalone"`` or ``"order"`` and is checked client-side at
+model construction. The server can still reject the request for other reasons
+(e.g. an invalid name), which surfaces as ``ValidationError``.
 """
 
 from __future__ import annotations

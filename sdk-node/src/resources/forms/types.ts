@@ -108,6 +108,9 @@ export type FormEnableOtherOptionBody =
 
 /**
  * Body accepted by `POST /v1/forms/{formId}/elements/{elementId}/logic-rules`.
+ * The `condition` is a union of two shapes: selection questions use
+ * `{ optionIndices, operator }`, while Yes/No questions use
+ * `{ selectionType, value }`.
  */
 export type FormAddLogicRuleBody =
   paths['/v1/forms/{formId}/elements/{elementId}/logic-rules']['post']['requestBody']['content']['application/json']

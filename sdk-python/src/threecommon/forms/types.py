@@ -1,11 +1,11 @@
 """Public types for the forms resource.
 
 Hand-curated Pydantic models that mirror the wire shape (camelCase aliases
-preserved). All response models use ``extra="ignore"`` so newer server-side
-fields don't break older SDK versions. The form-element bodies are the
-exception: the API accepts a wide, element-type-dependent set of fields, so the
-request bodies use ``extra="allow"`` to forward anything the SDK doesn't model
-explicitly.
+preserved). Most response models use ``extra="ignore"`` so newer server-side
+fields don't break older SDK versions. ``FormElement`` is the exception: form
+elements carry a wide, element-type-dependent set of fields, so both the
+element request bodies and ``FormElement`` itself use ``extra="allow"`` to
+preserve anything the SDK doesn't model explicitly rather than drop it.
 """
 
 from __future__ import annotations
@@ -29,6 +29,28 @@ SubmitButtonAlign = Literal["left", "center"]
 
 #: Which section of an ``order`` form an element lives in when it is moved.
 ElementSection = Literal["buyer", "ticket-holder"]
+
+#: The element kinds accepted by ``add_element``. Mirrors the OpenAPI union.
+#: The response-side ``FormElement.type`` is deliberately ``str`` instead, so
+#: element types added server-side never break response parsing.
+FormElementType = Literal[
+    "Text",
+    "Multi-line Text",
+    "Select One",
+    'Select One or "Other"',
+    "Select Multiple",
+    'Select Multiple with "Other"',
+    "Yes/No",
+    "Date",
+    "File",
+    "Email",
+    "Phone",
+    "Static Text",
+    "Static Image",
+]
+
+#: How a selection-question logic condition combines its ``option_indices``.
+LogicOperator = Literal["all_of", "any_of", "none_of"]
 
 
 class _BaseModel(BaseModel):
@@ -62,20 +84,79 @@ class _ElementBodyBase(BaseModel):
 
 
 class FormSummary(_BaseModel):
-    """A form in the compact projection returned by ``list``."""
+    """A form in the compact projection returned by ``list``.
+
+    All fields are required: the list endpoint always returns every one of
+    them.
+    """
 
     id: str
     name: str
-    num_elements: int | None = Field(
-        default=None, serialization_alias="numElements", validation_alias="numElements"
+    num_elements: int = Field(serialization_alias="numElements", validation_alias="numElements")
+    type: FormType
+    status: FormStatus
+
+
+class FormColumn(_BaseModel):
+    """One column in a form-layout row. Points at an element by its index in the
+    form's ``elements`` array and how much of the row's width it occupies."""
+
+    element_index: int = Field(serialization_alias="elementIndex", validation_alias="elementIndex")
+    width_fraction: float = Field(
+        serialization_alias="widthFraction", validation_alias="widthFraction"
     )
-    type: FormType | None = None
-    status: FormStatus | None = None
+
+
+class FormRow(_BaseModel):
+    """One row in a form's layout. ``columns`` lists the elements shown in the
+    row, left to right, with their relative widths."""
+
+    columns: list[FormColumn]
+
+
+class FormElement(BaseModel):
+    """A single element (question or static element) on a form.
+
+    The ``type`` field is a free-form label (e.g. ``"Text"``, ``"Select One"``,
+    ``'Select One or "Other"'``). The commonly used fields are modeled
+    explicitly; element-type-specific fields (``dropdown``, ``logicGroups``,
+    ``propertyData``, etc.) are preserved verbatim via ``extra="allow"`` rather
+    than dropped. ``required`` is optional because several element types
+    (``Select Multiple`` and the static text/image elements) omit it.
+    """
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+        str_strip_whitespace=False,
+    )
+
+    id: str
+    type: str
+    prompt: str
+    required: bool | None = None
+    prompt_hidden: bool | None = Field(
+        default=None, serialization_alias="promptHidden", validation_alias="promptHidden"
+    )
+    helper_text: str | None = Field(
+        default=None, serialization_alias="helperText", validation_alias="helperText"
+    )
+    placeholder: str | None = None
+    options: list[Any] | None = None
+    property_id: str | None = Field(
+        default=None, serialization_alias="propertyId", validation_alias="propertyId"
+    )
+    other_prompt: str | None = Field(
+        default=None, serialization_alias="otherPrompt", validation_alias="otherPrompt"
+    )
 
 
 class Form(_BaseModel):
     """A form in the full projection returned by ``retrieve``, ``create``,
-    ``update``, ``duplicate``, and ``move_element``."""
+    ``update``, ``duplicate``, and ``move_element`` - including its ``elements``
+    and layout ``rows``. ``attendee_rows_start`` is populated on ``order``
+    forms only: it is the index in ``rows`` where the ticket-holder section
+    begins."""
 
     id: str
     name: str
@@ -100,22 +181,12 @@ class Form(_BaseModel):
         serialization_alias="submitButtonAlign",
         validation_alias="submitButtonAlign",
     )
-
-
-class FormElement(_BaseModel):
-    """A single element (question) on a form.
-
-    The ``type`` field is a free-form label (e.g. ``"Text"``, ``"Select One"``,
-    ``'Select One or "Other"'``); element-type-specific fields beyond those
-    declared here are dropped by ``extra="ignore"``.
-    """
-
-    id: str
-    prompt: str
-    type: str
-    required: bool
-    other_prompt: str | None = Field(
-        default=None, serialization_alias="otherPrompt", validation_alias="otherPrompt"
+    elements: list[FormElement] | None = None
+    rows: list[FormRow] | None = None
+    attendee_rows_start: int | None = Field(
+        default=None,
+        serialization_alias="attendeeRowsStart",
+        validation_alias="attendeeRowsStart",
     )
 
 
@@ -152,13 +223,11 @@ class ListParams(_BaseModel):
 class CreateBody(_BaseModel):
     """Body accepted by ``POST /v1/forms``.
 
-    ``type`` is sent verbatim and validated server-side (valid values are
-    ``"standalone"`` and ``"order"``), so an invalid value surfaces as a
-    server-side validation error rather than a client-side one.
+    ``type`` is fixed at creation time and cannot be changed afterwards.
     """
 
     name: str
-    type: str
+    type: FormType
     name_hidden: bool | None = Field(
         default=None, serialization_alias="nameHidden", validation_alias="nameHidden"
     )
@@ -182,7 +251,9 @@ class CreateBody(_BaseModel):
 
 class UpdateBody(_BaseModel):
     """Body accepted by ``PATCH /v1/forms/{id}``. Every field is optional;
-    only the supplied fields are changed."""
+    only the supplied fields are changed. ``name_hidden`` and
+    ``submit_button_align`` accept an explicit ``None`` (sent as JSON ``null``)
+    to clear the setting server-side."""
 
     name: str | None = None
     name_hidden: bool | None = Field(
@@ -221,7 +292,7 @@ class AddElementBody(_ElementBodyBase):
     verbatim (``extra="allow"``).
     """
 
-    type: str
+    type: FormElementType
     prompt: str | None = None
     required: bool | None = None
     helper_text: str | None = Field(
@@ -238,7 +309,9 @@ class UpdateElementBody(_ElementBodyBase):
     """Body accepted by ``PATCH /v1/forms/{id}/elements/{elementId}``.
 
     Every field is optional; only the supplied fields are changed. Fields not
-    modeled here are forwarded verbatim (``extra="allow"``).
+    modeled here are forwarded verbatim (``extra="allow"``). Most fields accept
+    an explicit ``None`` (sent as JSON ``null``) to clear the setting
+    server-side.
     """
 
     prompt: str | None = None
@@ -266,21 +339,48 @@ class EnableOtherOptionBody(_BaseModel):
     other_prompt: str = Field(serialization_alias="otherPrompt", validation_alias="otherPrompt")
 
 
-class LogicCondition(_BaseModel):
-    """The condition that gates a logic rule.
+class SelectionLogicCondition(_BaseModel):
+    """Logic condition for selection questions.
 
-    ``option_indices`` selects which of the source element's options trigger the
-    rule; ``operator`` describes how they combine (e.g. ``"any_of"``).
+    ``option_indices`` selects which of the source element's options trigger
+    the rule (an index of ``-1`` means the "Other" option, where applicable);
+    ``operator`` describes how the respondent's selections must relate to them.
     """
 
     option_indices: list[int] = Field(
         serialization_alias="optionIndices", validation_alias="optionIndices"
     )
-    operator: str
+    operator: LogicOperator
+
+
+class YesNoLogicCondition(_BaseModel):
+    """Logic condition for Yes/No questions.
+
+    ``value`` is compared to the question's answer; ``selection_type`` decides
+    whether the answer must equal it (``"is"``) or differ from it
+    (``"is_not"``). An unanswered question is treated differently from an
+    explicit ``False`` answer.
+    """
+
+    selection_type: Literal["is", "is_not"] = Field(
+        serialization_alias="selectionType", validation_alias="selectionType"
+    )
+    value: bool
+
+
+#: Either condition shape accepted by ``add_logic_rule``: selection questions
+#: take a ``SelectionLogicCondition``, Yes/No questions take a
+#: ``YesNoLogicCondition``.
+LogicCondition = SelectionLogicCondition | YesNoLogicCondition
 
 
 class AddLogicRuleBody(_BaseModel):
-    """Body accepted by ``POST /v1/forms/{id}/elements/{elementId}/logic-rules``."""
+    """Body accepted by ``POST /v1/forms/{id}/elements/{elementId}/logic-rules``.
+
+    The ``condition`` shape depends on the source element:
+    ``SelectionLogicCondition`` for selection questions,
+    ``YesNoLogicCondition`` for Yes/No questions.
+    """
 
     revealed_element_id: str = Field(
         serialization_alias="revealedElementId", validation_alias="revealedElementId"
