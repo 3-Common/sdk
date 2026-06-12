@@ -206,6 +206,22 @@ describe('forms.duplicate', () => {
     const copy = await client.forms.duplicate('frm_123', { name: 'Registration (Copy)' })
     expect(copy.id).toBe('frm_copy')
   })
+
+  it('defaults to an empty body when none is given', async () => {
+    let body: unknown
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/forms/frm_123/duplicate`, async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({
+          data: { ...sampleForm, id: 'frm_copy', name: '[Copy] Registration' },
+        })
+      }),
+    )
+    const client = buildClient()
+    const copy = await client.forms.duplicate('frm_123')
+    expect(copy.id).toBe('frm_copy')
+    expect(body).toEqual({})
+  })
 })
 
 describe('forms.addElement', () => {
@@ -399,6 +415,29 @@ describe('forms.addLogicRule / removeLogicRule', () => {
     expect(body).toEqual({
       revealedElementId: 'elm_2',
       condition: { optionIndices: [0], operator: 'any_of' },
+    })
+  })
+
+  it('POSTs a Yes/No logic rule and returns the source element', async () => {
+    let body: unknown
+    server.use(
+      http.post(
+        `${TEST_BASE_URL}/v1/forms/frm_123/elements/elm_1/logic-rules`,
+        async ({ request }) => {
+          body = await request.json()
+          return HttpResponse.json({ data: { ...sampleElement, type: 'Yes/No' } })
+        },
+      ),
+    )
+    const client = buildClient()
+    const element = await client.forms.addLogicRule('frm_123', 'elm_1', {
+      revealedElementId: 'elm_2',
+      condition: { selectionType: 'is', value: true },
+    })
+    expect(element.id).toBe('elm_1')
+    expect(body).toEqual({
+      revealedElementId: 'elm_2',
+      condition: { selectionType: 'is', value: true },
     })
   })
 
