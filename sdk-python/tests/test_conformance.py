@@ -21,6 +21,7 @@ from _conformance import (
     dispatch_features,
     dispatch_invoices,
     dispatch_prices,
+    dispatch_properties,
     dispatch_subscriptions,
 )
 from threecommon import (
@@ -157,6 +158,8 @@ def _dispatch_sync(client: ThreeCommon, call: dict[str, Any]) -> Any:  # noqa: A
         return dispatch_prices.dispatch_sync(client, method, args)
     if resource == "features":
         return dispatch_features.dispatch_sync(client, method, args)
+    if resource == "properties":
+        return dispatch_properties.dispatch_sync(client, method, args)
     pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 
@@ -280,6 +283,8 @@ async def _dispatch_async(client: AsyncThreeCommon, call: dict[str, Any]) -> Any
         return await dispatch_prices.dispatch_async(client, method, args)
     if resource == "features":
         return await dispatch_features.dispatch_async(client, method, args)
+    if resource == "properties":
+        return await dispatch_properties.dispatch_async(client, method, args)
     pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 
