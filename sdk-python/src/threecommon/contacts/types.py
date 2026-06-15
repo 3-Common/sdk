@@ -68,8 +68,8 @@ class Contact(_BaseModel):
     email: str
     phone: str | None = None
     vendor_id: str = Field(serialization_alias="vendorId", validation_alias="vendorId")
-    order_sum: int = Field(serialization_alias="orderSum", validation_alias="orderSum")
-    gross_sum: int = Field(serialization_alias="grossSum", validation_alias="grossSum")
+    order_sum: float = Field(serialization_alias="orderSum", validation_alias="orderSum")
+    gross_sum: float = Field(serialization_alias="grossSum", validation_alias="grossSum")
     first_order: int | None = Field(
         default=None, serialization_alias="firstOrder", validation_alias="firstOrder"
     )
@@ -120,8 +120,8 @@ class ContactWithOrderDetails(_BaseModel):
     full_name: str = Field(serialization_alias="fullName", validation_alias="fullName")
     phone: str | None = None
     status: ContactStatus
-    gross_sum: int = Field(serialization_alias="grossSum", validation_alias="grossSum")
-    order_sum: int = Field(serialization_alias="orderSum", validation_alias="orderSum")
+    gross_sum: float = Field(serialization_alias="grossSum", validation_alias="grossSum")
+    order_sum: float = Field(serialization_alias="orderSum", validation_alias="orderSum")
     least_recent_order: str | None = Field(
         default=None,
         serialization_alias="leastRecentOrder",
