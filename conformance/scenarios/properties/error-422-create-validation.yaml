@@ -1,0 +1,34 @@
+name: 422 Validation — create Select One property without options
+call:
+  resource: properties
+  method: create
+  args:
+    body:
+      type: Select One
+      name: T-shirt size
+      status: active
+      objectType: contact
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/properties
+mockResponse:
+  status: 422
+  headers:
+    x-request-id: req-prop-422-001
+  body:
+    error:
+      code: validation_error
+      message: options is required and must have at least one entry for Select One properties
+      details:
+        field: options
+        rule: min_items
+expectedError:
+  type: ThreeCommonValidationError
+  code: validation_error
+  httpStatus: 422
+  requestId: req-prop-422-001
+  details:
+    field: options
+    rule: min_items
