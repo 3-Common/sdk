@@ -11,7 +11,7 @@ This directory holds the [Archon](https://github.com/coleam00/Archon) automation
 
 ## `add-sdk-resource`
 
-Adds a new **resource** (a product domain such as `forms` or `contacts`) to all three SDKs (Node, Python, and Go) from the canonical OpenAPI spec, generates the shared cross-language conformance scenarios, and opens a **stack of draft PRs** (one per language plus a conformance PR on top) so each language is reviewed on its own small diff.
+Adds a new **resource** (a product domain such as `forms` or `contacts`) to all three SDKs (Node, Python, and Go) from the canonical OpenAPI spec. It implements **Node first as the reference** (Node's types are generated from the spec, so it anchors the contract), **derives** the shared cross-language conformance scenarios from that verified implementation, then implements Python and Go against them, and opens a **stack of draft PRs** (one per language plus a conformance PR on top) so each language is reviewed on its own small diff.
 
 ### Invocation
 
@@ -31,12 +31,14 @@ Monitor a run with `archon workflow status` (or `archon serve` for the web UI), 
 1. **preflight**: verifies your toolchain is installed (see [Prerequisites](#prerequisites)) and reports everything missing at once before doing any work.
 2. **resolve-spec**: fetches `origin/main` and fails if your `openapi/spec.json` is behind, so the resource is never built against a stale contract.
 3. **extract-domain**: slices the spec down to the target domain (deterministic, no AI).
-4. **generate-conformance**: writes the shared `conformance/scenarios/<domain>/` set: the behavioral contract all three SDKs are implemented against.
-5. **review-gate**: pauses for you to approve the endpoint set + contract (see [The approval gate](#the-approval-gate)).
-6. **impl-{node,python,go}**: implements the resource + per-endpoint examples + tests in each language, in parallel.
-7. **validate-{node,python,go}**: runs each language's full CI gate (install, lint, type-check, coverage, build).
-8. **publish-commit**: carves the implementation into a four-branch stack (`.../node` off `origin/main`, then `.../python`, `.../go`, `.../conformance` each stacked on the one below) and pushes all four. **Only runs if all three validations pass**. If any fails, nothing is committed or pushed and no PRs are opened.
-9. **publish-pr**: opens one draft PR per branch, each based on the branch below it (the node PR targets `main`). If `publish-commit` found nothing to publish, this is skipped cleanly with no PRs.
+4. **impl-node** (the reference): implements the resource in the Node SDK + per-endpoint examples + unit tests + the conformance dispatcher, straight from the spec slice, and self-gates to green. Node leads because its types are generated from the spec, so its wire shapes are machine-checked against the contract; the method/arg surface it settles on becomes the cross-language contract.
+5. **generate-conformance**: **derives** the shared `conformance/scenarios/<domain>/` set from the verified Node implementation (not from an imagined contract), and self-validates by running Node's conformance suite against them.
+6. **validate-node**: runs Node's full CI gate (install, lint, type-check, coverage, build), now also exercising the derived conformance scenarios.
+7. **review-gate**: pauses for you to approve the reference API surface + derived scenarios (see [The approval gate](#the-approval-gate)).
+8. **impl-{python,go}**: implements the resource + per-endpoint examples + tests in Python and Go, in parallel, against the derived scenarios (the equivalence gate) plus each language's own unit tests.
+9. **validate-{python,go}**: runs each follower language's full CI gate (install, lint, type-check, coverage, build).
+10. **publish-commit**: carves the implementation into a four-branch stack (`.../node` off `origin/main`, then `.../python`, `.../go`, `.../conformance` each stacked on the one below) and pushes all four. **Only runs if all three validations pass**. If any fails, nothing is committed or pushed and no PRs are opened.
+11. **publish-pr**: opens one draft PR per branch, each based on the branch below it (the node PR targets `main`). If `publish-commit` found nothing to publish, this is skipped cleanly with no PRs.
 
 Publishing is two steps (`publish-commit` then `publish-pr`) rather than one so each step's script stays well under the command-line length limit Archon hits on Windows, where a longer script is silently truncated mid-run.
 
@@ -86,16 +88,17 @@ no separate install inside Git Bash or WSL is needed.
 
 ### The approval gate
 
-At `review-gate` the run pauses and prints the sliced endpoint list and a note that
-the conformance scenarios have been generated under `conformance/scenarios/<domain>/`.
-Review both, then:
+At `review-gate` the run pauses after the Node reference SDK has been implemented
+and has passed its full CI gate. It prints the sliced endpoint list and a note that
+the conformance scenarios were derived from that Node implementation under
+`conformance/scenarios/<domain>/` (and Node passes every one). Review both, then:
 
-- **Approve** to launch the three parallel implementations.
+- **Approve** to launch the Python and Go implementations (in parallel).
 - **Reject** (with a reason) to stop.
 
 Reject (don't approve-with-changes) if the contract is wrong: the conformance
-scenarios are fixed *before* this gate, so the right fix is to stop, adjust, and
-re-run. The gate is intentionally go/no-go.
+scenarios are already derived *before* this gate, so the right fix is to stop,
+adjust, and re-run. The gate is intentionally go/no-go.
 
 ### Output
 

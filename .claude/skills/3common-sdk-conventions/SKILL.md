@@ -117,8 +117,7 @@ Cross-language behavioral tests live in `conformance/scenarios/<resource>/*.yaml
 -- one shared, language-agnostic set per resource. Each scenario describes one
 SDK call: inputs, the expected wire request(s), the mock response(s), and the
 expected return value or thrown error. Every SDK runs the full set and must
-behave identically. (Note: `conformance/README.md` is stale, it lists Python
-and Go as "Planned". They are **live and required**; all three harnesses exist.)
+behave identically -- all three harnesses are live and required.
 
 Adding a resource requires BOTH of these:
 

@@ -9,6 +9,13 @@ You are adding a new resource to the **Python** SDK only (`sdk-python/`). Follow
 the `3common-sdk-conventions` skill for all layout, naming, codegen, and
 quality-gate rules -- it is preloaded into your context.
 
+The Node SDK is the reference implementation and is already done; the shared
+conformance scenarios in `conformance/scenarios/<slug>/` were derived from it and
+are the cross-language contract. Your job is to make the Python SDK behave
+identically: the conformance suite is the equivalence gate against that Node
+reference, and your own unit tests cover everything it leaves unpinned. Match the
+scenarios' method names and arg shapes exactly; do not introduce new names.
+
 ## Canonical slug: use this, not the raw message
 Read `$ARTIFACTS_DIR/resource-spec.json` and take its **`domain`** field as the
 resource slug (always the lowercase OpenAPI path segment, the first path

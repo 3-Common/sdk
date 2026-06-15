@@ -6,13 +6,16 @@ description: |
   Use when: the user asks to add / wrap / scaffold a new SDK resource or domain,
   e.g. "add the <name> resource", "wrap the <domain> endpoints in the SDK".
   Does: verifies the spec is current with origin/main, slices it to the target
-  domain, gets human approval on the endpoint set, implements the resource +
-  examples + tests in each language in parallel, validates each against the
-  CI gates, then opens a stacked set of draft PRs - one per language plus a
-  top conformance PR - layered main <- node <- python <- go <- conformance.
-  The shared conformance scenarios land last (the top PR) because they activate
-  every language's conformance suite at once, so they require all three
-  implementations to already be present.
+  domain, implements Node first as the reference SDK (its types are generated
+  from the spec, so it anchors the contract), derives the shared cross-language
+  conformance scenarios from that verified Node implementation, gets human
+  approval on the resulting API surface + scenarios, then implements Python and
+  Go in parallel against those scenarios, validates each against the CI gates,
+  and opens a stacked set of draft PRs - one per language plus a top conformance
+  PR - layered main <- node <- python <- go <- conformance. The shared
+  conformance scenarios land last (the top PR) because they activate every
+  language's conformance suite at once, so they require all three implementations
+  to already be present.
   NOT for: editing the OpenAPI spec, releasing/publishing packages, or
   modifying an existing resource.
 
@@ -246,25 +249,50 @@ nodes:
       }
       console.log("Referenced schemas: " + Object.keys(schemas).length);
 
-  # -- 3. Generate the shared cross-language conformance scenarios ----------
-  # Defines the behavioral contract (method names, args, wire requests, errors)
-  # that all three SDKs implement against. Written once and shared by all three
-  # language implementations in the single PR. Lives in conformance/scenarios/<slug>/.
-  - id: generate-conformance
-    command: generate-conformance
+  # -- 3. Implement Node first as the REFERENCE SDK -------------------------
+  # Node leads because it is the only SDK whose types are generated from the
+  # canonical spec (`yarn generate:types`), so its wire shapes are machine-checked
+  # against openapi/ rather than hand-typed (Python and Go hand-write theirs). It
+  # implements the resource + examples + unit tests (100% gate) straight from the
+  # spec slice and DEFINES the canonical method/arg surface; the conformance
+  # scenarios are derived from it next, and Python and Go then match it. No
+  # scenarios exist yet, so Node's conformance suite is inert this run - its
+  # dispatcher is written but exercises nothing until generate-conformance lands.
+  - id: impl-node
+    command: implement-resource-node
     depends_on: [extract-domain]
     context: fresh
     skills: [3common-sdk-conventions]
-    idle_timeout: 900000
-    # Highest-leverage, weakest-gated node (scenarios ARE the test, only the
-    # human gate checks them). Use Opus and deliberately set NO fallbackModel:
-    # if Opus is unavailable, fail loudly and rerun rather than silently
-    # generating a weaker contract that all three impls would bake in.
+    idle_timeout: 1800000
+    # The reference defines the contract every other language copies, so a weak
+    # first pass poisons all three. Use Opus with NO fallbackModel (matching
+    # generate-conformance): if Opus is unavailable, fail loudly and rerun rather
+    # than anchoring the contract on a weaker model.
     model: claude-opus-4-8
 
-  # -- 4. Human approval on the endpoints + behavioral contract -------------
+  # -- 4. Derive the shared cross-language conformance scenarios from Node ---
+  # Captures the behavioral contract (method names, args, wire requests, errors)
+  # from the VERIFIED Node reference - reads its actual resource API + summary and
+  # encodes that behavior, rather than inventing a contract before any code exists.
+  # Self-validates by running Node's conformance subset (reusing the worktree's
+  # node_modules from impl-node) and iterating until the reference passes every
+  # scenario it produced. Python and Go then implement against these. Lives in
+  # conformance/scenarios/<slug>/.
+  - id: generate-conformance
+    command: generate-conformance
+    depends_on: [impl-node]
+    context: fresh
+    skills: [3common-sdk-conventions]
+    idle_timeout: 900000
+    # Highest-leverage node: these scenarios become the equivalence gate for the
+    # two follower languages. Use Opus and deliberately set NO fallbackModel: if
+    # Opus is unavailable, fail loudly and rerun rather than silently deriving a
+    # weaker contract that Python and Go would bake in.
+    model: claude-opus-4-8
+
+  # -- 5. Human approval on the endpoints + behavioral contract -------------
   - id: review-gate
-    depends_on: [generate-conformance]
+    depends_on: [validate-node]
     # NOTE: approval messages get node-output substitution ($nodeId.output) but
     # NOT workflow-variable substitution - so $ARTIFACTS_DIR would render
     # literally here, whereas $extract-domain.output resolves. This is undocumented
@@ -281,42 +309,41 @@ nodes:
     # changes belong in a reject + re-run, keeping this gate go/no-go.
     approval:
       message: |
-        Review the resource contract before the 3-language implementation.
+        Review the resource contract before Python and Go are implemented.
 
-        Endpoints to wrap (from the spec slice):
+        The Node reference SDK is implemented and has passed its full CI gate
+        (lint, types, 100% coverage). It defines the canonical method/arg surface.
+
+        Endpoints wrapped (from the spec slice):
         $extract-domain.output
 
-        Conformance scenarios for this domain were generated under
-        conformance/scenarios/ - one happy-path per endpoint plus the relevant
-        error/pagination paths - the cross-language behavioral contract all three
-        SDKs implement against (see the generate-conformance step's output above).
+        Conformance scenarios were DERIVED from that verified Node implementation
+        under conformance/scenarios/ - one happy-path per endpoint plus the
+        relevant error/pagination paths - and Node passes every one. They are the
+        cross-language contract Python and Go will implement against.
 
-        Approve to implement in Node, Python, and Go and open a stack of draft
-        PRs (one per language, then the shared conformance scenarios on top).
-        Reject with a reason to stop.
+        Approve to implement Python and Go (in parallel) and open a stack of draft
+        PRs (Node, then Python, Go, then the shared conformance scenarios on top).
+        Reject with a reason to stop - contract changes (e.g. a method rename)
+        belong in a reject + re-run, since the scenarios are already derived.
 
-  # -- 5. Implement per language, in parallel (no git in these nodes) -------
-  - id: impl-node
-    command: implement-resource-node
-    depends_on: [review-gate]
-    context: fresh
-    skills: [3common-sdk-conventions]
-    idle_timeout: 1800000
-    # TUNABLE KNOB: impls are strongly gated (strict lint/types + coverage +
-    # conformance), so a Sonnet fallback is safe here. Start on Opus for
-    # first-pass quality + fewer iterations against strict gates; once Opus
-    # proves to be overkill on routine resources, drop these three to
-    # `claude-sonnet-4-6`.
-    model: claude-opus-4-8
-    fallbackModel: claude-sonnet-4-6
-
+  # -- 6. Implement the follower languages (Python, Go) in parallel ---------
+  # The Node reference + derived scenarios are approved; Python and Go now
+  # implement against those scenarios (the equivalence gate) plus their own unit
+  # tests. No git in these nodes.
   - id: impl-python
     command: implement-resource-python
     depends_on: [review-gate]
     context: fresh
     skills: [3common-sdk-conventions]
     idle_timeout: 1800000
-    model: claude-opus-4-8   # tunable knob - see impl-node
+    # TUNABLE KNOB: the follower impls are strongly gated (strict lint/types +
+    # coverage + conformance against the Node reference), so a Sonnet fallback is
+    # safe here. Start on Opus for first-pass quality + fewer iterations against
+    # strict gates; once Opus proves to be overkill on routine resources, drop
+    # these two to `claude-sonnet-4-6`. (The reference impl-node has no fallback -
+    # it defines the contract, so its quality must not silently degrade.)
+    model: claude-opus-4-8
     fallbackModel: claude-sonnet-4-6
 
   - id: impl-go
@@ -325,12 +352,17 @@ nodes:
     context: fresh
     skills: [3common-sdk-conventions]
     idle_timeout: 1800000
-    model: claude-opus-4-8   # tunable knob - see impl-node
+    model: claude-opus-4-8   # tunable knob - see impl-python
     fallbackModel: claude-sonnet-4-6
 
-  # -- 6. Deterministic CI-gate per language; marker file gates publish -----
+  # -- 7. Deterministic CI-gate per language; marker file gates publish -----
+  # validate-node depends on generate-conformance (not just impl-node): it runs
+  # AFTER the scenarios are derived, so its `yarn test:coverage` exercises the Node
+  # reference against its own conformance scenarios as well as the unit tests - the
+  # deterministic gate behind the review-gate. validate-python / validate-go gate
+  # the two followers after their impls.
   - id: validate-node
-    depends_on: [impl-node]
+    depends_on: [generate-conformance]
     # 20 min. These gates are slow on cold caches - Node does a cold `yarn
     # install` + tsup build; Python's first `uv run --no-sync pyright` downloads a Node
     # runtime; Go installs oapi-codegen and runs race tests. A timeout here would
@@ -384,8 +416,8 @@ nodes:
       go build ./examples/...
       touch "$ARTIFACTS_DIR/go.ok"
 
-  # -- 7a. Build the stacked branches (one per language + conformance), push --
-  # Publishing is split into 7a (build + push the stack) and 7b (open the PRs) so
+  # -- 8a. Build the stacked branches (one per language + conformance), push --
+  # Publishing is split into 8a (build + push the stack) and 8b (open the PRs) so
   # each bash node's script stays well under the ~8 KB command-line limit Archon
   # hits on Windows (see the CONVENTION note at the top of `nodes:`).
   #
@@ -581,8 +613,8 @@ nodes:
       touch "$ARTIFACTS_DIR/pushed.ok"
       echo "=== add-sdk-resource: pushed 4-branch stack for '$slug' (base $base) - opening PRs in publish-pr ==="
 
-  # -- 7b. Open the stacked PRs for the branches publish-commit pushed --------
-  # Deliberately small (see 7a): just body-build + gh, nowhere near the truncation
+  # -- 8b. Open the stacked PRs for the branches publish-commit pushed --------
+  # Deliberately small (see 8a): just body-build + gh, nowhere near the truncation
   # limit. Runs in the same worktree. Reads the four branch names (in stack order)
   # from stack.txt and opens one draft PR per branch, each based on the branch below
   # it (the node PR targets main).
