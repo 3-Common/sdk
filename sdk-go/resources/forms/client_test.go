@@ -393,12 +393,14 @@ func TestDuplicate_SendsBody(t *testing.T) {
 	assert.Equal(t, "frm_copy", got.ID)
 }
 
-func TestDuplicate_NilParamsSendsNoBody(t *testing.T) {
+func TestDuplicate_NilParamsSendsEmptyObjectBody(t *testing.T) {
 	t.Parallel()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
-		assert.Empty(t, body, "nil DuplicateParams must send no body")
+		// The endpoint requires a body, so nil params must serialize to an
+		// empty object rather than no body or a literal "null".
+		assert.JSONEq(t, `{}`, string(body), "nil DuplicateParams must send an empty object body")
 		_, _ = w.Write([]byte(`{"data":{"id":"frm_copy","name":"Registration","ownerId":"hst_1","type":"standalone","status":"draft"}}`))
 	}))
 	defer srv.Close()

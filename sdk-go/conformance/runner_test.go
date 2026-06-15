@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -55,6 +56,10 @@ type expectedRequest struct {
 	Query         map[string]string `yaml:"query"`
 	Headers       map[string]string `yaml:"headers"`
 	HeadersAbsent []string          `yaml:"headersAbsent"`
+	// Body, when present, is deep-equal compared against the JSON request body
+	// (mirroring the Node harness). BodyAbsent asserts no request body was sent.
+	Body       any  `yaml:"body"`
+	BodyAbsent bool `yaml:"bodyAbsent"`
 }
 
 type mockResponse struct {
@@ -257,6 +262,21 @@ func assertRequestMatches(t *testing.T, scenarioName string, want expectedReques
 	}
 	for _, k := range want.HeadersAbsent {
 		assert.Empty(t, r.Header.Get(k), "%s: header %s should be absent", scenarioName, k)
+	}
+
+	// Body assertion mirrors the Node harness: a non-nil want.Body is
+	// deep-equal compared against the parsed JSON request body, so an SDK that
+	// drops a field, sends an extra one, or omits an explicit null fails here.
+	raw, _ := io.ReadAll(r.Body)
+	if want.Body != nil {
+		var got any
+		if len(raw) > 0 {
+			require.NoError(t, json.Unmarshal(raw, &got), "%s: parse request body", scenarioName)
+		}
+		assert.Equal(t, normalize(want.Body), normalize(got), "%s: body", scenarioName)
+	}
+	if want.BodyAbsent {
+		assert.Empty(t, raw, "%s: request body should be absent", scenarioName)
 	}
 }
 

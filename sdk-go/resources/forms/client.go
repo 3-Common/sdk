@@ -113,19 +113,20 @@ func (c *Client) Duplicate(ctx context.Context, id string, params *DuplicatePara
 		return nil, err
 	}
 
-	req := core.Request{
-		Method: http.MethodPost,
-		Path:   "/forms/" + url.PathEscape(id) + "/duplicate",
-	}
-	// Avoid marshaling a typed-nil *DuplicateParams to a literal "null" body;
-	// the override fields are optional, so an absent params means no body.
-	if params != nil {
-		req.Body = params
+	// The endpoint's request body is required, so always send one. With no
+	// overrides that is an empty object (`{}`), not a bodyless POST or a typed
+	// nil's literal "null" - both would rely on undocumented server behavior.
+	if params == nil {
+		params = &DuplicateParams{}
 	}
 
 	var env formEnvelope
-	req.Out = &env
-	if err := c.backend.Do(ctx, req); err != nil {
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/forms/" + url.PathEscape(id) + "/duplicate",
+		Body:   params,
+		Out:    &env,
+	}); err != nil {
 		return nil, err
 	}
 	return &env.Data, nil

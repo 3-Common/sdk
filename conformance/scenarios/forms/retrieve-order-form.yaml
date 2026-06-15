@@ -1,0 +1,59 @@
+name: retrieve order form preserves order-only and date fields
+# Pins that order-form fields survive deserialization across all SDKs:
+#   - attendeeRowsStart on the form
+#   - askAllAttendees and forEventItems on an element
+#   - a Date element's min/max bounds (must decode as strings, not numbers)
+# These were dropped or mistyped in some SDKs before this fix; subset matching
+# on the result fails if any are missing or wrongly typed.
+call:
+  resource: forms
+  method: retrieve
+  args:
+    id: frm_order
+expectedRequest:
+  method: GET
+  path: /v1/forms/frm_order
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-retrieve-order-001
+  body:
+    data:
+      id: frm_order
+      name: Conference Registration
+      ownerId: hst_1
+      type: order
+      status: active
+      attendeeRowsStart: 1
+      elements:
+        - id: elm_date
+          type: Date
+          prompt: Arrival date
+          required: true
+          min: '2024-01-01'
+          max: '2024-12-31'
+        - id: elm_meal
+          type: 'Select One'
+          prompt: Meal preference
+          required: false
+          askAllAttendees: true
+          forEventItems:
+            - type: eventItem
+              eventId: evt_1
+              itemId: itm_1
+expectedResult:
+  id: frm_order
+  type: order
+  attendeeRowsStart: 1
+  elements:
+    - id: elm_date
+      min: '2024-01-01'
+      max: '2024-12-31'
+    - id: elm_meal
+      askAllAttendees: true
+      forEventItems:
+        - type: eventItem
+          eventId: evt_1
+          itemId: itm_1

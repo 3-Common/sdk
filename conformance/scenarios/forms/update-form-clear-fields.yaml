@@ -1,0 +1,37 @@
+name: update form - explicit empty string and null both survive
+# Two distinct "clear" signals must both reach the wire intact:
+#   - submitButtonText: '' (an explicit empty string, not omission)
+#   - submitButtonAlign: null (an explicit JSON null)
+# An SDK that treats an empty string as "unset" (dropping it) or cannot emit an
+# explicit null sends a smaller body and fails the exact body assertion.
+call:
+  resource: forms
+  method: update
+  args:
+    id: frm_123
+    body:
+      submitButtonText: ''
+      submitButtonAlign: null
+expectedRequest:
+  method: PATCH
+  path: /v1/forms/frm_123
+  body:
+    submitButtonText: ''
+    submitButtonAlign: null
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-update-clear-001
+  body:
+    data:
+      id: frm_123
+      name: Registration
+      ownerId: hst_1
+      type: standalone
+      status: active
+expectedResult:
+  id: frm_123
+  status: active

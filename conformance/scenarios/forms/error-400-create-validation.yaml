@@ -1,19 +1,24 @@
-name: 400 Validation - create form with invalid type
+name: 400 Validation - create form rejected server-side
+# Triggers the 400 with a structurally-valid body (a blank name) rather than an
+# invalid `type` enum: some SDKs validate closed enums client-side, so an
+# invalid enum never reaches the server and this would assert behavior that
+# isn't a cross-language contract. A blank name reaches the server everywhere,
+# so this stays a faithful test of server-side error mapping.
 call:
   resource: forms
   method: create
   args:
     body:
-      name: Bad Form
-      type: invalid
+      name: ''
+      type: standalone
 client:
   maxRetries: 0
 expectedRequest:
   method: POST
   path: /v1/forms
   body:
-    name: Bad Form
-    type: invalid
+    name: ''
+    type: standalone
 mockResponse:
   status: 400
   headers:
@@ -21,15 +26,15 @@ mockResponse:
   body:
     error:
       code: validation_failed
-      message: type must be one of "standalone" or "order"
+      message: name must not be blank
       details:
-        field: type
-        rule: enum
+        field: name
+        rule: required
 expectedError:
   type: ThreeCommonValidationError
   code: validation_failed
   httpStatus: 400
   requestId: req-frm-400-001
   details:
-    field: type
-    rule: enum
+    field: name
+    rule: required

@@ -14,11 +14,20 @@ exchanges:
     response:
       status: 200
       body:
+        # List always returns the full summary projection (id, name,
+        # numElements, type, status); under-specifying it would let an SDK that
+        # drops or requires those fields pass or fail inconsistently.
         data:
           - id: frm_1
             name: First
+            numElements: 2
+            type: standalone
+            status: active
           - id: frm_2
             name: Second
+            numElements: 0
+            type: standalone
+            status: draft
         hasMore: true
   - request:
       method: GET
@@ -32,12 +41,18 @@ exchanges:
         data:
           - id: frm_3
             name: Third
+            numElements: 5
+            type: standalone
+            status: active
         hasMore: false
 expectedAutoPaginated:
   - id: frm_1
     name: First
+    status: active
   - id: frm_2
     name: Second
+    status: draft
   - id: frm_3
     name: Third
+    status: active
 expectedCallCount: 2
