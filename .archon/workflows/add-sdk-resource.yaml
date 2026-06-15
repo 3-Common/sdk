@@ -38,6 +38,18 @@ worktree:
 # comments ABOVE the node (free -- they live outside the block scalar and never
 # reach the shell), and keep only short, line-specific notes inline. The node
 # headers below follow this pattern.
+#
+# CONVENTION 2 - fail-fast diagnostics go to STDERR, not stdout. When a node
+# exits non-zero, Archon surfaces the node's STDERR as the failure reason; when
+# stderr is empty it falls back to leaking the leftover script body (only the
+# first line of "Command failed: bash -c <body>" is stripped, so a multi-line
+# body re-appears as the "diagnostic" -- see formatSubprocessFailure in
+# Archon's executor-shared.ts). So every `echo` that precedes an `exit 1` (or a
+# `return 1` that leads to one) MUST be redirected to stderr: `... >&2` for a
+# single line, `{ ...; } >&2` for a block. Messages on the SUCCESS path (a
+# warning that continues, a "nothing to publish" exit 0, the final status line)
+# stay on stdout -- they are the node's output and must not trip the success-path
+# stderr handler that echoes any stderr back to the user.
 nodes:
   # -- 0. Preflight - fail fast (before any AI cost) if host prerequisites are
   # missing, instead of dying cryptically deep inside a validate node after the
@@ -75,8 +87,10 @@ nodes:
         add "yarn is present but not Yarn 1 Classic - CI/validate use 'yarn install --frozen-lockfile' (removed in Yarn Berry); install Yarn 1.x"
       fi
       if [ -n "$missing" ]; then
-        echo "=== add-sdk-resource: missing host prerequisites - not starting ==="
-        echo "Install/fix the following on the host, then re-run:$missing"
+        {
+          echo "=== add-sdk-resource: missing host prerequisites - not starting ==="
+          echo "Install/fix the following on the host, then re-run:$missing"
+        } >&2
         exit 1
       fi
       echo "Preflight OK - all required tools present and gh authenticated."
@@ -99,15 +113,17 @@ nodes:
     depends_on: [preflight]
     bash: |
       set -e
-      git fetch --quiet origin main || { echo "git fetch origin main failed - cannot verify the spec is current"; exit 1; }
+      git fetch --quiet origin main || { echo "git fetch origin main failed - cannot verify the spec is current" >&2; exit 1; }
       # Fail fast if the worktree spec is behind origin/main (see header): codegen
       # reads the worktree spec, so a newer origin/main spec would desync the types.
       if ! git diff --quiet origin/main -- openapi/spec.json openapi/spec.yaml; then
-        echo "=== add-sdk-resource: openapi/ is behind origin/main - not starting ==="
-        echo "The worktree's spec differs from origin/main (likely the daily"
-        echo "openapi-sync has landed newer endpoints). Update local main"
-        echo "(git checkout main && git pull) and re-run, so the worktree is cut"
-        echo "from the current spec."
+        {
+          echo "=== add-sdk-resource: openapi/ is behind origin/main - not starting ==="
+          echo "The worktree's spec differs from origin/main (likely the daily"
+          echo "openapi-sync has landed newer endpoints). Update local main"
+          echo "(git checkout main && git pull) and re-run, so the worktree is cut"
+          echo "from the current spec."
+        } >&2
         exit 1
       fi
       # Snapshot the worktree spec for the slicer (byte-identical to codegen input).
@@ -434,7 +450,7 @@ nodes:
     timeout: 300000
     bash: |
       set -euo pipefail
-      slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing - extract-domain must have run first"; exit 1; }
+      slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing - extract-domain must have run first" >&2; exit 1; }
 
       # Atomic gate: every language must have passed its validation.
       missing=""
@@ -442,18 +458,20 @@ nodes:
         [ -f "$ARTIFACTS_DIR/$lang.ok" ] || missing="$missing $lang"
       done
       if [ -n "$missing" ]; then
-        echo "=== add-sdk-resource: FAILED - no PRs opened ==="
-        echo "These languages failed validation:$missing"
-        echo "The stack is built and pushed only once all three pass. Resolve the"
-        echo "failing language(s) and re-run with --resume."
+        {
+          echo "=== add-sdk-resource: FAILED - no PRs opened ==="
+          echo "These languages failed validation:$missing"
+          echo "The stack is built and pushed only once all three pass. Resolve the"
+          echo "failing language(s) and re-run with --resume."
+        } >&2
         # Exit non-zero so --resume re-runs this node once the failing dep is fixed.
         exit 1
       fi
 
-      git fetch --quiet origin main || { echo "git fetch origin main failed - cannot establish a fresh base for the stack"; exit 1; }
+      git fetch --quiet origin main || { echo "git fetch origin main failed - cannot establish a fresh base for the stack" >&2; exit 1; }
       # Namespace the stack by the GitHub user opening the PRs (see header).
       gh_user=$(gh api user --jq .login 2>/dev/null | tr '[:upper:]' '[:lower:]')
-      [ -n "$gh_user" ] || { echo "could not resolve GitHub username (gh api user); is gh authenticated?"; exit 1; }
+      [ -n "$gh_user" ] || { echo "could not resolve GitHub username (gh api user); is gh authenticated?" >&2; exit 1; }
       base="$gh_user/sdk-add-resource/$slug"
       nb="$base/node"; pb="$base/python"; gb="$base/go"; cb="$base/conformance"
       printf '%s\n%s\n%s\n%s\n' "$nb" "$pb" "$gb" "$cb" > "$ARTIFACTS_DIR/stack.txt"
@@ -469,13 +487,15 @@ nodes:
         conflict="${conflict:+$conflict + }origin"
       fi
       if [ -n "$conflict" ]; then
-        echo "=== add-sdk-resource: branch-name conflict - cannot build the stack ==="
-        echo "A branch named '$base' exists ($conflict). It blocks creating the stacked"
-        echo "branches '$base/node', '$base/python', etc.: git cannot have both a branch"
-        echo "and a directory of branches with the same name. Remove the old branch, then"
-        echo "re-run:"
-        echo "  git branch -D $base               # if it exists locally"
-        echo "  git push origin --delete $base    # if on origin (deletes the branch / any PR head)"
+        {
+          echo "=== add-sdk-resource: branch-name conflict - cannot build the stack ==="
+          echo "A branch named '$base' exists ($conflict). It blocks creating the stacked"
+          echo "branches '$base/node', '$base/python', etc.: git cannot have both a branch"
+          echo "and a directory of branches with the same name. Remove the old branch, then"
+          echo "re-run:"
+          echo "  git branch -D $base               # if it exists locally"
+          echo "  git push origin --delete $base    # if on origin (deletes the branch / any PR head)"
+        } >&2
         exit 1
       fi
 
@@ -492,11 +512,13 @@ nodes:
         echo "Resuming: stack already built on $cb; re-pushing."
       elif [ "$on_stack" = "1" ] && pending; then
         # Mid-build: a prior run committed some branches but didn't finish (see header).
-        echo "=== add-sdk-resource: $head_now is a stack branch with uncommitted changes ==="
-        echo "A previous run built part of the stack but didn't finish; rebuilding now"
-        echo "would orphan its commits. Inspect, then reset manually before re-running:"
-        echo "  git log --oneline origin/main..HEAD ; git status"
-        echo "  git switch - && git branch -D $nb $pb $gb $cb 2>/dev/null   # then re-run fresh"
+        {
+          echo "=== add-sdk-resource: $head_now is a stack branch with uncommitted changes ==="
+          echo "A previous run built part of the stack but didn't finish; rebuilding now"
+          echo "would orphan its commits. Inspect, then reset manually before re-running:"
+          echo "  git log --oneline origin/main..HEAD ; git status"
+          echo "  git switch - && git branch -D $nb $pb $gb $cb 2>/dev/null   # then re-run fresh"
+        } >&2
         exit 1
       else
         # Fresh build: carve the one uncommitted change set into the stack, bottom -> top.
@@ -513,12 +535,14 @@ nodes:
         carve() {
           local err
           if ! err=$(git switch -C "$1" "${2:-HEAD}" 2>&1 >/dev/null); then
-            echo "=== add-sdk-resource: could not create branch $1 ==="
-            echo "git: $err"
-            echo "Likely $1 is checked out in another worktree (a stale run - see"
-            echo "'git worktree list'), a ref conflicts with the name, or the impl"
-            echo "touched a tracked file that also moved on origin/main. Resolve, then"
-            echo "re-run with --resume."
+            {
+              echo "=== add-sdk-resource: could not create branch $1 ==="
+              echo "git: $err"
+              echo "Likely $1 is checked out in another worktree (a stale run - see"
+              echo "'git worktree list'), a ref conflicts with the name, or the impl"
+              echo "touched a tracked file that also moved on origin/main. Resolve, then"
+              echo "re-run with --resume."
+            } >&2
             exit 1
           fi
           git reset --quiet
@@ -549,7 +573,7 @@ nodes:
       while IFS= read -r b; do
         [ -n "$b" ] || continue
         if ! git push --quiet --force-with-lease -u origin "$b"; then
-          echo "=== add-sdk-resource: push failed for $b (see git's error above) ==="
+          echo "=== add-sdk-resource: push failed for $b (see git's error above) ===" >&2
           exit 1
         fi
       done < "$ARTIFACTS_DIR/stack.txt"
@@ -581,8 +605,8 @@ nodes:
     timeout: 120000
     bash: |
       set -euo pipefail
-      slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing"; exit 1; }
-      [ -f "$ARTIFACTS_DIR/stack.txt" ] || { echo "stack.txt missing -- publish-commit must run first"; exit 1; }
+      slug=$(cat "$ARTIFACTS_DIR/slug.txt") || { echo "slug.txt missing" >&2; exit 1; }
+      [ -f "$ARTIFACTS_DIR/stack.txt" ] || { echo "stack.txt missing -- publish-commit must run first" >&2; exit 1; }
       # No marker => publish-commit found nothing to publish; nothing to open.
       if [ ! -f "$ARTIFACTS_DIR/pushed.ok" ]; then
         echo "=== add-sdk-resource: nothing to publish for '$slug' - no PRs opened ==="
@@ -631,8 +655,10 @@ nodes:
         fi
         build_body "$4" "$5" "$6" > "$bf"
         if ! url=$(gh pr create --draft --base "$2" --head "$1" --title "$3" --body-file "$bf" 2>&1); then
-          echo "=== add-sdk-resource: gh pr create FAILED for $1 (base $2) ==="
-          echo "$url"
+          {
+            echo "=== add-sdk-resource: gh pr create FAILED for $1 (base $2) ==="
+            echo "$url"
+          } >&2
           return 1
         fi
         echo "  $1 (base $2) -> $url"
@@ -654,7 +680,7 @@ nodes:
         "OpenAPI spec" "shared" || rc=1
 
       if [ "$rc" != "0" ]; then
-        echo "=== add-sdk-resource: one or more PRs failed to open; re-run with --resume (idempotent) ==="
+        echo "=== add-sdk-resource: one or more PRs failed to open; re-run with --resume (idempotent) ===" >&2
         exit 1
       fi
       echo "=== add-sdk-resource: opened 4-PR stack for '$slug' (review/merge bottom-up) ==="
