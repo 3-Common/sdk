@@ -114,9 +114,7 @@ class PricesService:
     def archive(self, price_id: str) -> Price:
         """Soft-archive a price. Idempotent."""
         _require_id("archive", price_id)
-        response = self._http.request(
-            Request(method="POST", path=f"{_path_for(price_id)}/archive")
-        )
+        response = self._http.request(Request(method="POST", path=f"{_path_for(price_id)}/archive"))
         return Price.model_validate(response["data"])
 
     def unarchive(self, price_id: str) -> Price:
