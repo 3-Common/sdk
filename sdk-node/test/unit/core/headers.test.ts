@@ -10,9 +10,10 @@ describe('buildHeaders', () => {
     userAgentSuffix: 'Node/v22.0.0; darwin-arm64-24.0.0',
     telemetryHeader: undefined,
     idempotencyKey: undefined,
+    hasBody: true,
   }
 
-  it('sets the standard request headers', () => {
+  it('sets the standard request headers when hasBody is true', () => {
     const headers = buildHeaders(base)
     expect(headers.get('Authorization')).toBe('Bearer 3co_test')
     expect(headers.get('Threecommon-Version')).toBe('2026-04-29')
@@ -20,6 +21,16 @@ describe('buildHeaders', () => {
       'ThreeCommonNode/0.0.0-test (Node/v22.0.0; darwin-arm64-24.0.0)',
     )
     expect(headers.get('Accept')).toBe('application/json')
+    expect(headers.get('Content-Type')).toBe('application/json')
+  })
+
+  it('omits Content-Type when hasBody is false', () => {
+    const headers = buildHeaders({ ...base, hasBody: false })
+    expect(headers.has('Content-Type')).toBe(false)
+  })
+
+  it('sets Content-Type when hasBody is true', () => {
+    const headers = buildHeaders({ ...base, hasBody: true })
     expect(headers.get('Content-Type')).toBe('application/json')
   })
 

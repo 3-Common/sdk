@@ -145,7 +145,6 @@ func (c *Client) Archive(ctx context.Context, id string) (*Feature, error) {
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/features/" + url.PathEscape(id) + "/archive",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err
@@ -163,7 +162,6 @@ func (c *Client) Unarchive(ctx context.Context, id string) (*Feature, error) {
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/features/" + url.PathEscape(id) + "/unarchive",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err
