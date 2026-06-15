@@ -38,7 +38,7 @@ Repository = "https://github.com/3-Common/sdk"
 [project.optional-dependencies]
 dev = [
     "datamodel-code-generator>=0.26",
-    "mypy>=1.13",
+    "mypy>=2.1",
     "pyright>=1.1.390",
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
