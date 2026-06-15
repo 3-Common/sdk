@@ -97,6 +97,7 @@ func (c *Client) Do(ctx context.Context, req Request) error {
 			UserAgentSuffix: userAgentSuffix(),
 			TelemetryHeader: c.opts.Telemetry.HeaderValue(c.opts.SDKVersion, c.opts.APIVersion),
 			IdempotencyKey:  req.IdempotencyKey,
+			HasBody:         req.Body != nil,
 		})
 
 		resp, sendErr := Send(ctx, SendInput{

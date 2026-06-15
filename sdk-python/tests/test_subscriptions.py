@@ -206,7 +206,7 @@ def test_activate_posts(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/subscriptions/sub_123/activate",
         method="POST",
-        match_json={},
+        match_content=b"",
         json={"data": {**SAMPLE, "status": "active"}},
     )
     with _make_sync() as c:
@@ -260,7 +260,7 @@ def test_mark_unpaid(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/subscriptions/sub_123/mark-unpaid",
         method="POST",
-        match_json={},
+        match_content=b"",
         json={"data": {**SAMPLE, "status": "unpaid"}},
     )
     with _make_sync() as c:
@@ -272,7 +272,7 @@ def test_bill_returns_invoice(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/subscriptions/sub_123/bill",
         method="POST",
-        match_json={},
+        match_content=b"",
         json={"data": SAMPLE, "invoice": INVOICE_REF},
     )
     with _make_sync() as c:
@@ -286,7 +286,7 @@ def test_renew_with_invoice(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/subscriptions/sub_123/renew",
         method="POST",
-        match_json={},
+        match_content=b"",
         json={"data": SAMPLE, "invoice": INVOICE_REF},
     )
     with _make_sync() as c:
