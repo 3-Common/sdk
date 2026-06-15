@@ -21,6 +21,7 @@ import (
 	"github.com/3-Common/sdk/sdk-go/resources/features"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
 	"github.com/3-Common/sdk/sdk-go/resources/prices"
+	"github.com/3-Common/sdk/sdk-go/resources/properties"
 	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
 )
 
@@ -57,6 +58,10 @@ type API struct {
 	// Update, Archive, Unarchive, ListAutoPaginate.
 	Features *features.Client
 
+	// Properties is the properties resource - List, Retrieve, Create, Update,
+	// ListAutoPaginate.
+	Properties *properties.Client
+
 	backend *core.Client
 }
 
@@ -76,6 +81,7 @@ func New(cfg threecommon.Config) (*API, error) {
 		Entitlements:  entitlements.FromBackend(backend),
 		Prices:        prices.FromBackend(backend),
 		Features:      features.FromBackend(backend),
+		Properties:    properties.FromBackend(backend),
 		backend:       backend,
 	}, nil
 }
