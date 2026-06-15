@@ -16,3 +16,7 @@ const form = await client.forms.retrieve('frm_replace_with_real_id')
 console.log(`${form.id} - ${form.name}`)
 console.log(`  type:   ${form.type}`)
 console.log(`  status: ${form.status}`)
+console.log('  elements:')
+for (const el of form.elements) {
+  console.log(`    ${el.id}: "${el.prompt}" (${el.type})`)
+}
