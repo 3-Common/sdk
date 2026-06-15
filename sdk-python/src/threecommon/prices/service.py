@@ -115,7 +115,7 @@ class PricesService:
         """Soft-archive a price. Idempotent."""
         _require_id("archive", price_id)
         response = self._http.request(
-            Request(method="POST", path=f"{_path_for(price_id)}/archive", body={})
+            Request(method="POST", path=f"{_path_for(price_id)}/archive")
         )
         return Price.model_validate(response["data"])
 
@@ -123,7 +123,7 @@ class PricesService:
         """Reactivate a previously archived price. Idempotent."""
         _require_id("unarchive", price_id)
         response = self._http.request(
-            Request(method="POST", path=f"{_path_for(price_id)}/unarchive", body={})
+            Request(method="POST", path=f"{_path_for(price_id)}/unarchive")
         )
         return Price.model_validate(response["data"])
 
@@ -196,14 +196,14 @@ class AsyncPricesService:
     async def archive(self, price_id: str) -> Price:
         _require_id("archive", price_id)
         response = await self._http.request(
-            Request(method="POST", path=f"{_path_for(price_id)}/archive", body={})
+            Request(method="POST", path=f"{_path_for(price_id)}/archive")
         )
         return Price.model_validate(response["data"])
 
     async def unarchive(self, price_id: str) -> Price:
         _require_id("unarchive", price_id)
         response = await self._http.request(
-            Request(method="POST", path=f"{_path_for(price_id)}/unarchive", body={})
+            Request(method="POST", path=f"{_path_for(price_id)}/unarchive")
         )
         return Price.model_validate(response["data"])
 
