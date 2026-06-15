@@ -38,7 +38,10 @@ Repository = "https://github.com/3-Common/sdk"
 [project.optional-dependencies]
 dev = [
     "datamodel-code-generator>=0.26",
-    "mypy>=1.13",
+    # Floor at 2.1: older mypy infers a join over the heterogeneous parametrize
+    # tuples in tests/test_prices.py and rejects it; 2.1+ handles it (matches
+    # the version used locally). Keeps local and CI on the same type-checker.
+    "mypy>=2.1",
     "pyright>=1.1.390",
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
