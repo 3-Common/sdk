@@ -5,6 +5,17 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.7.1
+
+### Fixed
+
+- Contact `order_sum` and `gross_sum` are now typed `float` instead of `int` on
+  both the `Contact` (list / retrieve / create) and `ContactWithOrderDetails`
+  (update) models. The API returns fractional currency totals (e.g.
+  `321727383.64`), which the `int` types rejected — every `contacts.list`,
+  `retrieve`, `update`, and auto-paginate call against an account with
+  non-integer totals raised a Pydantic validation error.
+
 ## 0.7.0
 
 ### Added
