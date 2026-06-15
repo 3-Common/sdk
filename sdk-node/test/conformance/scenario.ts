@@ -47,6 +47,7 @@ export type Resource =
   | 'entitlements'
   | 'prices'
   | 'features'
+  | 'properties'
 
 export type Method =
   | 'list'

@@ -104,6 +104,20 @@ export type {
   PricesService,
 } from './resources/prices'
 
+// Properties resource (types only - instances live on the client).
+export type {
+  ListPropertiesResponse,
+  Property,
+  PropertyCreateBody,
+  PropertyListParams,
+  PropertyObjectType,
+  PropertyOption,
+  PropertyStatus,
+  PropertyType,
+  PropertyUpdateBody,
+  PropertiesService,
+} from './resources/properties'
+
 // Subscriptions resource (types only — instances live on the client).
 export type {
   BillSubscriptionResult,

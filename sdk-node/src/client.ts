@@ -8,6 +8,7 @@ import { eventsService, type EventsService } from '@/resources/events'
 import { featuresService, type FeaturesService } from '@/resources/features'
 import { invoicesService, type InvoicesService } from '@/resources/invoices'
 import { pricesService, type PricesService } from '@/resources/prices'
+import { propertiesService, type PropertiesService } from '@/resources/properties'
 import { subscriptionsService, type SubscriptionsService } from '@/resources/subscriptions'
 
 import type { ClientConfig } from '@/types/public'
@@ -48,6 +49,9 @@ export class ThreeCommon {
   /** Features resource — list, resolve, retrieve, create, update, archive, unarchive, plus listAutoPaginate. */
   public readonly features: FeaturesService
 
+  /** Properties resource - list, retrieve, create, update, plus listAutoPaginate. */
+  public readonly properties: PropertiesService
+
   private readonly httpClient: HttpClient
   private readonly telemetry: Telemetry
 
@@ -78,6 +82,7 @@ export class ThreeCommon {
     this.entitlements = entitlementsService(this.httpClient)
     this.prices = pricesService(this.httpClient)
     this.features = featuresService(this.httpClient)
+    this.properties = propertiesService(this.httpClient)
   }
 
   /**
