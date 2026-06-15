@@ -133,7 +133,7 @@ class FeaturesService:
         """Soft-archive a feature. Idempotent."""
         _require_id("archive", feature_id)
         response = self._http.request(
-            Request(method="POST", path=f"{_path_for(feature_id)}/archive", body={})
+            Request(method="POST", path=f"{_path_for(feature_id)}/archive")
         )
         return Feature.model_validate(response["data"])
 
@@ -141,7 +141,7 @@ class FeaturesService:
         """Reactivate a previously archived feature. Idempotent."""
         _require_id("unarchive", feature_id)
         response = self._http.request(
-            Request(method="POST", path=f"{_path_for(feature_id)}/unarchive", body={})
+            Request(method="POST", path=f"{_path_for(feature_id)}/unarchive")
         )
         return Feature.model_validate(response["data"])
 
@@ -220,14 +220,14 @@ class AsyncFeaturesService:
     async def archive(self, feature_id: str) -> Feature:
         _require_id("archive", feature_id)
         response = await self._http.request(
-            Request(method="POST", path=f"{_path_for(feature_id)}/archive", body={})
+            Request(method="POST", path=f"{_path_for(feature_id)}/archive")
         )
         return Feature.model_validate(response["data"])
 
     async def unarchive(self, feature_id: str) -> Feature:
         _require_id("unarchive", feature_id)
         response = await self._http.request(
-            Request(method="POST", path=f"{_path_for(feature_id)}/unarchive", body={})
+            Request(method="POST", path=f"{_path_for(feature_id)}/unarchive")
         )
         return Feature.model_validate(response["data"])
 
