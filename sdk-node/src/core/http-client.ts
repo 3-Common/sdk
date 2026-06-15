@@ -83,6 +83,7 @@ export class HttpClient {
             userAgentSuffix: userAgentSuffix(),
             telemetryHeader: this.opts.telemetry.buildHeaderValue(),
             idempotencyKey: req.options?.idempotencyKey,
+            hasBody: req.body !== undefined,
           }),
           body: req.body,
           timeoutMs: req.options?.timeoutMs ?? this.opts.timeoutMs,
