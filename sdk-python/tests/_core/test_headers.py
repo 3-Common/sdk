@@ -16,6 +16,16 @@ def test_required_fields_populated() -> None:
     assert h["User-Agent"].startswith("ThreeCommonPython/0.1.0")
 
 
+def test_content_type_omitted_when_bodyless() -> None:
+    h = build_headers(api_key="k", api_version="v", sdk_version="1", has_body=False)
+    assert "Content-Type" not in h
+
+
+def test_content_type_set_when_body_present() -> None:
+    h = build_headers(api_key="k", api_version="v", sdk_version="1", has_body=True)
+    assert h["Content-Type"] == "application/json"
+
+
 def test_optional_fields_omitted_when_empty() -> None:
     h = build_headers(api_key="k", api_version="v", sdk_version="1")
     assert "Threecommon-Client-Telemetry" not in h

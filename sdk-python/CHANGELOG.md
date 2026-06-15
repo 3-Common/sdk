@@ -5,6 +5,25 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Requests without a body no longer send `Content-Type: application/json`.
+  `DELETE` (e.g. `invoices.delete_draft`, `contacts.delete`) and the
+  action-style POST methods previously advertised a JSON body, which servers
+  enforcing `Content-Type` against an empty body reject with HTTP 400.
+  `build_headers` now sets `Content-Type` only when a body is present. Applies
+  to both the sync and async clients.
+
+### Changed
+
+- The action-style POST methods (`invoices.finalize`, `invoices.auto_charge`,
+  `features.archive`, `features.unarchive`, `prices.archive`,
+  `prices.unarchive`, `subscriptions.activate`, `subscriptions.mark_unpaid`,
+  `subscriptions.bill`, `subscriptions.renew`) no longer send an empty `{}`
+  request body; these endpoints take no body per the API spec. `void`,
+  `cancel`, and `cancel_immediately`, which accept an optional body, are
+  unchanged.
+
 ## 0.7.0
 
 ### Added

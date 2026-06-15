@@ -11,13 +11,16 @@ export function buildHeaders(args: {
   readonly userAgentSuffix: string
   readonly telemetryHeader: string | undefined
   readonly idempotencyKey: string | undefined
+  readonly hasBody: boolean
 }): Headers {
   const headers = new Headers()
   headers.set('Authorization', `Bearer ${args.apiKey}`)
   headers.set('Threecommon-Version', args.apiVersion)
   headers.set('User-Agent', `ThreeCommonNode/${args.sdkVersion} (${args.userAgentSuffix})`)
   headers.set('Accept', 'application/json')
-  headers.set('Content-Type', 'application/json')
+  if (args.hasBody) {
+    headers.set('Content-Type', 'application/json')
+  }
 
   if (args.telemetryHeader !== undefined) {
     headers.set('Threecommon-Client-Telemetry', args.telemetryHeader)
