@@ -1,0 +1,31 @@
+name: move form element - happy path
+call:
+  resource: forms
+  method: moveElement
+  args:
+    id: frm_123
+    elementId: elm_1
+    body:
+      position: 2
+expectedRequest:
+  method: PUT
+  path: /v1/forms/frm_123/elements/elm_1/position
+  body:
+    position: 2
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-move-element-001
+  body:
+    data:
+      id: frm_123
+      name: Registration
+      ownerId: hst_1
+      type: standalone
+      status: active
+expectedResult:
+  id: frm_123
+  status: active

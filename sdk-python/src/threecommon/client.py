@@ -22,6 +22,7 @@ from threecommon.contacts.service import AsyncContactsService, ContactsService
 from threecommon.entitlements.service import AsyncEntitlementsService, EntitlementsService
 from threecommon.events.service import AsyncEventsService, EventsService
 from threecommon.features.service import AsyncFeaturesService, FeaturesService
+from threecommon.forms.service import AsyncFormsService, FormsService
 from threecommon.invoices.service import AsyncInvoicesService, InvoicesService
 from threecommon.prices.service import AsyncPricesService, PricesService
 from threecommon.properties.service import AsyncPropertiesService, PropertiesService
@@ -77,6 +78,13 @@ class ThreeCommon:
     """Features resource — ``list``, ``resolve``, ``retrieve``, ``create``,
     ``update``, ``archive``, ``unarchive``, plus ``list_auto_paginate``."""
 
+    forms: FormsService
+    """Forms resource — ``list``, ``retrieve``, ``create``, ``update``,
+    ``duplicate``, ``add_element``, ``update_element``, ``delete_element``,
+    ``move_element``, ``add_logic_rule``, ``remove_logic_rule``,
+    ``enable_other_option``, ``disable_other_option``, plus
+    ``list_auto_paginate``."""
+
     properties: PropertiesService
     """Properties resource — ``list``, ``retrieve``, ``create``, ``update``,
     plus ``list_auto_paginate``."""
@@ -128,6 +136,7 @@ class ThreeCommon:
         self.entitlements = EntitlementsService(self._http)
         self.prices = PricesService(self._http)
         self.features = FeaturesService(self._http)
+        self.forms = FormsService(self._http)
         self.properties = PropertiesService(self._http)
 
     def close(self) -> None:
@@ -161,6 +170,7 @@ class AsyncThreeCommon:
     entitlements: AsyncEntitlementsService
     prices: AsyncPricesService
     features: AsyncFeaturesService
+    forms: AsyncFormsService
     properties: AsyncPropertiesService
 
     _http: AsyncHTTPClient
@@ -210,6 +220,7 @@ class AsyncThreeCommon:
         self.entitlements = AsyncEntitlementsService(self._http)
         self.prices = AsyncPricesService(self._http)
         self.features = AsyncFeaturesService(self._http)
+        self.forms = AsyncFormsService(self._http)
         self.properties = AsyncPropertiesService(self._http)
 
     async def aclose(self) -> None:
