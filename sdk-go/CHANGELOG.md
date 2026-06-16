@@ -6,6 +6,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.8.0
+
 ### Added
 
 - Forms resource. The new `api.Forms` surface covers form authoring:
