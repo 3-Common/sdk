@@ -6,6 +6,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.9.0
+
+### Added
+
+- Properties resource. The new `api.Properties` surface covers the custom-field
+  catalog: `List`, `Retrieve`, `Create`, `Update`, and a `ListAutoPaginate`
+  iterator. Available as `api.Properties` and via `properties.New` for
+  standalone use.
+- New public types in `resources/properties`: `Property`, `Option`,
+  `CreateParams`, `UpdateParams` (whose `MarshalJSON` sends an explicit null for
+  `description` when `ClearDescription` is set), `ListParams`, the `ListResponse`
+  envelope, and the `Type`, `Status`, and `ObjectType` enums.
+
 ## 0.8.0
 
 ### Added

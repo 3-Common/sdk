@@ -22,6 +22,7 @@ import (
 	"github.com/3-Common/sdk/sdk-go/resources/forms"
 	"github.com/3-Common/sdk/sdk-go/resources/invoices"
 	"github.com/3-Common/sdk/sdk-go/resources/prices"
+	"github.com/3-Common/sdk/sdk-go/resources/properties"
 	"github.com/3-Common/sdk/sdk-go/resources/subscriptions"
 )
 
@@ -63,6 +64,10 @@ type API struct {
 	// RemoveLogicRule, EnableOtherOption, DisableOtherOption, ListAutoPaginate.
 	Forms *forms.Client
 
+	// Properties is the properties resource - List, Retrieve, Create, Update,
+	// ListAutoPaginate.
+	Properties *properties.Client
+
 	backend *core.Client
 }
 
@@ -83,6 +88,7 @@ func New(cfg threecommon.Config) (*API, error) {
 		Prices:        prices.FromBackend(backend),
 		Features:      features.FromBackend(backend),
 		Forms:         forms.FromBackend(backend),
+		Properties:    properties.FromBackend(backend),
 		backend:       backend,
 	}, nil
 }
