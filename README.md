@@ -27,6 +27,16 @@ All SDKs accept an API key generated from the 3Common organizer dashboard (Setti
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). Bugs and feature requests via [GitHub Issues](https://github.com/3-Common/sdk/issues). Security reports: see [SECURITY.md](./SECURITY.md).
 
+## Star History
+
+<a href="https://www.star-history.com/?repos=3-Common%2Fsdk&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=3-Common/sdk&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=3-Common/sdk&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=3-Common/sdk&type=date&legend=top-left" />
+ </picture>
+</a>
+
 ## License
 
 [MIT](./LICENSE)
