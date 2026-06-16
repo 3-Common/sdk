@@ -19,7 +19,8 @@ const client = new ThreeCommon({
 })
 
 try {
-  await client.forms.create({ name: 'Bad Form', type: 'standalone' })
+  // Expect: "validation: Name cannot be blank"
+  await client.forms.create({ name: '', type: 'standalone' })
 } catch (err) {
   if (err instanceof ThreeCommonValidationError) {
     console.warn(`validation: ${err.message}`)

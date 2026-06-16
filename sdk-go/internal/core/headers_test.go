@@ -16,12 +16,27 @@ func TestBuildHeaders_RequiredFieldsPopulated(t *testing.T) {
 		APIVersion:      "2026-04-29",
 		SDKVersion:      "0.1.0",
 		UserAgentSuffix: "Go/go1.22; darwin-arm64",
+		HasBody:         true,
 	})
 
 	assert.Equal(t, "Bearer 3co_test", h.Get("Authorization"))
 	assert.Equal(t, "2026-04-29", h.Get("Threecommon-Version"))
 	assert.Equal(t, "ThreeCommonGo/0.1.0 (Go/go1.22; darwin-arm64)", h.Get("User-Agent"))
 	assert.Equal(t, "application/json", h.Get("Accept"))
+	assert.Equal(t, "application/json", h.Get("Content-Type"))
+}
+
+func TestBuildHeaders_ContentTypeOmittedWhenBodyless(t *testing.T) {
+	t.Parallel()
+
+	h := core.BuildHeaders(core.HeadersInput{APIKey: "k", HasBody: false})
+	assert.Empty(t, h.Get("Content-Type"))
+}
+
+func TestBuildHeaders_ContentTypeSetWhenBodyPresent(t *testing.T) {
+	t.Parallel()
+
+	h := core.BuildHeaders(core.HeadersInput{APIKey: "k", HasBody: true})
 	assert.Equal(t, "application/json", h.Get("Content-Type"))
 }
 

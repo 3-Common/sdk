@@ -146,7 +146,7 @@ class SubscriptionsService:
         """Transition an incomplete or trialing subscription to ``active``."""
         _require_id("activate", subscription_id)
         response = self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "activate"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "activate"))
         )
         return Subscription.model_validate(response["data"])
 
@@ -178,7 +178,7 @@ class SubscriptionsService:
         """Admin override — mark a subscription ``unpaid`` (terminal)."""
         _require_id("mark_unpaid", subscription_id)
         response = self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "mark-unpaid"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "mark-unpaid"))
         )
         return Subscription.model_validate(response["data"])
 
@@ -186,7 +186,7 @@ class SubscriptionsService:
         """Generate a draft invoice for the current period without advancing it."""
         _require_id("bill", subscription_id)
         response = self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "bill"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "bill"))
         )
         return _build_bill_result(response)
 
@@ -194,7 +194,7 @@ class SubscriptionsService:
         """Advance the subscription to its next billing period and generate an invoice."""
         _require_id("renew", subscription_id)
         response = self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "renew"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "renew"))
         )
         return _build_renew_result(response)
 
@@ -293,7 +293,7 @@ class AsyncSubscriptionsService:
     async def activate(self, subscription_id: str) -> Subscription:
         _require_id("activate", subscription_id)
         response = await self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "activate"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "activate"))
         )
         return Subscription.model_validate(response["data"])
 
@@ -322,21 +322,21 @@ class AsyncSubscriptionsService:
     async def mark_unpaid(self, subscription_id: str) -> Subscription:
         _require_id("mark_unpaid", subscription_id)
         response = await self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "mark-unpaid"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "mark-unpaid"))
         )
         return Subscription.model_validate(response["data"])
 
     async def bill(self, subscription_id: str) -> BillSubscriptionResult:
         _require_id("bill", subscription_id)
         response = await self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "bill"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "bill"))
         )
         return _build_bill_result(response)
 
     async def renew(self, subscription_id: str) -> RenewSubscriptionResult:
         _require_id("renew", subscription_id)
         response = await self._http.request(
-            Request(method="POST", path=_action_path(subscription_id, "renew"), body={})
+            Request(method="POST", path=_action_path(subscription_id, "renew"))
         )
         return _build_renew_result(response)
 
