@@ -5,6 +5,8 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.8.0
+
 ### Added
 
 - Forms resource. The new `client.forms` surface covers form authoring:
