@@ -1,0 +1,36 @@
+name: update form settings - happy path
+call:
+  resource: forms
+  method: update
+  args:
+    id: frm_123
+    body:
+      name: Updated Registration
+      status: active
+      submitButtonText: Sign up
+expectedRequest:
+  method: PATCH
+  path: /v1/forms/frm_123
+  body:
+    name: Updated Registration
+    status: active
+    submitButtonText: Sign up
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-update-001
+  body:
+    data:
+      id: frm_123
+      name: Updated Registration
+      ownerId: hst_1
+      type: standalone
+      status: active
+      submitButtonText: Sign up
+expectedResult:
+  id: frm_123
+  name: Updated Registration
+  status: active

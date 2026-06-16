@@ -1,0 +1,41 @@
+name: add logic rule - Yes/No condition shape
+# Companion to add-logic-rule-happy (the selection-question shape). Conditional
+# logic has two condition variants and the wire shapes must not bleed into each
+# other: a Yes/No condition carries selectionType + value and must NOT emit the
+# selection-only optionIndices/operator keys. Body assertion is exact, so an SDK
+# that models only one variant, or leaks empty selection fields, fails here.
+call:
+  resource: forms
+  method: addLogicRule
+  args:
+    id: frm_123
+    elementId: elm_yn
+    body:
+      revealedElementId: elm_2
+      condition:
+        selectionType: is
+        value: true
+expectedRequest:
+  method: POST
+  path: /v1/forms/frm_123/elements/elm_yn/logic-rules
+  body:
+    revealedElementId: elm_2
+    condition:
+      selectionType: is
+      value: true
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-add-logic-yn-001
+  body:
+    data:
+      id: elm_yn
+      prompt: Are you attending?
+      type: 'Yes/No'
+      required: true
+expectedResult:
+  id: elm_yn
+  type: 'Yes/No'
