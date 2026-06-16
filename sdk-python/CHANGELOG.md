@@ -5,6 +5,18 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.9.0
+
+### Added
+
+- Properties resource. The new `client.properties` surface covers the custom
+  property catalog: `list`, `retrieve`, `create`, `update`, and a
+  `list_auto_paginate` iterator. Both sync and async surfaces.
+- New public types on `threecommon.properties`: `Property`, `PropertyOption`,
+  `CreateBody`, `UpdateBody`, `ListParams`, the `ListPropertiesResponse`
+  envelope, and the `PropertyType` / `PropertyObjectType` / `PropertyStatus` /
+  `PropertySortField` / `PropertySortOrder` literal unions.
+
 ## 0.8.0
 
 ### Added
