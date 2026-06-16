@@ -1,0 +1,24 @@
+name: 404 Not Found - form missing
+call:
+  resource: forms
+  method: retrieve
+  args:
+    id: frm_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/forms/frm_missing
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-frm-404-001
+  body:
+    error:
+      code: not_found
+      message: Form frm_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-frm-404-001

@@ -70,6 +70,15 @@ export function dispatchSubscriptions(
     case 'archive':
     case 'unarchive':
     case 'resolve':
+    case 'duplicate':
+    case 'addElement':
+    case 'updateElement':
+    case 'deleteElement':
+    case 'moveElement':
+    case 'enableOtherOption':
+    case 'disableOtherOption':
+    case 'addLogicRule':
+    case 'removeLogicRule':
       throw new Error(`subscriptions: unsupported method '${call.method}'`)
   }
 }
