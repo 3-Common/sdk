@@ -123,7 +123,6 @@ func (c *Client) Finalize(ctx context.Context, id string) (*Invoice, error) {
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/invoices/" + url.PathEscape(id) + "/finalize",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err
@@ -190,7 +189,6 @@ func (c *Client) AutoCharge(ctx context.Context, id string) (*AutoChargeResult, 
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/invoices/" + url.PathEscape(id) + "/auto_charge",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err

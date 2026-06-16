@@ -128,7 +128,6 @@ func (c *Client) Activate(ctx context.Context, id string) (*Subscription, error)
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/subscriptions/" + url.PathEscape(id) + "/activate",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err
@@ -196,7 +195,6 @@ func (c *Client) MarkUnpaid(ctx context.Context, id string) (*Subscription, erro
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/subscriptions/" + url.PathEscape(id) + "/mark-unpaid",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err
@@ -215,7 +213,6 @@ func (c *Client) Bill(ctx context.Context, id string) (*BillResult, error) {
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/subscriptions/" + url.PathEscape(id) + "/bill",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err
@@ -234,7 +231,6 @@ func (c *Client) Renew(ctx context.Context, id string) (*RenewResult, error) {
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/subscriptions/" + url.PathEscape(id) + "/renew",
-		Body:   struct{}{},
 		Out:    &env,
 	}); err != nil {
 		return nil, err

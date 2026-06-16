@@ -150,7 +150,7 @@ def test_finalize_posts(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/invoices/inv_123/finalize",
         method="POST",
-        match_json={},
+        match_content=b"",
         json={"data": {**SAMPLE, "status": "open", "number": "INV-0001"}},
     )
     with _make_sync() as c:
@@ -380,7 +380,7 @@ def test_auto_charge_paid(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/invoices/inv_123/auto_charge",
         method="POST",
-        match_json={},
+        match_content=b"",
         json={
             "data": {**SAMPLE, "status": "paid", "amountPaid": 50000, "amountDue": 0},
             "outcome": "paid",
