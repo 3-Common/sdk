@@ -9,6 +9,7 @@ import { featuresService, type FeaturesService } from '@/resources/features'
 import { formsService, type FormsService } from '@/resources/forms'
 import { invoicesService, type InvoicesService } from '@/resources/invoices'
 import { pricesService, type PricesService } from '@/resources/prices'
+import { propertiesService, type PropertiesService } from '@/resources/properties'
 import { subscriptionsService, type SubscriptionsService } from '@/resources/subscriptions'
 
 import type { ClientConfig } from '@/types/public'
@@ -52,6 +53,9 @@ export class ThreeCommon {
   /** Forms resource — list, retrieve, create, update, duplicate, element CRUD (add/update/delete/move), other-option toggles, logic rules, plus listAutoPaginate. */
   public readonly forms: FormsService
 
+  /** Properties resource - list, retrieve, create, update, plus listAutoPaginate. */
+  public readonly properties: PropertiesService
+
   private readonly httpClient: HttpClient
   private readonly telemetry: Telemetry
 
@@ -83,6 +87,7 @@ export class ThreeCommon {
     this.prices = pricesService(this.httpClient)
     this.features = featuresService(this.httpClient)
     this.forms = formsService(this.httpClient)
+    this.properties = propertiesService(this.httpClient)
   }
 
   /**

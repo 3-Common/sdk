@@ -48,6 +48,7 @@ export type Resource =
   | 'prices'
   | 'features'
   | 'forms'
+  | 'properties'
 
 export type Method =
   | 'list'

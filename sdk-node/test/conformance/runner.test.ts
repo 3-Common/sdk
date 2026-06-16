@@ -18,6 +18,7 @@ import { dispatchFeatures } from './dispatch-features'
 import { dispatchForms } from './dispatch-forms'
 import { dispatchInvoices } from './dispatch-invoices'
 import { dispatchPrices } from './dispatch-prices'
+import { dispatchProperties } from './dispatch-properties'
 import { dispatchSubscriptions } from './dispatch-subscriptions'
 
 import type {
@@ -108,6 +109,8 @@ function dispatchCall(
       return dispatchFeatures(client, call)
     case 'forms':
       return dispatchForms(client, call)
+    case 'properties':
+      return dispatchProperties(client, call)
   }
 }
 
