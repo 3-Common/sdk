@@ -11,7 +11,8 @@ expectedRequest:
   path: /v1/forms/frm_123/elements/elm_1/logic-rules/elm_2
   headers:
     authorization: 'Bearer 3co_test'
-    content-type: application/json
+  headersAbsent:
+    - content-type
 mockResponse:
   status: 200
   headers:
