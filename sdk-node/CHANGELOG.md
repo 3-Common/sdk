@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.9.0
+
+### Minor Changes
+
+- 9579d31: Add the `properties` resource. The new `client.properties` surface covers the
+  custom-property catalog: `list`, `retrieve`, `create`, `update`, and a
+  `listAutoPaginate` iterator. Includes the typed `Property` discriminated union
+  (keyed on `type`, with `options` on the `Select One` / `Select Multiple`
+  variants) plus the `PropertyType`, `PropertyObjectType`, `PropertyStatus`, and
+  `PropertyOption` aliases. `type` and `objectType` are fixed at creation;
+  properties are archived rather than deleted.
+
+## 0.8.0
+
+### Minor Changes
+
+- 448e447: Add the `forms` resource. The new `client.forms` surface covers form authoring
+  end to end: `list`, `retrieve`, `create`, `update`, `duplicate`, element CRUD
+  (`addElement`, `updateElement`, `deleteElement`, `moveElement`), the
+  `enableOtherOption`/`disableOtherOption` toggles for selection questions,
+  conditional logic via `addLogicRule`/`removeLogicRule`, and a
+  `listAutoPaginate` iterator. Includes typed `Form`, `FormSummary`,
+  `FormElement`, `DeletedElement`, the `FormStatus`/`FormType` unions, and the
+  request-body types for every endpoint.
+
+## 0.7.1
+
+### Patch Changes
+
+- af89507: Stop sending `Content-Type: application/json` on requests without a body.
+  `DELETE` and the action-style `POST` endpoints (`deleteDraft`, `finalize`,
+  `autoCharge`, `archive`, `unarchive`, `activate`, `markUnpaid`, `bill`,
+  `renew`) send no body, so advertising a JSON body caused servers that enforce
+  `Content-Type` against an empty body to reject the request with HTTP 400
+  (`FST_ERR_CTP_EMPTY_JSON_BODY`). `buildHeaders()` now sets `Content-Type` only
+  when the request actually carries a body. Fixes #91, #92, #93, #94, #95, #96.
+
 ## 0.7.0
 
 ### Minor Changes

@@ -6,6 +6,7 @@ across languages is the contract.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -19,8 +20,10 @@ from _conformance import (
     dispatch_entitlements,
     dispatch_events,
     dispatch_features,
+    dispatch_forms,
     dispatch_invoices,
     dispatch_prices,
+    dispatch_properties,
     dispatch_subscriptions,
 )
 from threecommon import (
@@ -132,6 +135,14 @@ def _assert_request(want: dict[str, Any], actual_requests: list[Any], idx: int) 
         assert absent.lower() not in {h.lower() for h in actual.headers}, (
             f"request[{idx}].headers[{absent}] should be absent"
         )
+    # Body assertion mirrors the Node harness: a non-null want["body"] is
+    # deep-equal compared against the parsed JSON request body, so an SDK that
+    # drops a field, sends an extra one, or omits an explicit null fails here.
+    if want.get("body") is not None:
+        parsed = json.loads(actual.content) if actual.content else None
+        assert parsed == want["body"], f"request[{idx}].body: want {want['body']!r}, got {parsed!r}"
+    if want.get("bodyAbsent"):
+        assert not actual.content, f"request[{idx}].body should be absent, got {actual.content!r}"
 
 
 def _dispatch_sync(client: ThreeCommon, call: dict[str, Any]) -> Any:  # noqa: ANN401, PLR0911
@@ -157,6 +168,10 @@ def _dispatch_sync(client: ThreeCommon, call: dict[str, Any]) -> Any:  # noqa: A
         return dispatch_prices.dispatch_sync(client, method, args)
     if resource == "features":
         return dispatch_features.dispatch_sync(client, method, args)
+    if resource == "forms":
+        return dispatch_forms.dispatch_sync(client, method, args)
+    if resource == "properties":
+        return dispatch_properties.dispatch_sync(client, method, args)
     pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 
@@ -280,6 +295,10 @@ async def _dispatch_async(client: AsyncThreeCommon, call: dict[str, Any]) -> Any
         return await dispatch_prices.dispatch_async(client, method, args)
     if resource == "features":
         return await dispatch_features.dispatch_async(client, method, args)
+    if resource == "forms":
+        return await dispatch_forms.dispatch_async(client, method, args)
+    if resource == "properties":
+        return await dispatch_properties.dispatch_async(client, method, args)
     pytest.fail(f"unsupported scenario resource: {resource!r}")
 
 

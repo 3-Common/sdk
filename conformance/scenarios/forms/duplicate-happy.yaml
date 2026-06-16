@@ -1,0 +1,33 @@
+name: duplicate form - happy path
+call:
+  resource: forms
+  method: duplicate
+  args:
+    id: frm_123
+    body:
+      name: Registration (Copy)
+      status: draft
+expectedRequest:
+  method: POST
+  path: /v1/forms/frm_123/duplicate
+  body:
+    name: Registration (Copy)
+    status: draft
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-duplicate-001
+  body:
+    data:
+      id: frm_copy
+      name: Registration (Copy)
+      ownerId: hst_1
+      type: standalone
+      status: draft
+expectedResult:
+  id: frm_copy
+  name: Registration (Copy)
+  status: draft
