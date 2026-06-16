@@ -138,7 +138,7 @@ class InvoicesService:
         """Finalize a draft invoice: assign a number, stamp ``issuedAt``, set status ``open``."""
         _require_id("finalize", invoice_id)
         response = self._http.request(
-            Request(method="POST", path=_action_path(invoice_id, "finalize"), body={})
+            Request(method="POST", path=_action_path(invoice_id, "finalize"))
         )
         return Invoice.model_validate(response["data"])
 
@@ -177,7 +177,7 @@ class InvoicesService:
         """
         _require_id("auto_charge", invoice_id)
         response = self._http.request(
-            Request(method="POST", path=_action_path(invoice_id, "auto_charge"), body={})
+            Request(method="POST", path=_action_path(invoice_id, "auto_charge"))
         )
         return _build_auto_charge_result(response)
 
@@ -283,7 +283,7 @@ class AsyncInvoicesService:
     async def finalize(self, invoice_id: str) -> Invoice:
         _require_id("finalize", invoice_id)
         response = await self._http.request(
-            Request(method="POST", path=_action_path(invoice_id, "finalize"), body={})
+            Request(method="POST", path=_action_path(invoice_id, "finalize"))
         )
         return Invoice.model_validate(response["data"])
 
@@ -311,7 +311,7 @@ class AsyncInvoicesService:
     async def auto_charge(self, invoice_id: str) -> AutoChargeResult:
         _require_id("auto_charge", invoice_id)
         response = await self._http.request(
-            Request(method="POST", path=_action_path(invoice_id, "auto_charge"), body={})
+            Request(method="POST", path=_action_path(invoice_id, "auto_charge"))
         )
         return _build_auto_charge_result(response)
 

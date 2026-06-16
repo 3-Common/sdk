@@ -9,7 +9,8 @@ expectedRequest:
   path: /v1/invoices/inv_123
   headers:
     authorization: 'Bearer 3co_test'
-    content-type: application/json
+  headersAbsent:
+    - content-type
 mockResponse:
   status: 200
   body:

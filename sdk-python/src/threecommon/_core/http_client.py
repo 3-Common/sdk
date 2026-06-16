@@ -172,6 +172,7 @@ def _build_request_headers(
     telemetry: Telemetry,
     idempotency_key: str | None,
     user_agent_extra: str | None,
+    has_body: bool,
 ) -> dict[str, str]:
     return build_headers(
         api_key=api_key,
@@ -180,6 +181,7 @@ def _build_request_headers(
         user_agent_extra=user_agent_extra,
         telemetry_header=telemetry.header_value(sdk_version=VERSION, api_version=api_version),
         idempotency_key=idempotency_key,
+        has_body=has_body,
     )
 
 
@@ -245,6 +247,7 @@ class HTTPClient:
                 telemetry=self._opts.telemetry,
                 idempotency_key=resolved.idempotency_key,
                 user_agent_extra=self._opts.user_agent_extra,
+                has_body=resolved.body is not None,
             )
 
             start = time.monotonic()
@@ -352,6 +355,7 @@ class AsyncHTTPClient:
                 telemetry=self._opts.telemetry,
                 idempotency_key=resolved.idempotency_key,
                 user_agent_extra=self._opts.user_agent_extra,
+                has_body=resolved.body is not None,
             )
 
             start = time.monotonic()
