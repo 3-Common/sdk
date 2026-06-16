@@ -15,6 +15,7 @@ import { dispatchContacts } from './dispatch-contacts'
 import { dispatchEntitlements } from './dispatch-entitlements'
 import { dispatchEvents } from './dispatch-events'
 import { dispatchFeatures } from './dispatch-features'
+import { dispatchForms } from './dispatch-forms'
 import { dispatchInvoices } from './dispatch-invoices'
 import { dispatchPrices } from './dispatch-prices'
 import { dispatchProperties } from './dispatch-properties'
@@ -106,6 +107,8 @@ function dispatchCall(
       return dispatchPrices(client, call)
     case 'features':
       return dispatchFeatures(client, call)
+    case 'forms':
+      return dispatchForms(client, call)
     case 'properties':
       return dispatchProperties(client, call)
   }

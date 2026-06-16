@@ -133,7 +133,11 @@ def test_retrieve_404_surfaces(httpx_mock: HTTPXMock) -> None:
         c.prices.retrieve("price_missing")
 
 
-_FEATURE_VARIANTS: list[
+# Explicitly typed so mypy checks each case against this annotation instead of
+# inferring a join over the heterogeneous tuples. Some mypy versions infer
+# tuple[object, type[_BaseModel]] for that join and then inconsistently reject
+# the concrete type[...] items, which fails CI while passing on other versions.
+_FEATURE_VARIANT_CASES: list[
     tuple[dict[str, object], type[PriceFeatureBoolean | PriceFeatureEnum | PriceFeatureDuration]]
 ] = [
     ({"featureKey": "f", "type": "boolean", "enabled": True}, PriceFeatureBoolean),
@@ -142,7 +146,7 @@ _FEATURE_VARIANTS: list[
 ]
 
 
-@pytest.mark.parametrize(("variant_json", "expected_cls"), _FEATURE_VARIANTS)
+@pytest.mark.parametrize(("variant_json", "expected_cls"), _FEATURE_VARIANT_CASES)
 def test_feature_variant_decodes(
     variant_json: dict[str, object],
     expected_cls: type[PriceFeatureBoolean | PriceFeatureEnum | PriceFeatureDuration],

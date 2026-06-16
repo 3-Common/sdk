@@ -60,6 +60,15 @@ export function dispatchFeatures(
     case 'lookup':
     case 'grant':
     case 'consume':
+    case 'duplicate':
+    case 'addElement':
+    case 'updateElement':
+    case 'deleteElement':
+    case 'moveElement':
+    case 'enableOtherOption':
+    case 'disableOtherOption':
+    case 'addLogicRule':
+    case 'removeLogicRule':
       throw new Error(`features: unsupported method '${call.method}'`)
   }
 }
