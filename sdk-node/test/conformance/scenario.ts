@@ -47,6 +47,8 @@ export type Resource =
   | 'entitlements'
   | 'prices'
   | 'features'
+  | 'forms'
+  | 'properties'
 
 export type Method =
   | 'list'
@@ -78,6 +80,15 @@ export type Method =
   | 'archive'
   | 'unarchive'
   | 'resolve'
+  | 'duplicate'
+  | 'addElement'
+  | 'updateElement'
+  | 'deleteElement'
+  | 'moveElement'
+  | 'enableOtherOption'
+  | 'disableOtherOption'
+  | 'addLogicRule'
+  | 'removeLogicRule'
 
 export interface ScenarioCall {
   readonly resource?: Resource

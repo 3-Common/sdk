@@ -5,6 +5,41 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.9.0
+
+### Added
+
+- Properties resource. The new `client.properties` surface covers the custom
+  property catalog: `list`, `retrieve`, `create`, `update`, and a
+  `list_auto_paginate` iterator. Both sync and async surfaces.
+- New public types on `threecommon.properties`: `Property`, `PropertyOption`,
+  `CreateBody`, `UpdateBody`, `ListParams`, the `ListPropertiesResponse`
+  envelope, and the `PropertyType` / `PropertyObjectType` / `PropertyStatus` /
+  `PropertySortField` / `PropertySortOrder` literal unions.
+
+## 0.8.0
+
+### Added
+
+- Forms resource. The new `client.forms` surface covers form authoring:
+  `list`, `retrieve`, `create`, `update`, `duplicate`, `add_element`,
+  `update_element`, `delete_element`, `move_element`, `add_logic_rule`,
+  `remove_logic_rule`, `enable_other_option`, `disable_other_option`, and a
+  `list_auto_paginate` iterator. Both sync and async surfaces.
+- New public types on `threecommon.forms`: `Form`, `FormSummary`,
+  `FormElement`, `DeleteElementResult`, `CreateBody`, `UpdateBody`,
+  `DuplicateBody`, `AddElementBody`, `UpdateElementBody`, `MoveElementBody`,
+  `EnableOtherOptionBody`, `AddLogicRuleBody`, `SelectionLogicCondition` and
+  `YesNoLogicCondition` (the two `condition` shapes, with `LogicCondition` as
+  their union), `ListParams`, the `ListFormsResponse` envelope, and the
+  `FormType`/`FormStatus`/`FormElementType`/`SubmitButtonWidth`/
+  `SubmitButtonAlign`/`ElementSection`/`LogicOperator` literal unions.
+- Forms request bodies serialize with `exclude_unset`, so a field explicitly
+  set to `None` is sent as JSON `null` (the API's "clear this setting"
+  signal) while unset fields stay omitted.
+
+## 0.7.1
+
 ### Fixed
 
 - Requests without a body no longer send `Content-Type: application/json`.

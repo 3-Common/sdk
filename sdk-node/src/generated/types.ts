@@ -3472,8 +3472,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -3518,8 +3523,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -3567,8 +3577,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -3638,8 +3653,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -3705,8 +3725,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -3779,8 +3804,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -3842,8 +3872,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -3881,6 +3916,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                     id?: string;
@@ -3919,8 +3956,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -3958,8 +4000,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -3995,8 +4042,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -4043,8 +4095,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -4174,8 +4231,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -4249,8 +4311,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -4327,8 +4394,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -4427,8 +4499,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -4523,8 +4600,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -4626,8 +4708,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -4718,8 +4805,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -4757,6 +4849,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
                                      *     of the referenced event items or products is in the cart. If present (even if
@@ -4824,8 +4918,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -4892,8 +4991,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -4958,8 +5062,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -5035,8 +5144,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -5346,8 +5460,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -5392,8 +5511,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -5441,8 +5565,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -5512,8 +5641,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -5579,8 +5713,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -5653,8 +5792,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -5716,8 +5860,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -5755,6 +5904,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                     id?: string;
@@ -5793,8 +5944,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -5832,8 +5988,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -5869,8 +6030,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -5917,8 +6083,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -6048,8 +6219,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -6123,8 +6299,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -6201,8 +6382,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -6301,8 +6487,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -6397,8 +6588,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -6500,8 +6696,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -6592,8 +6793,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -6631,6 +6837,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
                                      *     of the referenced event items or products is in the cart. If present (even if
@@ -6698,8 +6906,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -6766,8 +6979,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -6832,8 +7050,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -6909,8 +7132,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -7245,8 +7473,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -7291,8 +7524,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -7340,8 +7578,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -7411,8 +7654,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -7478,8 +7726,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -7552,8 +7805,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -7615,8 +7873,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -7654,6 +7917,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                     id?: string;
@@ -7692,8 +7957,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -7731,8 +8001,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -7768,8 +8043,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -7816,8 +8096,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -7947,8 +8232,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -8022,8 +8312,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -8100,8 +8395,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -8200,8 +8500,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -8296,8 +8601,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -8399,8 +8709,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -8491,8 +8806,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -8530,6 +8850,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
                                      *     of the referenced event items or products is in the cart. If present (even if
@@ -8597,8 +8919,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -8665,8 +8992,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -8731,8 +9063,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -8808,8 +9145,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -9150,8 +9492,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -9196,8 +9543,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -9245,8 +9597,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -9316,8 +9673,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -9383,8 +9745,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -9457,8 +9824,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -9520,8 +9892,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -9559,6 +9936,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                     id?: string;
@@ -9597,8 +9976,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -9636,8 +10020,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -9673,8 +10062,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -9721,8 +10115,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -9852,8 +10251,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -9927,8 +10331,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -10005,8 +10414,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -10105,8 +10519,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -10201,8 +10620,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -10304,8 +10728,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -10396,8 +10825,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -10435,6 +10869,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
                                      *     of the referenced event items or products is in the cart. If present (even if
@@ -10502,8 +10938,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -10570,8 +11011,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -10636,8 +11082,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -10713,8 +11164,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -10980,8 +11436,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /**
                          * @description Instead of setting a custom CRM property, text questions may set the
@@ -11026,8 +11487,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /** @description Placeholder text to show when the input is empty. */
                         placeholder?: string;
@@ -11075,8 +11541,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /** @description If true, renders as a dropdown list instead of radio buttons. */
                         dropdown?: boolean;
@@ -11146,8 +11617,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /** @description The label for the freeform "Other" option. */
                         otherPrompt: string;
@@ -11213,8 +11689,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /**
                          * @description Reserved for future use, must not be set to true
@@ -11287,8 +11768,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                         minChoices: number;
@@ -11350,8 +11836,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /**
                          * @description Reserved for future use, must be set to true
@@ -11389,6 +11880,8 @@ export interface paths {
                              */
                             value: boolean;
                         }[];
+                        /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                        yesRequired?: boolean;
                     } | {
                         /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                         id?: string;
@@ -11427,8 +11920,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                     } | {
                         /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -11466,8 +11964,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                     } | {
                         /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -11503,8 +12006,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /** @description Placeholder text to show when the input is empty. */
                         placeholder?: string;
@@ -11551,8 +12059,13 @@ export interface paths {
                              * @enum {string}
                              */
                             objectType: "contact" | "order" | "ticket";
-                            /** @enum {string} */
-                            status: "draft" | "active" | "archived";
+                            /**
+                             * @description Determines where this property can be used. "archived" properties are
+                             *     soft-deleted (any existing reference to them remains valid) but only "active"
+                             *     properties should be used in new workflows, forms, etc.
+                             * @enum {string}
+                             */
+                            status: "active" | "archived";
                         };
                         /** @description Placeholder text to show when the input is empty. */
                         placeholder?: string;
@@ -11636,8 +12149,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -11682,8 +12200,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -11731,8 +12254,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -11802,8 +12330,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -11869,8 +12402,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -11943,8 +12481,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -12006,8 +12549,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -12045,6 +12593,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                 id?: string;
@@ -12083,8 +12633,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -12122,8 +12677,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -12159,8 +12719,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -12207,8 +12772,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -12281,8 +12851,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -12356,8 +12931,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -12434,8 +13014,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -12534,8 +13119,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -12630,8 +13220,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -12733,8 +13328,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -12825,8 +13425,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -12864,6 +13469,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
                                  *     of the referenced event items or products is in the cart. If present (even if
@@ -12931,8 +13538,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -12999,8 +13611,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -13065,8 +13682,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -13142,8 +13764,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -13506,6 +14133,11 @@ export interface paths {
                          */
                         dropdown?: boolean | (null);
                         /**
+                         * @description Only for 'Yes/No' questions. If true, respondents must answer "Yes" to this
+                         *     question to submit their response.
+                         */
+                        yesRequired?: boolean | (null);
+                        /**
                          * @description Only allowed (and required) for 'Select One or "Other"' and 'Select Multiple with "Other"'
                          *     questions, this is the label used for the "other" option's radio/checkbox.
                          */
@@ -13663,8 +14295,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -13709,8 +14346,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -13758,8 +14400,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -13829,8 +14476,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -13896,8 +14548,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -13970,8 +14627,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -14033,8 +14695,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -14072,6 +14739,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                 id?: string;
@@ -14110,8 +14779,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -14149,8 +14823,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -14186,8 +14865,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -14234,8 +14918,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -14308,8 +14997,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -14383,8 +15077,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -14461,8 +15160,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -14561,8 +15265,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -14657,8 +15366,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -14760,8 +15474,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -14852,8 +15571,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -14891,6 +15615,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
                                  *     of the referenced event items or products is in the cart. If present (even if
@@ -14958,8 +15684,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -15026,8 +15757,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -15092,8 +15828,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -15169,8 +15910,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -15506,8 +16252,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -15552,8 +16303,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -15601,8 +16357,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -15672,8 +16433,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -15739,8 +16505,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -15813,8 +16584,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -15876,8 +16652,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -15915,6 +16696,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                     id?: string;
@@ -15953,8 +16736,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -15992,8 +16780,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                 } | {
                                     /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -16029,8 +16822,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -16077,8 +16875,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -16208,8 +17011,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Instead of setting a custom CRM property, text questions may set the
@@ -16283,8 +17091,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -16361,8 +17174,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description If true, renders as a dropdown list instead of radio buttons. */
                                     dropdown?: boolean;
@@ -16461,8 +17279,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description The label for the freeform "Other" option. */
                                     otherPrompt: string;
@@ -16557,8 +17380,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must not be set to true
@@ -16660,8 +17488,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                     minChoices: number;
@@ -16752,8 +17585,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description Reserved for future use, must be set to true
@@ -16791,6 +17629,8 @@ export interface paths {
                                          */
                                         value: boolean;
                                     }[];
+                                    /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                    yesRequired?: boolean;
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
                                      *     of the referenced event items or products is in the cart. If present (even if
@@ -16858,8 +17698,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -16926,8 +17771,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /**
                                      * @description For order forms only. Restricts this element to only appear when at least one
@@ -16992,8 +17842,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -17069,8 +17924,13 @@ export interface paths {
                                          * @enum {string}
                                          */
                                         objectType: "contact" | "order" | "ticket";
-                                        /** @enum {string} */
-                                        status: "draft" | "active" | "archived";
+                                        /**
+                                         * @description Determines where this property can be used. "archived" properties are
+                                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                         *     properties should be used in new workflows, forms, etc.
+                                         * @enum {string}
+                                         */
+                                        status: "active" | "archived";
                                     };
                                     /** @description Placeholder text to show when the input is empty. */
                                     placeholder?: string;
@@ -17355,8 +18215,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -17401,8 +18266,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -17450,8 +18320,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -17521,8 +18396,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -17588,8 +18468,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -17662,8 +18547,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -17725,8 +18615,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -17764,6 +18659,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                 id?: string;
@@ -17802,8 +18699,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -17841,8 +18743,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -17878,8 +18785,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -17926,8 +18838,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -18000,8 +18917,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -18075,8 +18997,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -18153,8 +19080,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -18253,8 +19185,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -18349,8 +19286,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -18452,8 +19394,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -18544,8 +19491,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -18583,6 +19535,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
                                  *     of the referenced event items or products is in the cart. If present (even if
@@ -18650,8 +19604,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -18718,8 +19677,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -18784,8 +19748,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -18861,8 +19830,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -19120,8 +20094,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -19166,8 +20145,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -19215,8 +20199,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -19286,8 +20275,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -19353,8 +20347,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -19427,8 +20426,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -19490,8 +20494,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -19529,6 +20538,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                 id?: string;
@@ -19567,8 +20578,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -19606,8 +20622,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -19643,8 +20664,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -19691,8 +20717,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -19765,8 +20796,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -19840,8 +20876,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -19918,8 +20959,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -20018,8 +21064,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -20114,8 +21165,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -20217,8 +21273,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -20309,8 +21370,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -20348,6 +21414,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
                                  *     of the referenced event items or products is in the cart. If present (even if
@@ -20415,8 +21483,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -20483,8 +21556,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -20549,8 +21627,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -20626,8 +21709,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -20932,8 +22020,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -20978,8 +22071,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -21027,8 +22125,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -21098,8 +22201,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -21165,8 +22273,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -21239,8 +22352,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -21302,8 +22420,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -21341,6 +22464,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                 id?: string;
@@ -21379,8 +22504,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -21418,8 +22548,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -21455,8 +22590,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -21503,8 +22643,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -21577,8 +22722,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -21652,8 +22802,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -21730,8 +22885,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -21830,8 +22990,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -21926,8 +23091,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -22029,8 +23199,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -22121,8 +23296,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -22160,6 +23340,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
                                  *     of the referenced event items or products is in the cart. If present (even if
@@ -22227,8 +23409,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -22295,8 +23482,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -22361,8 +23553,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -22438,8 +23635,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -22710,8 +23912,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -22756,8 +23963,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -22805,8 +24017,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -22876,8 +24093,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -22943,8 +24165,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -23017,8 +24244,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -23080,8 +24312,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -23119,6 +24356,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
                                 id?: string;
@@ -23157,8 +24396,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -23196,8 +24440,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                             } | {
                                 /** @description The unique ID of this element. Present on existing elements returned from the backend, omitted when creating new ones. */
@@ -23233,8 +24482,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -23281,8 +24535,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -23355,8 +24614,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Instead of setting a custom CRM property, text questions may set the
@@ -23430,8 +24694,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -23508,8 +24777,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description If true, renders as a dropdown list instead of radio buttons. */
                                 dropdown?: boolean;
@@ -23608,8 +24882,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description The label for the freeform "Other" option. */
                                 otherPrompt: string;
@@ -23704,8 +24983,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must not be set to true
@@ -23807,8 +25091,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Minimum number of options that must be selected. Set to 0 to make the question optional. */
                                 minChoices: number;
@@ -23899,8 +25188,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description Reserved for future use, must be set to true
@@ -23938,6 +25232,8 @@ export interface paths {
                                      */
                                     value: boolean;
                                 }[];
+                                /** @description If true, respondents must answer "Yes" to this question to submit their response. */
+                                yesRequired?: boolean;
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
                                  *     of the referenced event items or products is in the cart. If present (even if
@@ -24005,8 +25301,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -24073,8 +25374,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /**
                                  * @description For order forms only. Restricts this element to only appear when at least one
@@ -24139,8 +25445,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -24216,8 +25527,13 @@ export interface paths {
                                      * @enum {string}
                                      */
                                     objectType: "contact" | "order" | "ticket";
-                                    /** @enum {string} */
-                                    status: "draft" | "active" | "archived";
+                                    /**
+                                     * @description Determines where this property can be used. "archived" properties are
+                                     *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                     *     properties should be used in new workflows, forms, etc.
+                                     * @enum {string}
+                                     */
+                                    status: "active" | "archived";
                                 };
                                 /** @description Placeholder text to show when the input is empty. */
                                 placeholder?: string;
@@ -30707,6 +32023,1537 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/properties/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Properties
+         * @description Fetch a list of properties belonging to the user. The returned results are
+         *     paginated. Results can be filtered by status, object type, or property type,
+         *     and can be sorted by several fields. `search` performs a case-insensitive
+         *     match against the property name.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    pageSize?: number;
+                    /** @description Filter by the type of object this property belongs to. */
+                    objectType?: "event" | "order" | "ticket" | "contact";
+                    /** @description Filter by property data type. */
+                    propertyType?: "Text" | "Multi-line Text" | "Select One" | "Yes/No" | "Select Multiple" | "Date" | "File" | "Email" | "Phone";
+                    /** @description Filter by property status. */
+                    status?: "active" | "archived";
+                    sort?: "name" | "description" | "type" | "objectType" | "status";
+                    order?: "asc" | "desc";
+                    /** @description Searches property names, case-insensitive. */
+                    search?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description If true, there are more pages of results available. */
+                            hasMore: boolean;
+                            data: ({
+                                /** @enum {string} */
+                                type: "Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Multi-line Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select One";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Yes/No";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select Multiple";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Date";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "File";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Email";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Phone";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            })[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create Property
+         * @description Create a new property. Note that "type" and "objectType" can ONLY be set
+         *     when creating the property and CANNOT be modified!
+         *     Returns the created property, which will have an ID generated for it.
+         *     For 'Select One' and 'Select Multiple' types, `options` is required and
+         *     must have at least one entry.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        type: "Text" | "Multi-line Text" | "Select One" | "Yes/No" | "Select Multiple" | "Date" | "File" | "Email" | "Phone";
+                        /**
+                         * @description The property's name. Must be unique among other properties for the same
+                         *     `objectType` (case-insensitive).
+                         */
+                        name: string;
+                        /** @description Optional information about this property. */
+                        description?: string;
+                        /**
+                         * @description Determines where this property can be used. "archived" properties are
+                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                         *     properties should be used in new workflows, forms, etc.
+                         * @enum {string}
+                         */
+                        status: "active" | "archived";
+                        /**
+                         * @description The type of object this property belongs to.
+                         *     - event: properties on events
+                         *     - order: properties on orders (buyer-level)
+                         *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                         *     - contact: properties on customer contact records
+                         * @enum {string}
+                         */
+                        objectType: "event" | "order" | "ticket" | "contact";
+                        /** @description Exists if and only if `type` is "Select One" or "Select Multiple". */
+                        options?: {
+                            /** @description The value stored when this option is selected. */
+                            value: string;
+                            /** @description The display label for this option. */
+                            label: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** @enum {string} */
+                                type: "Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Multi-line Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select One";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Yes/No";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select Multiple";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Date";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "File";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Email";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Phone";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/properties/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Property
+         * @description Fetch a single property by its ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The ID of the property. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** @enum {string} */
+                                type: "Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Multi-line Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select One";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Yes/No";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select Multiple";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Date";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "File";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Email";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Phone";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit Property
+         * @description Edit the property with the given ID. Note that "type" and "objectType"
+         *     cannot be modified on existing properties. Only fields included in `updates`
+         *     will be modified, other fields will be left unchanged. `description` can be
+         *     set to null to remove it entirely. To retire a property, set `status` to
+         *     "archived". Properties cannot be fully deleted to preserve referential
+         *     integrity.
+         *     WARNING: for "Select One" and "Select Multiple" properties, an option's
+         *     `value` is the identity that gets persisted on every instance that selected
+         *     it (e.g. a contact). Changing an existing option's `value` does NOT migrate
+         *     those instances, so they keep the old value and no longer match any option.
+         *     In this case, the UI would show the raw stored value instead of a label.
+         *     Rename an option by changing its `label` only; change a `value`
+         *     only if no existing instances use the old one.
+         *     Returns the full property after the update is applied.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The ID of the property. */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description The property's name. Must be unique among other properties for the same
+                         *     `objectType` (case-insensitive).
+                         */
+                        name?: string;
+                        /**
+                         * @description Determines where this property can be used. "archived" properties are
+                         *     soft-deleted (any existing reference to them remains valid) but only "active"
+                         *     properties should be used in new workflows, forms, etc.
+                         * @enum {string}
+                         */
+                        status?: "active" | "archived";
+                        /** @description Exists if and only if `type` is "Select One" or "Select Multiple". */
+                        options?: {
+                            /** @description The value stored when this option is selected. */
+                            value: string;
+                            /** @description The display label for this option. */
+                            label: string;
+                        }[];
+                        description?: string | (null);
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** @enum {string} */
+                                type: "Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Multi-line Text";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select One";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Yes/No";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                options: {
+                                    /** @description The value stored when this option is selected. */
+                                    value: string;
+                                    /** @description The display label for this option. */
+                                    label: string;
+                                }[];
+                                /** @enum {string} */
+                                type: "Select Multiple";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Date";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "File";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Email";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            } | {
+                                /** @enum {string} */
+                                type: "Phone";
+                                /** @description This property's unique ID. */
+                                id: string;
+                                /**
+                                 * @description The property's name. Must be unique among other properties for the same
+                                 *     `objectType` (case-insensitive).
+                                 */
+                                name: string;
+                                /** @description Optional information about this property. */
+                                description?: string;
+                                /**
+                                 * @description Determines where this property can be used. "archived" properties are
+                                 *     soft-deleted (any existing reference to them remains valid) but only "active"
+                                 *     properties should be used in new workflows, forms, etc.
+                                 * @enum {string}
+                                 */
+                                status: "active" | "archived";
+                                /**
+                                 * @description The type of object this property belongs to.
+                                 *     - event: properties on events
+                                 *     - order: properties on orders (buyer-level)
+                                 *     - ticket: properties on individual products within an order (tickets, add-ons, etc.)
+                                 *     - contact: properties on customer contact records
+                                 * @enum {string}
+                                 */
+                                objectType: "event" | "order" | "ticket" | "contact";
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/v1/referrals/": {

@@ -1,0 +1,31 @@
+name: duplicate form - no overrides still sends a body
+# Companion to duplicate-happy (which sends overrides). The duplicate endpoint's
+# request body is required by the spec, so calling duplicate with no overrides
+# must still send a body (an empty object `{}`) rather than a bodyless POST.
+# Relying on the server accepting no body would be undocumented behavior.
+call:
+  resource: forms
+  method: duplicate
+  args:
+    id: frm_123
+expectedRequest:
+  method: POST
+  path: /v1/forms/frm_123/duplicate
+  body: {}
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-duplicate-nobody-001
+  body:
+    data:
+      id: frm_copy
+      name: '[Copy] Registration'
+      ownerId: hst_1
+      type: standalone
+      status: draft
+expectedResult:
+  id: frm_copy
+  status: draft

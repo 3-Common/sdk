@@ -1,0 +1,51 @@
+name: add selection element forwards every modeled field
+# A richer add-element body than add-element-happy (a multi-field Select One).
+# Pins that the full body is forwarded to the wire: an SDK or harness dispatcher
+# that copies only a subset of fields (e.g. drops helperText or options) sends a
+# smaller body and fails the exact body assertion.
+call:
+  resource: forms
+  method: addElement
+  args:
+    id: frm_123
+    body:
+      type: 'Select One'
+      prompt: How did you hear about us?
+      required: true
+      helperText: Choose the closest match
+      options:
+        - Search
+        - Friend
+        - Advertisement
+expectedRequest:
+  method: POST
+  path: /v1/forms/frm_123/elements
+  body:
+    type: 'Select One'
+    prompt: How did you hear about us?
+    required: true
+    helperText: Choose the closest match
+    options:
+      - Search
+      - Friend
+      - Advertisement
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-add-element-sel-001
+  body:
+    data:
+      id: elm_sel
+      prompt: How did you hear about us?
+      type: 'Select One'
+      required: true
+      options:
+        - Search
+        - Friend
+        - Advertisement
+expectedResult:
+  id: elm_sel
+  type: 'Select One'
