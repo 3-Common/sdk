@@ -1,0 +1,38 @@
+name: retrieve property — happy path (Select Multiple with options)
+call:
+  resource: properties
+  method: retrieve
+  args:
+    id: prop_123
+expectedRequest:
+  method: GET
+  path: /v1/properties/prop_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-prop-get-001
+  body:
+    data:
+      type: Select Multiple
+      id: prop_123
+      name: Allergies
+      description: Known allergies for this contact
+      status: active
+      objectType: contact
+      options:
+        - value: peanuts
+          label: Peanuts
+        - value: shellfish
+          label: Shellfish
+expectedResult:
+  type: Select Multiple
+  id: prop_123
+  name: Allergies
+  objectType: contact
+  options:
+    - value: peanuts
+      label: Peanuts
+    - value: shellfish
+      label: Shellfish

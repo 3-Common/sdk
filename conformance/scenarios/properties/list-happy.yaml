@@ -1,0 +1,36 @@
+name: list properties — happy path
+call:
+  resource: properties
+  method: list
+  args:
+    objectType: contact
+    status: active
+    pageSize: 10
+expectedRequest:
+  method: GET
+  path: /v1/properties
+  query:
+    objectType: contact
+    status: active
+    pageSize: '10'
+  headers:
+    authorization: 'Bearer 3co_test'
+    threecommon-version: '2026-04-29'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-prop-list-001
+  body:
+    data:
+      - type: Text
+        id: prop_1
+        name: Dietary notes
+        status: active
+        objectType: contact
+    hasMore: false
+expectedResult:
+  data:
+    - type: Text
+      id: prop_1
+      name: Dietary notes
+  hasMore: false

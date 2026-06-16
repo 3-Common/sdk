@@ -1,0 +1,55 @@
+name: auto-paginate properties walks every page
+call:
+  resource: properties
+  method: listAutoPaginate
+  args:
+    objectType: contact
+exchanges:
+  - request:
+      method: GET
+      path: /v1/properties
+      query:
+        objectType: contact
+        page: '0'
+    response:
+      status: 200
+      body:
+        data:
+          - type: Text
+            id: prop_1
+            name: Dietary notes
+            status: active
+            objectType: contact
+          - type: Email
+            id: prop_2
+            name: Work email
+            status: active
+            objectType: contact
+        hasMore: true
+  - request:
+      method: GET
+      path: /v1/properties
+      query:
+        objectType: contact
+        page: '1'
+    response:
+      status: 200
+      body:
+        data:
+          - type: Phone
+            id: prop_3
+            name: Mobile
+            status: active
+            objectType: contact
+        hasMore: false
+expectedAutoPaginated:
+  - type: Text
+    id: prop_1
+    name: Dietary notes
+  - type: Email
+    id: prop_2
+    name: Work email
+  - type: Phone
+    id: prop_3
+    name: Mobile
+expectedCallCount: 2

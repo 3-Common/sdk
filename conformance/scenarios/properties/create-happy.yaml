@@ -1,0 +1,56 @@
+name: create property — happy path (Select One with options)
+call:
+  resource: properties
+  method: create
+  args:
+    body:
+      type: Select One
+      name: T-shirt size
+      status: active
+      objectType: contact
+      options:
+        - value: s
+          label: Small
+        - value: m
+          label: Medium
+expectedRequest:
+  method: POST
+  path: /v1/properties
+  body:
+    type: Select One
+    name: T-shirt size
+    status: active
+    objectType: contact
+    options:
+      - value: s
+        label: Small
+      - value: m
+        label: Medium
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-prop-create-001
+  body:
+    data:
+      type: Select One
+      id: prop_new
+      name: T-shirt size
+      status: active
+      objectType: contact
+      options:
+        - value: s
+          label: Small
+        - value: m
+          label: Medium
+expectedResult:
+  type: Select One
+  id: prop_new
+  name: T-shirt size
+  options:
+    - value: s
+      label: Small
+    - value: m
+      label: Medium

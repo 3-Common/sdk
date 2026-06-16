@@ -1,0 +1,33 @@
+name: update property — happy path (rename and clear description)
+call:
+  resource: properties
+  method: update
+  args:
+    id: prop_123
+    body:
+      name: Allergies
+      description: null
+expectedRequest:
+  method: PATCH
+  path: /v1/properties/prop_123
+  body:
+    name: Allergies
+    description: null
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-prop-update-001
+  body:
+    data:
+      type: Text
+      id: prop_123
+      name: Allergies
+      status: active
+      objectType: contact
+expectedResult:
+  type: Text
+  id: prop_123
+  name: Allergies

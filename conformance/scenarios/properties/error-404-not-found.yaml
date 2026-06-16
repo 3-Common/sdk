@@ -1,0 +1,24 @@
+name: 404 Not Found — property missing
+call:
+  resource: properties
+  method: retrieve
+  args:
+    id: prop_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: GET
+  path: /v1/properties/prop_missing
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-prop-404-001
+  body:
+    error:
+      code: not_found
+      message: Property prop_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-prop-404-001
