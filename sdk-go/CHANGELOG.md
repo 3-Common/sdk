@@ -6,6 +6,45 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.9.0
+
+### Added
+
+- Properties resource. The new `api.Properties` surface covers the custom-field
+  catalog: `List`, `Retrieve`, `Create`, `Update`, and a `ListAutoPaginate`
+  iterator. Available as `api.Properties` and via `properties.New` for
+  standalone use.
+- New public types in `resources/properties`: `Property`, `Option`,
+  `CreateParams`, `UpdateParams` (whose `MarshalJSON` sends an explicit null for
+  `description` when `ClearDescription` is set), `ListParams`, the `ListResponse`
+  envelope, and the `Type`, `Status`, and `ObjectType` enums.
+
+## 0.8.0
+
+### Added
+
+- Forms resource. The new `api.Forms` surface covers form authoring:
+  `List`, `Retrieve`, `Create`, `Update`, `Duplicate`, `AddElement`,
+  `UpdateElement`, `DeleteElement`, `MoveElement`, `AddLogicRule`,
+  `RemoveLogicRule`, `EnableOtherOption`, `DisableOtherOption`, and a
+  `ListAutoPaginate` iterator. Available as `api.Forms` and via `forms.New`
+  for standalone use.
+- New public types in `resources/forms`: `Form`, `FormSummary`, `Element`,
+  `LogicGroup`, `EventItemRef`, `CreateParams`, `UpdateParams`,
+  `DuplicateParams`, `AddElementParams`, `UpdateElementParams`,
+  `MoveElementParams`, `AddLogicRuleParams`, `LogicCondition`,
+  `EnableOtherOptionParams`, `ListParams`, the `ListResponse` and
+  `DeleteElementResult` shapes, and the
+  `Type`/`Status`/`ElementType`/`LogicOperator`/`SelectionType`/`MoveSection`/
+  `SubmitButtonWidth`/`SubmitButtonAlign`/`EventItemRefType` enums.
+- `threecommon.Nullable[T]` with the `NullableOf` and `Null` constructors.
+  The forms `UpdateParams`/`UpdateElementParams` use it for spec-nullable
+  fields, so an explicit JSON `null` (the API's "clear this setting" signal)
+  is expressible; optional non-nullable strings on those params are `*string`
+  (use `threecommon.String`), so explicit empty strings are expressible too.
+
+## 0.7.1
+
 ### Fixed
 
 - Requests without a body no longer send `Content-Type: application/json`.

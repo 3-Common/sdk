@@ -187,6 +187,9 @@ func buildContactBulkUpsertParams(body map[string]any) *contacts.BulkUpsertParam
 	}
 	p := &contacts.BulkUpsertParams{}
 	if raw, ok := body["contacts"].([]any); ok {
+		// Initialize non-nil so an empty scenario array round-trips to a `[]`
+		// body rather than a nil slice's `null` (matching the other SDKs).
+		p.Contacts = make([]contacts.BulkUpsertItem, 0, len(raw))
 		for _, entry := range raw {
 			m, ok := entry.(map[string]any)
 			if !ok {
