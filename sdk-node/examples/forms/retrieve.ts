@@ -18,5 +18,5 @@ console.log(`  type:   ${form.type}`)
 console.log(`  status: ${form.status}`)
 console.log('  elements:')
 for (const el of form.elements) {
-  console.log(`    ${el.id}: "${el.prompt}" (${el.type})`)
+  console.log(`    ${el.id ?? '?'}: "${el.prompt}" (${el.type})`)
 }
