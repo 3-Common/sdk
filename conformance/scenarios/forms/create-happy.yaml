@@ -1,0 +1,32 @@
+name: create form - happy path
+call:
+  resource: forms
+  method: create
+  args:
+    body:
+      name: Registration
+      type: standalone
+expectedRequest:
+  method: POST
+  path: /v1/forms
+  body:
+    name: Registration
+    type: standalone
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-frm-create-001
+  body:
+    data:
+      id: frm_new
+      name: Registration
+      ownerId: hst_1
+      type: standalone
+      status: draft
+expectedResult:
+  id: frm_new
+  name: Registration
+  status: draft
