@@ -5,6 +5,8 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## 0.7.1
+
 ### Fixed
 
 - Requests without a body no longer send `Content-Type: application/json`.
