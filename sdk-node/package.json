@@ -1,6 +1,6 @@
 {
   "name": "@3common/sdk",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Official Node.js / TypeScript client for the 3Common Public API.",
   "keywords": [
     "3common",
