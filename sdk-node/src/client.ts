@@ -6,6 +6,7 @@ import { contactsService, type ContactsService } from '@/resources/contacts'
 import { entitlementsService, type EntitlementsService } from '@/resources/entitlements'
 import { eventsService, type EventsService } from '@/resources/events'
 import { featuresService, type FeaturesService } from '@/resources/features'
+import { formsService, type FormsService } from '@/resources/forms'
 import { invoicesService, type InvoicesService } from '@/resources/invoices'
 import { pricesService, type PricesService } from '@/resources/prices'
 import { subscriptionsService, type SubscriptionsService } from '@/resources/subscriptions'
@@ -48,6 +49,9 @@ export class ThreeCommon {
   /** Features resource — list, resolve, retrieve, create, update, archive, unarchive, plus listAutoPaginate. */
   public readonly features: FeaturesService
 
+  /** Forms resource — list, retrieve, create, update, duplicate, element CRUD (add/update/delete/move), other-option toggles, logic rules, plus listAutoPaginate. */
+  public readonly forms: FormsService
+
   private readonly httpClient: HttpClient
   private readonly telemetry: Telemetry
 
@@ -78,6 +82,7 @@ export class ThreeCommon {
     this.entitlements = entitlementsService(this.httpClient)
     this.prices = pricesService(this.httpClient)
     this.features = featuresService(this.httpClient)
+    this.forms = formsService(this.httpClient)
   }
 
   /**

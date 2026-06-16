@@ -127,6 +127,27 @@ export type {
   UpdateSubscriptionResult,
 } from './resources/subscriptions'
 
+// Forms resource (types only — instances live on the client).
+export type {
+  DeletedElement,
+  Form,
+  FormAddElementBody,
+  FormAddLogicRuleBody,
+  FormCreateBody,
+  FormDuplicateBody,
+  FormElement,
+  FormEnableOtherOptionBody,
+  FormListParams,
+  FormMoveElementBody,
+  FormStatus,
+  FormSummary,
+  FormType,
+  FormUpdateBody,
+  FormUpdateElementBody,
+  FormsService,
+  ListFormsResponse,
+} from './resources/forms'
+
 // Filters — typed builder shared by every resource that accepts `filters`.
 export { filter, and, combine, field, or } from './filters'
 export type {
