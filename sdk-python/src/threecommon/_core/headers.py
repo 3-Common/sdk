@@ -25,6 +25,7 @@ def build_headers(
     user_agent_extra: str | None = None,
     telemetry_header: str | None = None,
     idempotency_key: str | None = None,
+    has_body: bool = True,
 ) -> dict[str, str]:
     """Return a fresh header dict populated with every header the SDK sends."""
     headers: dict[str, str] = {
@@ -32,8 +33,12 @@ def build_headers(
         "Threecommon-Version": api_version,
         "User-Agent": f"ThreeCommonPython/{sdk_version} ({user_agent_suffix(user_agent_extra)})",
         "Accept": "application/json",
-        "Content-Type": "application/json",
     }
+    # Bodyless requests (DELETE, action-style POSTs like finalize/auto_charge)
+    # must not advertise a JSON body: a server enforcing Content-Type against
+    # an empty body rejects them with a 400.
+    if has_body:
+        headers["Content-Type"] = "application/json"
     if telemetry_header:
         headers["Threecommon-Client-Telemetry"] = telemetry_header
     if idempotency_key:
