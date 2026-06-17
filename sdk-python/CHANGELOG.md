@@ -5,6 +5,9 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+
+### 0.10.0
+
 ### Added
 
 - Subscriptions: `subscriptions.retrieve_manage_url` fetches a signed,
