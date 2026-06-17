@@ -308,3 +308,109 @@ class BulkUpsertBody(_BaseModel):
     """Body accepted by ``POST /v1/contacts/bulk``."""
 
     contacts: list[BulkUpsertItem]
+
+
+# ---------------
+# Payment methods
+# ---------------
+
+#: Lifecycle status of a saved payment method.
+#:
+#: * ``active``: the card is on file and usable
+#: * ``detached``: the card was removed / detached from Stripe
+#: * ``expired``: the card passed its expiry date
+PaymentMethodStatus = Literal["active", "detached", "expired"]
+
+
+class PaymentMethodCard(_BaseModel):
+    """Card details on a saved :class:`PaymentMethod`."""
+
+    brand: str
+    last4: str
+    exp_month: int = Field(serialization_alias="expMonth", validation_alias="expMonth")
+    exp_year: int = Field(serialization_alias="expYear", validation_alias="expYear")
+    country: str | None = None
+    funding: str | None = None
+
+
+class PaymentMethodBillingDetails(_BaseModel):
+    """Optional billing details captured alongside a saved card."""
+
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    address_line1: str | None = Field(
+        default=None, serialization_alias="addressLine1", validation_alias="addressLine1"
+    )
+    address_line2: str | None = Field(
+        default=None, serialization_alias="addressLine2", validation_alias="addressLine2"
+    )
+    city: str | None = None
+    state: str | None = None
+    postal_code: str | None = Field(
+        default=None, serialization_alias="postalCode", validation_alias="postalCode"
+    )
+    country: str | None = None
+
+
+class PaymentMethod(_BaseModel):
+    """A saved card on file for a contact.
+
+    Returned by ``retrieve_payment_method`` and nested inside
+    :class:`AttachPaymentMethodResult`. One card is supported per contact.
+    """
+
+    id: str
+    contact_id: str = Field(serialization_alias="contactId", validation_alias="contactId")
+    card: PaymentMethodCard
+    billing_details: PaymentMethodBillingDetails | None = Field(
+        default=None, serialization_alias="billingDetails", validation_alias="billingDetails"
+    )
+    status: PaymentMethodStatus
+    detached_at: str | None = Field(
+        default=None, serialization_alias="detachedAt", validation_alias="detachedAt"
+    )
+    created_at: str = Field(serialization_alias="createdAt", validation_alias="createdAt")
+    updated_at: str = Field(serialization_alias="updatedAt", validation_alias="updatedAt")
+
+
+class AttachPaymentMethodBody(_BaseModel):
+    """Body accepted by ``POST /v1/contacts/{id}/payment-methods``."""
+
+    setup_intent_id: str = Field(
+        serialization_alias="setupIntentId", validation_alias="setupIntentId"
+    )
+
+
+class AttachPaymentMethodResult(_BaseModel):
+    """Result returned by ``attach_payment_method``.
+
+    The full envelope is surfaced (unlike ``retrieve_payment_method``, which
+    unwraps to just the card) so callers can see whether an existing card was
+    replaced.
+    """
+
+    data: PaymentMethod
+    replaced_existing: bool = Field(
+        serialization_alias="replacedExisting", validation_alias="replacedExisting"
+    )
+
+
+class PaymentMethodSetupIntent(_BaseModel):
+    """Result returned by ``create_payment_method_setup_intent``.
+
+    Confirm the ``client_secret`` client-side with Stripe Elements, then call
+    ``attach_payment_method`` with ``setup_intent_id`` to persist the card.
+    """
+
+    setup_intent_id: str = Field(
+        serialization_alias="setupIntentId", validation_alias="setupIntentId"
+    )
+    client_secret: str = Field(serialization_alias="clientSecret", validation_alias="clientSecret")
+    customer_id: str = Field(serialization_alias="customerId", validation_alias="customerId")
+
+
+class RemovedPaymentMethod(_BaseModel):
+    """Result returned by ``remove_payment_method``."""
+
+    removed: bool

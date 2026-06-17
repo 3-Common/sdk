@@ -9,6 +9,8 @@ service classes directly is supported for advanced wiring.
 from threecommon.contacts.service import AsyncContactsService, ContactsService
 from threecommon.contacts.types import (
     ActivityListParams,
+    AttachPaymentMethodBody,
+    AttachPaymentMethodResult,
     BulkUpsertBody,
     BulkUpsertItem,
     BulkUpsertResult,
@@ -28,12 +30,20 @@ from threecommon.contacts.types import (
     ListActivityResponse,
     ListContactsResponse,
     ListParams,
+    PaymentMethod,
+    PaymentMethodBillingDetails,
+    PaymentMethodCard,
+    PaymentMethodSetupIntent,
+    PaymentMethodStatus,
+    RemovedPaymentMethod,
     UpdateBody,
 )
 
 __all__ = (
     "ActivityListParams",
     "AsyncContactsService",
+    "AttachPaymentMethodBody",
+    "AttachPaymentMethodResult",
     "BulkUpsertBody",
     "BulkUpsertItem",
     "BulkUpsertResult",
@@ -54,5 +64,11 @@ __all__ = (
     "ListActivityResponse",
     "ListContactsResponse",
     "ListParams",
+    "PaymentMethod",
+    "PaymentMethodBillingDetails",
+    "PaymentMethodCard",
+    "PaymentMethodSetupIntent",
+    "PaymentMethodStatus",
+    "RemovedPaymentMethod",
     "UpdateBody",
 )

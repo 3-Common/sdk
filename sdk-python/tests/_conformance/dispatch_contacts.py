@@ -9,6 +9,7 @@ import pytest
 from threecommon import AsyncThreeCommon, ThreeCommon
 from threecommon.contacts import (
     ActivityListParams,
+    AttachPaymentMethodBody,
     BulkUpsertBody,
     BulkUpsertItem,
     ContactUpdate,
@@ -96,7 +97,13 @@ def build_bulk_upsert_body(raw: dict[str, Any]) -> BulkUpsertBody:
     return BulkUpsertBody(contacts=items)
 
 
-def dispatch_sync(client: ThreeCommon, method: str, args: dict[str, Any]) -> Any:  # noqa: ANN401, PLR0911
+def build_attach_payment_method_body(raw: dict[str, Any]) -> AttachPaymentMethodBody:
+    return AttachPaymentMethodBody(
+        setup_intent_id=raw.get("setupIntentId", raw.get("setup_intent_id")),
+    )
+
+
+def dispatch_sync(client: ThreeCommon, method: str, args: dict[str, Any]) -> Any:  # noqa: ANN401, PLR0911, PLR0912
     if method == "list":
         return client.contacts.list(build_list_params(args))
     if method == "count":
@@ -121,10 +128,20 @@ def dispatch_sync(client: ThreeCommon, method: str, args: dict[str, Any]) -> Any
                 args["id"], build_activity_params(args.get("params"))
             )
         )
+    if method == "retrievePaymentMethod":
+        return client.contacts.retrieve_payment_method(args["id"])
+    if method == "attachPaymentMethod":
+        return client.contacts.attach_payment_method(
+            args["id"], build_attach_payment_method_body(args.get("body") or {})
+        )
+    if method == "createPaymentMethodSetupIntent":
+        return client.contacts.create_payment_method_setup_intent(args["id"])
+    if method == "removePaymentMethod":
+        return client.contacts.remove_payment_method(args["id"], args["methodId"])
     pytest.fail(f"unsupported contacts method: {method}")
 
 
-async def dispatch_async(  # noqa: PLR0911
+async def dispatch_async(  # noqa: PLR0911, PLR0912
     client: AsyncThreeCommon, method: str, args: dict[str, Any]
 ) -> Any:  # noqa: ANN401
     if method == "list":
@@ -154,4 +171,14 @@ async def dispatch_async(  # noqa: PLR0911
                 args["id"], build_activity_params(args.get("params"))
             )
         ]
+    if method == "retrievePaymentMethod":
+        return await client.contacts.retrieve_payment_method(args["id"])
+    if method == "attachPaymentMethod":
+        return await client.contacts.attach_payment_method(
+            args["id"], build_attach_payment_method_body(args.get("body") or {})
+        )
+    if method == "createPaymentMethodSetupIntent":
+        return await client.contacts.create_payment_method_setup_intent(args["id"])
+    if method == "removePaymentMethod":
+        return await client.contacts.remove_payment_method(args["id"], args["methodId"])
     pytest.fail(f"unsupported contacts method: {method}")
