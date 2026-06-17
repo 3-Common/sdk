@@ -6,6 +6,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.10.0
+
+### Added
+
+- `Subscriptions.RetrieveManageURL` — fetch a signed, customer-facing
+  self-service portal URL for a subscription
+  (`GET /v1/subscriptions/{id}/manage-url`). The link is scoped to the one
+  subscription; share it with the subscriber so they can view, cancel, or
+  resume it.
+- New public type `subscriptions.ManageURL` (the `{ URL }` result returned by
+  `RetrieveManageURL`).
+
 ## 0.9.0
 
 ### Added

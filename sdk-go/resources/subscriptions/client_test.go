@@ -251,6 +251,47 @@ func TestUpdate_ValidatesParams(t *testing.T) {
 	assert.Equal(t, "missing_body", v.Code)
 }
 
+func TestRetrieveManageURL_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "/v1/subscriptions/sub_123/manage-url", r.URL.Path)
+		_, _ = w.Write([]byte(`{"data":{"url":"https://billing.3common.com/p/session/sub_123_a1b2c3"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.RetrieveManageURL(context.Background(), "sub_123")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "https://billing.3common.com/p/session/sub_123_a1b2c3", got.URL)
+}
+
+func TestRetrieveManageURL_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := subscriptions.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.RetrieveManageURL(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestRetrieveManageURL_404Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, `{"error":{"code":"not_found","message":"missing"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.RetrieveManageURL(context.Background(), "sub_missing")
+	var nf *threecommon.NotFoundError
+	require.True(t, errors.As(err, &nf))
+}
+
 func TestActivate_Posts(t *testing.T) {
 	t.Parallel()
 

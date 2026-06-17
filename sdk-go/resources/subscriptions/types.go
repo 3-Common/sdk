@@ -143,6 +143,14 @@ type InvoicePreview struct {
 	PeriodEnd      string                   `json:"periodEnd"`
 }
 
+// ManageURL is the signed, customer-facing self-service portal link returned
+// by [Client.RetrieveManageURL]. The link is scoped to a single subscription;
+// share it with the subscriber so they can view, cancel, or resume it.
+type ManageURL struct {
+	// URL is the signed customer self-service portal URL for the subscription.
+	URL string `json:"url"`
+}
+
 // ListParams are the query parameters accepted by [Client.List] and [Client.ListAutoPaginate].
 type ListParams struct {
 	// Page is the 0-indexed page number. Nil uses the server default (0).
@@ -259,4 +267,10 @@ type previewEnvelope struct {
 	Data struct {
 		Invoice *InvoicePreview `json:"invoice"`
 	} `json:"data"`
+}
+
+// manageURLEnvelope is the {"data": ManageURL} shape returned by
+// GET /v1/subscriptions/{id}/manage-url.
+type manageURLEnvelope struct {
+	Data ManageURL `json:"data"`
 }

@@ -10,6 +10,7 @@ import type {
   SubscriptionCreateBody,
   SubscriptionInvoicePreview,
   SubscriptionListParams,
+  SubscriptionManageUrl,
   SubscriptionRetrieveParams,
   SubscriptionUpdateBody,
   UpdateSubscriptionResult,
@@ -108,6 +109,18 @@ export interface SubscriptionsService {
     body: SubscriptionUpdateBody,
     options?: RequestOptions,
   ): Promise<UpdateSubscriptionResult>
+
+  /**
+   * Fetch a signed, customer-facing self-service portal URL for the
+   * subscription. The link is scoped to this one subscription — share it with
+   * the subscriber so they can view, cancel, or resume it.
+   *
+   * @example
+   * ```ts
+   * const { url } = await client.subscriptions.retrieveManageUrl('sub_123')
+   * ```
+   */
+  retrieveManageUrl(id: string, options?: RequestOptions): Promise<SubscriptionManageUrl>
 
   /**
    * Transition an incomplete or trialing subscription to `active`.
@@ -268,6 +281,16 @@ export function subscriptionsService(http: HttpClient): SubscriptionsService {
       return response.invoice === undefined
         ? { subscription: response.data, proration: response.proration }
         : { subscription: response.data, invoice: response.invoice, proration: response.proration }
+    },
+
+    async retrieveManageUrl(id: string, options?: RequestOptions): Promise<SubscriptionManageUrl> {
+      requireId('retrieveManageUrl', id)
+      const response = await http.request<DetailEnvelope<SubscriptionManageUrl>>({
+        method: 'GET',
+        path: `/subscriptions/${encodeURIComponent(id)}/manage-url`,
+        options,
+      })
+      return response.data
     },
 
     async activate(id: string, options?: RequestOptions): Promise<Subscription> {
