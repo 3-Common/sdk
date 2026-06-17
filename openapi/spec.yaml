@@ -1523,6 +1523,637 @@ paths:
                 required:
                   - error
                 additionalProperties: false
+  /v1/contacts/{id}/payment-methods:
+    get:
+      summary: Get contact payment method
+      tags:
+        - Payment methods
+      description: Retrieves the saved card on file for a contact, or null when none is saved. One card is supported per contact.
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Contact id, discoverable via list_contacts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    anyOf:
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                          contactId:
+                            type: string
+                          card:
+                            type: object
+                            properties:
+                              brand:
+                                type: string
+                              last4:
+                                type: string
+                              expMonth:
+                                type: integer
+                                minimum: -9007199254740991
+                                maximum: 9007199254740991
+                              expYear:
+                                type: integer
+                                minimum: -9007199254740991
+                                maximum: 9007199254740991
+                              country:
+                                type: string
+                              funding:
+                                type: string
+                            required:
+                              - brand
+                              - last4
+                              - expMonth
+                              - expYear
+                            additionalProperties: false
+                          billingDetails:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              email:
+                                type: string
+                              phone:
+                                type: string
+                              addressLine1:
+                                type: string
+                              addressLine2:
+                                type: string
+                              city:
+                                type: string
+                              state:
+                                type: string
+                              postalCode:
+                                type: string
+                              country:
+                                type: string
+                            additionalProperties: false
+                          status:
+                            type: string
+                            enum:
+                              - active
+                              - detached
+                              - expired
+                          detachedAt:
+                            type: string
+                            format: date-time
+                            pattern: >-
+                              ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                          createdAt:
+                            type: string
+                            format: date-time
+                            pattern: >-
+                              ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                          updatedAt:
+                            type: string
+                            format: date-time
+                            pattern: >-
+                              ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                        required:
+                          - id
+                          - contactId
+                          - card
+                          - status
+                          - createdAt
+                          - updatedAt
+                        additionalProperties: false
+                      - nullable: true
+                        enum:
+                          - null
+                required:
+                  - data
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+    post:
+      summary: Attach a saved payment method
+      tags:
+        - Payment methods
+      description: |-
+        Persists the card from a confirmed SetupIntent against the contact.
+        The SetupIntent is re-verified server-side (status + scope) before the
+        card is saved. Replaces any existing card on file for the contact.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                setupIntentId:
+                  type: string
+                  description: Stripe SetupIntent id confirmed on the client
+              required:
+                - setupIntentId
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Contact id, discoverable via list_contacts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      contactId:
+                        type: string
+                      card:
+                        type: object
+                        properties:
+                          brand:
+                            type: string
+                          last4:
+                            type: string
+                          expMonth:
+                            type: integer
+                            minimum: -9007199254740991
+                            maximum: 9007199254740991
+                          expYear:
+                            type: integer
+                            minimum: -9007199254740991
+                            maximum: 9007199254740991
+                          country:
+                            type: string
+                          funding:
+                            type: string
+                        required:
+                          - brand
+                          - last4
+                          - expMonth
+                          - expYear
+                        additionalProperties: false
+                      billingDetails:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          email:
+                            type: string
+                          phone:
+                            type: string
+                          addressLine1:
+                            type: string
+                          addressLine2:
+                            type: string
+                          city:
+                            type: string
+                          state:
+                            type: string
+                          postalCode:
+                            type: string
+                          country:
+                            type: string
+                        additionalProperties: false
+                      status:
+                        type: string
+                        enum:
+                          - active
+                          - detached
+                          - expired
+                      detachedAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      createdAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                    required:
+                      - id
+                      - contactId
+                      - card
+                      - status
+                      - createdAt
+                      - updatedAt
+                    additionalProperties: false
+                  replacedExisting:
+                    type: boolean
+                required:
+                  - data
+                  - replacedExisting
+                additionalProperties: false
+        '400':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+  /v1/contacts/{id}/payment-methods/setup-intent:
+    post:
+      summary: Start saving a payment method
+      tags:
+        - Payment methods
+      description: |-
+        Begins saving a card for a contact. Returns a Stripe SetupIntent
+        `clientSecret` to confirm client-side with Stripe Elements (the card
+        never touches our servers). After the client confirms, call the attach
+        endpoint with the returned `setupIntentId` to persist the card.
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Contact id, discoverable via list_contacts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      setupIntentId:
+                        type: string
+                      clientSecret:
+                        type: string
+                      customerId:
+                        type: string
+                    required:
+                      - setupIntentId
+                      - clientSecret
+                      - customerId
+                    additionalProperties: false
+                required:
+                  - data
+                additionalProperties: false
+        '400':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+  /v1/contacts/{id}/payment-methods/{methodId}:
+    delete:
+      summary: Remove a saved payment method
+      tags:
+        - Payment methods
+      description: Detaches the saved card from Stripe and removes it from the contact.
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Contact id
+        - schema:
+            type: string
+          in: path
+          name: methodId
+          required: true
+          description: Payment method id
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      removed:
+                        type: boolean
+                    required:
+                      - removed
+                    additionalProperties: false
+                required:
+                  - data
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
   /v1/entitlements/:
     get:
       summary: List Entitlements
@@ -62440,6 +63071,154 @@ paths:
                   - error
                 additionalProperties: false
         '409':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+  /v1/subscriptions/{id}/manage-url:
+    get:
+      summary: Get subscription manage URL
+      tags:
+        - Subscriptions
+      description: |-
+        Returns a signed, customer-facing self-service portal URL for the
+        subscription, where the subscriber can view / cancel / resume it. The link
+        is scoped to this one subscription; share it with the subscriber.
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Subscription id, discoverable via list_subscriptions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        description: Signed customer self-service portal URL for the subscription.
+                    required:
+                      - url
+                    additionalProperties: false
+                required:
+                  - data
+                additionalProperties: false
+        '400':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '500':
           description: Default Response
           content:
             application/json:
