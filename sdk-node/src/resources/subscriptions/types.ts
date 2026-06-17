@@ -54,6 +54,15 @@ export type SubscriptionInvoicePreview = NonNullable<
 /** One line item on a subscription invoice preview. */
 export type SubscriptionInvoicePreviewLineItem = SubscriptionInvoicePreview['lineItems'][number]
 
+/**
+ * Signed, customer-facing self-service portal link for a subscription,
+ * returned by `GET /v1/subscriptions/{id}/manage-url`. The link is scoped to
+ * the one subscription; share it with the subscriber so they can view, cancel,
+ * or resume it.
+ */
+export type SubscriptionManageUrl =
+  paths['/v1/subscriptions/{id}/manage-url']['get']['responses'][200]['content']['application/json']['data']
+
 /** Successful response shape from `GET /v1/subscriptions`. */
 export interface ListSubscriptionsResponse {
   readonly data: readonly Subscription[]

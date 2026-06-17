@@ -5,6 +5,8 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### 0.11.0
+
 ### Added
 
 - Contact payment methods. The `client.contacts` surface gains
@@ -17,6 +19,16 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
   `PaymentMethodCard`, `PaymentMethodBillingDetails`, `AttachPaymentMethodBody`,
   `AttachPaymentMethodResult`, `PaymentMethodSetupIntent`, `RemovedPaymentMethod`,
   and the `PaymentMethodStatus` literal union.
+
+### 0.10.0
+
+### Added
+
+- Subscriptions: `subscriptions.retrieve_manage_url` fetches a signed,
+  customer-facing self-service portal URL
+  (`GET /v1/subscriptions/{id}/manage-url`) scoped to a single subscription.
+  Both sync and async surfaces. New public type `SubscriptionManageUrl` on
+  `threecommon.subscriptions`.
 
 ## 0.9.0
 

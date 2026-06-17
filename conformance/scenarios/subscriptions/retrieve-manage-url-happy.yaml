@@ -1,0 +1,20 @@
+name: retrieve subscription manage URL — happy path
+call:
+  resource: subscriptions
+  method: retrieveManageUrl
+  args:
+    id: sub_123
+expectedRequest:
+  method: GET
+  path: /v1/subscriptions/sub_123/manage-url
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-sub-manage-url-001
+  body:
+    data:
+      url: https://billing.3common.com/p/session/sub_123_a1b2c3
+expectedResult:
+  url: https://billing.3common.com/p/session/sub_123_a1b2c3

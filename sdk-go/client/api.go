@@ -38,8 +38,8 @@ type API struct {
 	Invoices *invoices.Client
 
 	// Subscriptions is the subscriptions resource — List, Retrieve, Create,
-	// Update, Activate, Cancel, CancelImmediately, MarkUnpaid, Bill, Renew,
-	// PreviewUpcomingInvoice.
+	// Update, RetrieveManageURL, Activate, Cancel, CancelImmediately,
+	// MarkUnpaid, Bill, Renew, PreviewUpcomingInvoice.
 	Subscriptions *subscriptions.Client
 
 	// Contacts is the contacts resource — List, Count, Retrieve, Create,

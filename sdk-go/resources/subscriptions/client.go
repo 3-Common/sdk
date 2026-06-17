@@ -118,6 +118,25 @@ func (c *Client) Update(ctx context.Context, id string, params *UpdateParams) (*
 	}, nil
 }
 
+// RetrieveManageURL fetches a signed, customer-facing self-service portal URL
+// for the subscription. The link is scoped to this one subscription — share it
+// with the subscriber so they can view, cancel, or resume it.
+func (c *Client) RetrieveManageURL(ctx context.Context, id string) (*ManageURL, error) {
+	if err := requireID("RetrieveManageURL", id); err != nil {
+		return nil, err
+	}
+
+	var env manageURLEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodGet,
+		Path:   "/subscriptions/" + url.PathEscape(id) + "/manage-url",
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
 // Activate transitions an incomplete or trialing subscription to active.
 func (c *Client) Activate(ctx context.Context, id string) (*Subscription, error) {
 	if err := requireID("Activate", id); err != nil {

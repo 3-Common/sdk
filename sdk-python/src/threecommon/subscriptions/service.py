@@ -23,6 +23,7 @@ from threecommon.subscriptions.types import (
     RetrieveParams,
     Subscription,
     SubscriptionInvoicePreview,
+    SubscriptionManageUrl,
     UpdateBody,
     UpdateSubscriptionResult,
 )
@@ -141,6 +142,18 @@ class SubscriptionsService:
             Request(method="PATCH", path=_path_for(subscription_id), body=payload)
         )
         return _build_update_result(response)
+
+    def retrieve_manage_url(self, subscription_id: str) -> SubscriptionManageUrl:
+        """Fetch a signed, customer-facing self-service portal URL.
+
+        The link is scoped to this one subscription — share it with the
+        subscriber so they can view, cancel, or resume it.
+        """
+        _require_id("retrieve_manage_url", subscription_id)
+        response = self._http.request(
+            Request(method="GET", path=_action_path(subscription_id, "manage-url"))
+        )
+        return SubscriptionManageUrl.model_validate(response["data"])
 
     def activate(self, subscription_id: str) -> Subscription:
         """Transition an incomplete or trialing subscription to ``active``."""
@@ -289,6 +302,13 @@ class AsyncSubscriptionsService:
             Request(method="PATCH", path=_path_for(subscription_id), body=payload)
         )
         return _build_update_result(response)
+
+    async def retrieve_manage_url(self, subscription_id: str) -> SubscriptionManageUrl:
+        _require_id("retrieve_manage_url", subscription_id)
+        response = await self._http.request(
+            Request(method="GET", path=_action_path(subscription_id, "manage-url"))
+        )
+        return SubscriptionManageUrl.model_validate(response["data"])
 
     async def activate(self, subscription_id: str) -> Subscription:
         _require_id("activate", subscription_id)
