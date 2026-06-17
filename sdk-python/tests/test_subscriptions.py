@@ -202,6 +202,33 @@ def test_update_validates_id() -> None:
         assert exc.value.code == "missing_id"
 
 
+def test_retrieve_manage_url(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_123/manage-url",
+        json={"data": {"url": "https://billing.3common.com/p/session/sub_123_a1b2c3"}},
+    )
+    with _make_sync() as c:
+        portal = c.subscriptions.retrieve_manage_url("sub_123")
+    assert portal.url == "https://billing.3common.com/p/session/sub_123_a1b2c3"
+
+
+def test_retrieve_manage_url_validates_id() -> None:
+    with _make_sync() as c:
+        with pytest.raises(ValidationError) as exc:
+            c.subscriptions.retrieve_manage_url("")
+        assert exc.value.code == "missing_id"
+
+
+def test_retrieve_manage_url_404_surfaces(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_missing/manage-url",
+        status_code=404,
+        json={"error": {"code": "not_found", "message": "missing"}},
+    )
+    with _make_sync() as c, pytest.raises(NotFoundError):
+        c.subscriptions.retrieve_manage_url("sub_missing")
+
+
 def test_activate_posts(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/subscriptions/sub_123/activate",
@@ -390,6 +417,17 @@ async def test_async_retrieve(httpx_mock: HTTPXMock) -> None:
     async with _make_async() as c:
         sub = await c.subscriptions.retrieve("sub_1")
     assert sub.id == "sub_1"
+
+
+@pytest.mark.asyncio
+async def test_async_retrieve_manage_url(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_1/manage-url",
+        json={"data": {"url": "https://billing.3common.com/p/session/sub_1_zzz"}},
+    )
+    async with _make_async() as c:
+        portal = await c.subscriptions.retrieve_manage_url("sub_1")
+    assert portal.url == "https://billing.3common.com/p/session/sub_1_zzz"
 
 
 @pytest.mark.asyncio
