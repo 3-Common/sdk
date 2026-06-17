@@ -40,6 +40,8 @@ export type {
 
 // Contacts resource (types only — instances live on the client).
 export type {
+  AttachPaymentMethodBody,
+  AttachPaymentMethodResult,
   BulkUpsertContactsResult,
   Contact,
   ContactActivity,
@@ -57,6 +59,10 @@ export type {
   DeletedContact,
   ListContactActivityResponse,
   ListContactsResponse,
+  PaymentMethod,
+  PaymentMethodSetupIntent,
+  PaymentMethodStatus,
+  RemovedPaymentMethod,
 } from './resources/contacts'
 
 // Entitlements resource (types only — instances live on the client).

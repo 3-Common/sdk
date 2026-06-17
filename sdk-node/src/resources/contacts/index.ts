@@ -1,5 +1,7 @@
 export { contactsService, type ContactsService } from './client'
 export type {
+  AttachPaymentMethodBody,
+  AttachPaymentMethodResult,
   BulkUpsertContactsResult,
   Contact,
   ContactActivity,
@@ -16,4 +18,8 @@ export type {
   DeletedContact,
   ListContactActivityResponse,
   ListContactsResponse,
+  PaymentMethod,
+  PaymentMethodSetupIntent,
+  PaymentMethodStatus,
+  RemovedPaymentMethod,
 } from './types'

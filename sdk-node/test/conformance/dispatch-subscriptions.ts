@@ -79,6 +79,10 @@ export function dispatchSubscriptions(
     case 'disableOtherOption':
     case 'addLogicRule':
     case 'removeLogicRule':
+    case 'retrievePaymentMethod':
+    case 'attachPaymentMethod':
+    case 'createPaymentMethodSetupIntent':
+    case 'removePaymentMethod':
       throw new Error(`subscriptions: unsupported method '${call.method}'`)
   }
 }

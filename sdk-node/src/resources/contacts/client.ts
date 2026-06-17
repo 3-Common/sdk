@@ -1,6 +1,8 @@
 import { createAutoPaginator } from '@/pagination/auto-paginator'
 
 import type {
+  AttachPaymentMethodBody,
+  AttachPaymentMethodResult,
   BulkUpsertContactsResult,
   Contact,
   ContactActivity,
@@ -14,6 +16,9 @@ import type {
   DeletedContact,
   ListContactActivityResponse,
   ListContactsResponse,
+  PaymentMethod,
+  PaymentMethodSetupIntent,
+  RemovedPaymentMethod,
 } from './types'
 import type { HttpClient } from '@/core/http-client'
 import type { RequestOptions } from '@/types/public'
@@ -27,8 +32,12 @@ interface DetailEnvelope<T> {
  *
  * Wraps `GET /v1/contacts`, `GET /v1/contacts/count`, `POST /v1/contacts`,
  * `POST /v1/contacts/bulk`, `GET /v1/contacts/{id}`,
- * `PATCH /v1/contacts/{id}`, `DELETE /v1/contacts/{id}`, and
- * `GET /v1/contacts/{id}/activity`.
+ * `PATCH /v1/contacts/{id}`, `DELETE /v1/contacts/{id}`,
+ * `GET /v1/contacts/{id}/activity`,
+ * `GET /v1/contacts/{id}/payment-methods`,
+ * `POST /v1/contacts/{id}/payment-methods`,
+ * `POST /v1/contacts/{id}/payment-methods/setup-intent`, and
+ * `DELETE /v1/contacts/{id}/payment-methods/{methodId}`.
  *
  * @public
  */
@@ -174,6 +183,68 @@ export interface ContactsService {
     params?: ContactActivityListParams,
     options?: RequestOptions,
   ): AsyncIterableIterator<ContactActivity>
+
+  /**
+   * Retrieve the saved card on file for a contact, or `null` when none is
+   * saved. One card is supported per contact.
+   *
+   * @example
+   * ```ts
+   * const card = await client.contacts.retrievePaymentMethod('cnt_123')
+   * if (card) console.log(`${card.card.brand} ••••${card.card.last4}`)
+   * ```
+   */
+  retrievePaymentMethod(id: string, options?: RequestOptions): Promise<PaymentMethod | null>
+
+  /**
+   * Persist the card from a confirmed Stripe SetupIntent against the contact.
+   * The SetupIntent is re-verified server-side before the card is saved, and
+   * any existing card on file is replaced (`replacedExisting` reports whether
+   * that happened).
+   *
+   * @example
+   * ```ts
+   * const { data, replacedExisting } = await client.contacts.attachPaymentMethod('cnt_123', {
+   *   setupIntentId: 'seti_123',
+   * })
+   * ```
+   */
+  attachPaymentMethod(
+    id: string,
+    body: AttachPaymentMethodBody,
+    options?: RequestOptions,
+  ): Promise<AttachPaymentMethodResult>
+
+  /**
+   * Begin saving a card for a contact. Returns a Stripe SetupIntent
+   * `clientSecret` to confirm client-side with Stripe Elements; once confirmed,
+   * call {@link ContactsService.attachPaymentMethod} with the returned
+   * `setupIntentId` to persist the card.
+   *
+   * @example
+   * ```ts
+   * const { clientSecret } = await client.contacts.createPaymentMethodSetupIntent('cnt_123')
+   * ```
+   */
+  createPaymentMethodSetupIntent(
+    id: string,
+    options?: RequestOptions,
+  ): Promise<PaymentMethodSetupIntent>
+
+  /**
+   * Detach the saved card from Stripe and remove it from the contact. Returns
+   * `{ removed: true }` on success.
+   *
+   * @example
+   * ```ts
+   * await client.contacts.removePaymentMethod('cnt_123', 'pm_456')
+   * ```
+   */
+  removePaymentMethod(
+    id: string,
+    methodId: string,
+    options?: RequestOptions,
+  ): Promise<RemovedPaymentMethod>
 }
 
 /**
@@ -323,12 +394,73 @@ export function contactsService(http: HttpClient): ContactsService {
       }
       return createAutoPaginator(fetchPage, cursorInit)
     },
+
+    async retrievePaymentMethod(
+      id: string,
+      options?: RequestOptions,
+    ): Promise<PaymentMethod | null> {
+      requireId('retrievePaymentMethod', id)
+      const response = await http.request<DetailEnvelope<PaymentMethod | null>>({
+        method: 'GET',
+        path: `/contacts/${encodeURIComponent(id)}/payment-methods`,
+        options,
+      })
+      return response.data
+    },
+
+    async attachPaymentMethod(
+      id: string,
+      body: AttachPaymentMethodBody,
+      options?: RequestOptions,
+    ): Promise<AttachPaymentMethodResult> {
+      requireId('attachPaymentMethod', id)
+      return http.request<AttachPaymentMethodResult>({
+        method: 'POST',
+        path: `/contacts/${encodeURIComponent(id)}/payment-methods`,
+        body,
+        options,
+      })
+    },
+
+    async createPaymentMethodSetupIntent(
+      id: string,
+      options?: RequestOptions,
+    ): Promise<PaymentMethodSetupIntent> {
+      requireId('createPaymentMethodSetupIntent', id)
+      const response = await http.request<DetailEnvelope<PaymentMethodSetupIntent>>({
+        method: 'POST',
+        path: `/contacts/${encodeURIComponent(id)}/payment-methods/setup-intent`,
+        options,
+      })
+      return response.data
+    },
+
+    async removePaymentMethod(
+      id: string,
+      methodId: string,
+      options?: RequestOptions,
+    ): Promise<RemovedPaymentMethod> {
+      requireId('removePaymentMethod', id)
+      requireString('removePaymentMethod', 'methodId', methodId)
+      const response = await http.request<DetailEnvelope<RemovedPaymentMethod>>({
+        method: 'DELETE',
+        path: `/contacts/${encodeURIComponent(id)}/payment-methods/${encodeURIComponent(methodId)}`,
+        options,
+      })
+      return response.data
+    },
   }
 }
 
 function requireId(method: string, id: string): void {
   if (typeof id !== 'string' || id.length === 0) {
     throw new TypeError(`contacts.${method}: \`id\` must be a non-empty string`)
+  }
+}
+
+function requireString(method: string, name: string, value: string): void {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new TypeError(`contacts.${method}: \`${name}\` must be a non-empty string`)
   }
 }
 

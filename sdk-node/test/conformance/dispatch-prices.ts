@@ -66,6 +66,10 @@ export function dispatchPrices(
     case 'disableOtherOption':
     case 'addLogicRule':
     case 'removeLogicRule':
+    case 'retrievePaymentMethod':
+    case 'attachPaymentMethod':
+    case 'createPaymentMethodSetupIntent':
+    case 'removePaymentMethod':
       throw new Error(`prices: unsupported method '${call.method}'`)
   }
 }

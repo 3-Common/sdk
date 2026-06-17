@@ -117,6 +117,10 @@ export function dispatchForms(
     case 'archive':
     case 'unarchive':
     case 'resolve':
+    case 'retrievePaymentMethod':
+    case 'attachPaymentMethod':
+    case 'createPaymentMethodSetupIntent':
+    case 'removePaymentMethod':
       throw new Error(`forms: unsupported method '${call.method}'`)
   }
 }

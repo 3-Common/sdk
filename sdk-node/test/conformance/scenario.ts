@@ -89,6 +89,10 @@ export type Method =
   | 'disableOtherOption'
   | 'addLogicRule'
   | 'removeLogicRule'
+  | 'retrievePaymentMethod'
+  | 'attachPaymentMethod'
+  | 'createPaymentMethodSetupIntent'
+  | 'removePaymentMethod'
 
 export interface ScenarioCall {
   readonly resource?: Resource
