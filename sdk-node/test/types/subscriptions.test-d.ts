@@ -10,6 +10,7 @@ import type {
   SubscriptionCreateBody,
   SubscriptionInvoicePreview,
   SubscriptionListParams,
+  SubscriptionManageUrl,
   SubscriptionRetrieveParams,
   SubscriptionUpdateBody,
   ThreeCommon,
@@ -42,6 +43,10 @@ expectAssignable<SubscriptionCreateBody>({
 // update — partial; returns UpdateSubscriptionResult.
 declare const updateBody: SubscriptionUpdateBody
 expectType<Promise<UpdateSubscriptionResult>>(client.subscriptions.update('sub_123', updateBody))
+
+// retrieveManageUrl — id only; returns SubscriptionManageUrl ({ url }).
+expectType<Promise<SubscriptionManageUrl>>(client.subscriptions.retrieveManageUrl('sub_123'))
+expectAssignable<SubscriptionManageUrl>({ url: 'https://portal.3common.com/s/sub_123' })
 
 // activate — id only; returns Subscription.
 expectType<Promise<Subscription>>(client.subscriptions.activate('sub_123'))

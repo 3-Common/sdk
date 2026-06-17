@@ -48,6 +48,7 @@ export function dispatchEvents(
     case 'listActivity':
     case 'listActivityAutoPaginate':
     case 'previewUpcomingInvoice':
+    case 'retrieveManageUrl':
     case 'lookup':
     case 'grant':
     case 'consume':

@@ -34,6 +34,9 @@ func dispatchSubscriptions(t *testing.T, api *client.API, ctx context.Context, s
 		id, _ := sc.Call.Args["id"].(string)
 		body, _ := sc.Call.Args["body"].(map[string]any)
 		return api.Subscriptions.Update(ctx, id, buildSubscriptionUpdateParams(body))
+	case "retrieveManageUrl":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Subscriptions.RetrieveManageURL(ctx, id)
 	case "activate":
 		id, _ := sc.Call.Args["id"].(string)
 		return api.Subscriptions.Activate(ctx, id)
