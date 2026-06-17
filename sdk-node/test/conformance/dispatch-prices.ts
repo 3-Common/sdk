@@ -48,6 +48,7 @@ export function dispatchPrices(
     case 'bill':
     case 'renew':
     case 'previewUpcomingInvoice':
+    case 'retrieveManageUrl':
     case 'count':
     case 'delete':
     case 'bulkUpsert':

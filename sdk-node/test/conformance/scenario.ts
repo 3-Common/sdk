@@ -68,6 +68,7 @@ export type Method =
   | 'bill'
   | 'renew'
   | 'previewUpcomingInvoice'
+  | 'retrieveManageUrl'
   | 'count'
   | 'delete'
   | 'bulkUpsert'
