@@ -44,7 +44,8 @@ type API struct {
 
 	// Contacts is the contacts resource — List, Count, Retrieve, Create,
 	// Update, Delete, BulkUpsert, ListActivity, ListAutoPaginate,
-	// ListActivityAutoPaginate.
+	// ListActivityAutoPaginate, RetrievePaymentMethod, AttachPaymentMethod,
+	// CreatePaymentMethodSetupIntent, RemovePaymentMethod.
 	Contacts *contacts.Client
 
 	// Entitlements is the entitlements resource — List, Retrieve, Lookup,
