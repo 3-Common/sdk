@@ -129,8 +129,8 @@ expectedCallCount: 2          # asserts the number of HTTP calls actually made
 Each SDK runs the full scenario set as part of its merge-gate CI. The harness lives at:
 
 - `sdk-node/test/conformance/runner.test.ts`
-- `sdk-python/tests/conformance/test_runner.py` *(Planned)*
-- `sdk-go/conformance_test.go` *(Planned)*
+- `sdk-python/tests/test_conformance.py`
+- `sdk-go/conformance/runner_test.go`
 
 ## Authoring guidance
 

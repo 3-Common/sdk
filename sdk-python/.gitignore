@@ -21,6 +21,13 @@ htmlcov/
 venv/
 env/
 
+# uv lockfile: uv is dev/tooling-only here; CI installs via pip from pyproject,
+# so uv.lock is not part of this project's dependency contract and is not
+# committed. (The add-sdk-resource workflow runs `uv run --no-sync`, which won't
+# write it, but a bare `uv` command from a dev or an agent omitting --no-sync
+# would; keep it ignored as a backstop.)
+uv.lock
+
 # Editor / OS
 .vscode/
 .idea/
