@@ -87,6 +87,7 @@ export function dispatchContacts(
     case 'bill':
     case 'renew':
     case 'previewUpcomingInvoice':
+    case 'retrieveManageUrl':
     case 'lookup':
     case 'grant':
     case 'consume':
