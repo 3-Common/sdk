@@ -9,14 +9,42 @@ on:
   pull_request:
     paths:
       - "conformance/**"
+      - ".github/workflows/conformance.yml"
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: conformance-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate-scenarios:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Placeholder
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install yamllint + pyyaml
+        run: pip install --quiet yamllint pyyaml
+
+      - name: Lint YAML formatting
         run: |
-          echo "Conformance scenario validation will run here. Current just place holder"
-          echo "Per-language SDKs run scenarios as part of their own CI workflows."
+          cat <<'YAML' > /tmp/yamllint.yml
+          extends: default
+          rules:
+            line-length:
+              max: 200
+              level: warning
+            document-start: disable
+            truthy:
+              check-keys: false
+          YAML
+          yamllint -c /tmp/yamllint.yml conformance/scenarios/
+
+      - name: Validate scenario schema
+        run: python .github/scripts/validate_conformance.py
