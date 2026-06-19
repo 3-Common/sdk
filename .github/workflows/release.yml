@@ -6,34 +6,228 @@ on:
   push:
     tags:
       - "sdk-node@v*"
-      - "sdk-python@v*"
       - "sdk-go/v*"
   workflow_dispatch:
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  detect:
+  # Node SDK release to npm
+  release-node:
+    if: startsWith(github.ref, 'refs/tags/sdk-node@v')
     runs-on: ubuntu-latest
-    outputs:
-      sdk: ${{ steps.classify.outputs.sdk }}
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@3common/sdk
+    permissions:
+      contents: write
+      id-token: write
+    defaults:
+      run:
+        working-directory: sdk-node
     steps:
-      - id: classify
-        run: |
-          ref="${GITHUB_REF#refs/tags/}"
-          case "$ref" in
-            sdk-node@v*)   echo "sdk=node" >> "$GITHUB_OUTPUT" ;;
-            sdk-python@v*) echo "sdk=python" >> "$GITHUB_OUTPUT" ;;
-            sdk-go/v*)     echo "sdk=go" >> "$GITHUB_OUTPUT" ;;
-            *)             echo "sdk=" >> "$GITHUB_OUTPUT" ;;
-          esac
+      - uses: actions/checkout@v6
 
-  placeholder:
-    needs: detect
+      - name: Derive version from tag
+        id: ver
+        working-directory: .
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version="${tag#sdk-node@v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Verify package.json matches the tag
+        run: |
+          pkg_version=$(node -p "require('./package.json').version")
+          want='${{ steps.ver.outputs.version }}'
+          if [ "$pkg_version" != "$want" ]; then
+            echo "::error::package.json version ($pkg_version) does not match tag ($want)."
+            echo "Did you forget to run 'yarn changeset version' + commit before tagging?"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: sdk-node/yarn.lock
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Pre-flight (typecheck, lint, test, build)
+        run: |
+          yarn typecheck
+          yarn lint
+          yarn test
+          yarn test:types
+          yarn docs:check
+          yarn format:check
+          yarn build
+
+      - name: Live-API smoke (gate)
+        env:
+          THREECOMMON_API_KEY: ${{ secrets.THREECOMMON_API_KEY }}
+          THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
+          SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
+          SMOKE_INVOICE_ID: ${{ vars.SMOKE_INVOICE_ID }}
+          SMOKE_SUBSCRIPTION_ID: ${{ vars.SMOKE_SUBSCRIPTION_ID }}
+        run: |
+          if [ -z "$THREECOMMON_API_KEY" ]; then
+            echo "::error::THREECOMMON_API_KEY secret is required for release smoke. Set it on the repo or skip the release."
+            exit 1
+          fi
+          yarn smoke
+
+      - name: Inspect tarball
+        run: npm pack --dry-run
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+
+      - name: Verify on registry
+        working-directory: .
+        run: |
+          sleep 5
+          actual=$(npm view @3common/sdk@${{ steps.ver.outputs.version }} version 2>&1 || echo "")
+          if [ "$actual" != "${{ steps.ver.outputs.version }}" ]; then
+            echo "::error::Published version not visible on registry yet (got: '$actual')."
+            exit 1
+          fi
+          echo "✓ @3common/sdk@${{ steps.ver.outputs.version }} live on npm"
+
+      - name: Extract CHANGELOG section
+        id: notes
+        working-directory: .
+        run: |
+          version='${{ steps.ver.outputs.version }}'
+          # Pull the chunk between "## $version" and the next "## " heading.
+          notes=$(awk -v v="## $version" '
+            $0 == v          {capture=1; next}
+            capture && /^## / {exit}
+            capture           {print}
+          ' sdk-node/CHANGELOG.md)
+          if [ -z "$notes" ]; then
+            notes="See [sdk-node/CHANGELOG.md](sdk-node/CHANGELOG.md)."
+          fi
+          {
+            echo "body<<EOF"
+            echo "$notes"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: .
+        run: |
+          gh release create '${{ steps.ver.outputs.tag }}' \
+            --title 'sdk-node ${{ steps.ver.outputs.version }}' \
+            --notes "${{ steps.notes.outputs.body }}"
+
+  # Go SDK
+  release-go:
+    if: startsWith(github.ref, 'refs/tags/sdk-go/v')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - run: |
-          echo "Release flow for SDK: ${{ needs.detect.outputs.sdk }}"
-          echo "Implementation lands in Phase 1d (Node), Phase 2 (Python), Phase 3 (Go)."
+      - uses: actions/checkout@v6
+
+      - name: Derive version from tag
+        id: ver
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          # tag = sdk-go/v0.5.0 → version = 0.5.0
+          version="${tag#sdk-go/v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Verify sdk-go/version.go matches the tag
+        run: |
+          want='${{ steps.ver.outputs.version }}'
+          got=$(grep -E '^const Version = ' sdk-go/version.go | sed -E 's/.*"([^"]+)".*/\1/')
+          if [ "$got" != "$want" ]; then
+            echo "::error::sdk-go/version.go has Version = '$got' but tag is '$want'."
+            echo "Bump the constant on main and re-tag (the tag is on a commit with the wrong constant)."
+            exit 1
+          fi
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
+          cache-dependency-path: sdk-go/go.sum
+
+      - name: Pre-flight (build, vet, test)
+        working-directory: sdk-go
+        run: |
+          go build ./...
+          go vet ./...
+          go test -count=1 ./...
+
+      - name: Live-API smoke (gate)
+        working-directory: sdk-go
+        env:
+          THREECOMMON_API_KEY: ${{ secrets.THREECOMMON_API_KEY }}
+          THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
+          SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
+          SMOKE_INVOICE_ID: ${{ vars.SMOKE_INVOICE_ID }}
+          SMOKE_SUBSCRIPTION_ID: ${{ vars.SMOKE_SUBSCRIPTION_ID }}
+        run: |
+          if [ -z "$THREECOMMON_API_KEY" ]; then
+            echo "::error::THREECOMMON_API_KEY secret is required for release smoke."
+            exit 1
+          fi
+          go run ./scripts/livesmoke
+
+      - name: Warm the module proxy
+        run: |
+          encoded='github.com/3-!common/sdk/sdk-go'
+          tag='${{ steps.ver.outputs.version }}'
+          for i in 1 2 3 4 5; do
+            if curl -fsS "https://proxy.golang.org/$encoded/@v/v$tag.info" > /tmp/info.json; then
+              echo "✓ proxy fetched v$tag:"
+              cat /tmp/info.json
+              exit 0
+            fi
+            echo "Attempt $i: proxy not ready yet, waiting 15s..."
+            sleep 15
+          done
+          echo "::error::proxy.golang.org failed to fetch v$tag after 5 attempts."
+          exit 1
+
+      - name: Extract CHANGELOG section
+        id: notes
+        run: |
+          version='${{ steps.ver.outputs.version }}'
+          notes=$(awk -v v="## $version" '
+            $0 == v          {capture=1; next}
+            capture && /^## / {exit}
+            capture           {print}
+          ' sdk-go/CHANGELOG.md)
+          if [ -z "$notes" ]; then
+            notes="See [sdk-go/CHANGELOG.md](sdk-go/CHANGELOG.md)."
+          fi
+          {
+            echo "body<<EOF"
+            echo "$notes"
+            echo ""
+            echo "Install: \`go get github.com/3-Common/sdk/sdk-go@v${version}\`"
+            echo "Docs:    https://pkg.go.dev/github.com/3-Common/sdk/sdk-go@v${version}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create '${{ steps.ver.outputs.tag }}' \
+            --title 'sdk-go ${{ steps.ver.outputs.version }}' \
+            --notes "${{ steps.notes.outputs.body }}"
