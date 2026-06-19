@@ -338,6 +338,36 @@ describe('subscriptions.previewUpcomingInvoice', () => {
   })
 })
 
+describe('subscriptions.retrieveManageUrl', () => {
+  it('GETs /manage-url and unwraps the portal url', async () => {
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/subscriptions/sub_123/manage-url`, () =>
+        HttpResponse.json({ data: { url: 'https://portal.3common.com/s/sub_123?sig=abc' } }),
+      ),
+    )
+    const client = buildClient()
+    const result = await client.subscriptions.retrieveManageUrl('sub_123')
+    expect(result.url).toBe('https://portal.3common.com/s/sub_123?sig=abc')
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.subscriptions.retrieveManageUrl('')).rejects.toThrow(TypeError)
+  })
+
+  it('throws ThreeCommonNotFoundError on 404', async () => {
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/subscriptions/sub_missing/manage-url`, () =>
+        HttpResponse.json({ error: { code: 'not_found', message: 'gone' } }, { status: 404 }),
+      ),
+    )
+    const client = buildClient()
+    await expect(client.subscriptions.retrieveManageUrl('sub_missing')).rejects.toBeInstanceOf(
+      ThreeCommonNotFoundError,
+    )
+  })
+})
+
 describe('subscriptions.list — paramsToQuery edge cases', () => {
   it('skips explicit undefined params', async () => {
     let captured = ''

@@ -1029,6 +1029,457 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/contacts/{id}/payment-methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get contact payment method
+         * @description Retrieves the saved card on file for a contact, or null when none is saved. One card is supported per contact.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Contact id, discoverable via list_contacts */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                contactId: string;
+                                card: {
+                                    brand: string;
+                                    last4: string;
+                                    expMonth: number;
+                                    expYear: number;
+                                    country?: string;
+                                    funding?: string;
+                                };
+                                billingDetails?: {
+                                    name?: string;
+                                    email?: string;
+                                    phone?: string;
+                                    addressLine1?: string;
+                                    addressLine2?: string;
+                                    city?: string;
+                                    state?: string;
+                                    postalCode?: string;
+                                    country?: string;
+                                };
+                                /** @enum {string} */
+                                status: "active" | "detached" | "expired";
+                                /** Format: date-time */
+                                detachedAt?: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: date-time */
+                                updatedAt: string;
+                            } | (null);
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Attach a saved payment method
+         * @description Persists the card from a confirmed SetupIntent against the contact.
+         *     The SetupIntent is re-verified server-side (status + scope) before the
+         *     card is saved. Replaces any existing card on file for the contact.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Contact id, discoverable via list_contacts */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Stripe SetupIntent id confirmed on the client */
+                        setupIntentId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                contactId: string;
+                                card: {
+                                    brand: string;
+                                    last4: string;
+                                    expMonth: number;
+                                    expYear: number;
+                                    country?: string;
+                                    funding?: string;
+                                };
+                                billingDetails?: {
+                                    name?: string;
+                                    email?: string;
+                                    phone?: string;
+                                    addressLine1?: string;
+                                    addressLine2?: string;
+                                    city?: string;
+                                    state?: string;
+                                    postalCode?: string;
+                                    country?: string;
+                                };
+                                /** @enum {string} */
+                                status: "active" | "detached" | "expired";
+                                /** Format: date-time */
+                                detachedAt?: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: date-time */
+                                updatedAt: string;
+                            };
+                            replacedExisting: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contacts/{id}/payment-methods/setup-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start saving a payment method
+         * @description Begins saving a card for a contact. Returns a Stripe SetupIntent
+         *     `clientSecret` to confirm client-side with Stripe Elements (the card
+         *     never touches our servers). After the client confirms, call the attach
+         *     endpoint with the returned `setupIntentId` to persist the card.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Contact id, discoverable via list_contacts */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                setupIntentId: string;
+                                clientSecret: string;
+                                customerId: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contacts/{id}/payment-methods/{methodId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a saved payment method
+         * @description Detaches the saved card from Stripe and removes it from the contact.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Contact id */
+                    id: string;
+                    /** @description Payment method id */
+                    methodId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                removed: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/entitlements/": {
         parameters: {
             query?: never;
@@ -35042,6 +35493,130 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/v1/subscriptions/{id}/manage-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get subscription manage URL
+         * @description Returns a signed, customer-facing self-service portal URL for the
+         *     subscription, where the subscriber can view / cancel / resume it. The link
+         *     is scoped to this one subscription; share it with the subscriber.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Subscription id, discoverable via list_subscriptions */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** @description Signed customer self-service portal URL for the subscription. */
+                                url: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/subscriptions/{id}/activate": {

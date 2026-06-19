@@ -132,6 +132,7 @@ export type {
   SubscriptionInvoiceRef,
   SubscriptionItem,
   SubscriptionListParams,
+  SubscriptionManageUrl,
   SubscriptionProration,
   SubscriptionRetrieveParams,
   SubscriptionStatus,

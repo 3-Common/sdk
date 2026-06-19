@@ -29,6 +29,8 @@ export function dispatchSubscriptions(
       const body = expectBody(args['body'], 'update')
       return client.subscriptions.update(id, body)
     }
+    case 'retrieveManageUrl':
+      return client.subscriptions.retrieveManageUrl(expectString(args['id'], 'retrieveManageUrl'))
     case 'activate':
       return client.subscriptions.activate(expectString(args['id'], 'activate'))
     case 'cancel': {
