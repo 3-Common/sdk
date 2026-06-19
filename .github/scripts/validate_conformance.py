@@ -6,6 +6,7 @@ the failing path is clear in the GitHub Actions log.
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -14,70 +15,57 @@ import yaml
 
 SCENARIOS_DIR = Path("conformance/scenarios")
 
-KNOWN_RESOURCES = {
-    "contacts",
-    "entitlements",
-    "events",
-    "features",
-    "forms",
-    "invoices",
-    "prices",
-    "properties",
-    "subscriptions",
-}
+# Per-language dispatcher locations. Each glob's basename (minus prefix/suffix)
+# is the resource name.
+_NODE_DISPATCHERS = Path("sdk-node/test/conformance")
+_PYTHON_DISPATCHERS = Path("sdk-python/tests/_conformance")
+_GO_DISPATCHERS = Path("sdk-go/conformance")
+_NODE_ERRORS = Path("sdk-node/src/errors/classes.ts")
 
-KNOWN_METHODS = {
-    "activate",
-    "addElement",
-    "addLogicRule",
-    "archive",
-    "autoCharge",
-    "bill",
-    "bulkUpsert",
-    "cancel",
-    "cancelImmediately",
-    "consume",
-    "count",
-    "create",
-    "delete",
-    "deleteDraft",
-    "deleteElement",
-    "disableOtherOption",
-    "duplicate",
-    "enableOtherOption",
-    "finalize",
-    "grant",
-    "list",
-    "listActivity",
-    "listActivityAutoPaginate",
-    "listAutoPaginate",
-    "lookup",
-    "markUnpaid",
-    "moveElement",
-    "previewUpcomingInvoice",
-    "recordPayment",
-    "refundPayment",
-    "removeLogicRule",
-    "renew",
-    "resolve",
-    "retrieve",
-    "unarchive",
-    "update",
-    "updateElement",
-    "void",
-}
+def _resource_from_stem(stem: str) -> str:
+    name = stem.removeprefix("dispatch-").removeprefix("dispatch_")
+    return name.removesuffix("_test")
 
-# Typed error classes the runners map to per language.
-KNOWN_ERROR_TYPES = {
-    "ThreeCommonAuthError",
-    "ThreeCommonPermissionError",
-    "ThreeCommonNotFoundError",
-    "ThreeCommonValidationError",
-    "ThreeCommonConflictError",
-    "ThreeCommonRateLimitError",
-    "ThreeCommonServerError",
-    "ThreeCommonConnectionError",
-}
+
+def _derive_resources() -> set[str]:
+    sources = {
+        "node": list(_NODE_DISPATCHERS.glob("dispatch-*.ts")),
+        "python": list(_PYTHON_DISPATCHERS.glob("dispatch_*.py")),
+        "go": list(_GO_DISPATCHERS.glob("dispatch_*_test.go")),
+    }
+    per_lang = {lang: {_resource_from_stem(p.stem) for p in paths} for lang, paths in sources.items()}
+
+    union: set[str] = set().union(*per_lang.values())
+    for lang, names in per_lang.items():
+        missing = union - names
+        if missing:
+            print(
+                f"warning: {lang} is missing dispatchers for {sorted(missing)}",
+                file=sys.stderr,
+            )
+    return union
+
+
+_CASE_LABEL = re.compile(r"case '([a-zA-Z][a-zA-Z0-9]*)':")
+
+
+def _derive_methods() -> set[str]:
+    methods: set[str] = set()
+    for path in _NODE_DISPATCHERS.glob("dispatch-*.ts"):
+        methods.update(_CASE_LABEL.findall(path.read_text()))
+    return methods
+
+
+_ERROR_CLASS = re.compile(r"export class (ThreeCommon\w*Error)\b")
+
+
+def _derive_error_types() -> set[str]:
+    return set(_ERROR_CLASS.findall(_NODE_ERRORS.read_text()))
+
+
+KNOWN_RESOURCES = _derive_resources()
+KNOWN_METHODS = _derive_methods()
+KNOWN_ERROR_TYPES = _derive_error_types()
 
 errors: list[str] = []
 
