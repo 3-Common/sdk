@@ -67,10 +67,10 @@ jobs:
           yarn typecheck
           yarn lint
           yarn test
+          yarn build
           yarn test:types
           yarn docs:check
           yarn format:check
-          yarn build
 
       - name: Live-API smoke (gate)
         env:
