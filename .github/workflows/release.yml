@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -58,6 +59,17 @@ jobs:
           cache: yarn
           cache-dependency-path: sdk-node/yarn.lock
           registry-url: "https://registry.npmjs.org"
+
+      - name: Upgrade npm for trusted publishing (needs >= 11.5.1)
+        working-directory: .
+        run: |
+          npm install -g npm@latest
+          npm --version
+
+      - name: Configure npm
+        run: |
+          npm config set registry https://registry.npmjs.org/
+          npm config set access public
 
       - name: Install
         run: yarn install --frozen-lockfile
