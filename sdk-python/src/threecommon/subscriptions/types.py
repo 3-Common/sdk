@@ -206,6 +206,17 @@ class SubscriptionInvoicePreview(_BaseModel):
     period_end: str = Field(serialization_alias="periodEnd", validation_alias="periodEnd")
 
 
+class SubscriptionManageUrl(_BaseModel):
+    """Signed, customer-facing self-service portal link for a subscription.
+
+    Returned by ``GET /v1/subscriptions/{id}/manage-url``. The link is scoped to
+    the one subscription; share it with the subscriber so they can view, cancel,
+    or resume it.
+    """
+
+    url: str
+
+
 class ListSubscriptionsResponse(_BaseModel):
     """Successful response shape from ``GET /v1/subscriptions``."""
 

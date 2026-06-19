@@ -91,7 +91,7 @@ def build_update_body(raw: dict[str, Any]) -> UpdateBody:
     )
 
 
-def dispatch_sync(  # noqa: PLR0911
+def dispatch_sync(  # noqa: PLR0911, PLR0912
     client: ThreeCommon, method: str, args: dict[str, Any]
 ) -> Any:  # noqa: ANN401
     if method == "list":
@@ -104,6 +104,8 @@ def dispatch_sync(  # noqa: PLR0911
         return client.subscriptions.create(build_create_body(args.get("body") or {}))
     if method == "update":
         return client.subscriptions.update(args["id"], build_update_body(args.get("body") or {}))
+    if method == "retrieveManageUrl":
+        return client.subscriptions.retrieve_manage_url(args["id"])
     if method == "activate":
         return client.subscriptions.activate(args["id"])
     if method == "cancel":
@@ -127,7 +129,7 @@ def dispatch_sync(  # noqa: PLR0911
     pytest.fail(f"unsupported subscription method: {method}")
 
 
-async def dispatch_async(  # noqa: PLR0911
+async def dispatch_async(  # noqa: PLR0911, PLR0912
     client: AsyncThreeCommon, method: str, args: dict[str, Any]
 ) -> Any:  # noqa: ANN401
     if method == "list":
@@ -142,6 +144,8 @@ async def dispatch_async(  # noqa: PLR0911
         return await client.subscriptions.update(
             args["id"], build_update_body(args.get("body") or {})
         )
+    if method == "retrieveManageUrl":
+        return await client.subscriptions.retrieve_manage_url(args["id"])
     if method == "activate":
         return await client.subscriptions.activate(args["id"])
     if method == "cancel":
