@@ -1,0 +1,27 @@
+# Removing a payment-method id that isn't on file returns 404, surfaced as a
+# not-found error. Exercises the deeper {methodId} path segment.
+name: 404 — remove payment method not found
+call:
+  resource: contacts
+  method: removePaymentMethod
+  args:
+    id: cnt_123
+    methodId: pm_missing
+client:
+  maxRetries: 0
+expectedRequest:
+  method: DELETE
+  path: /v1/contacts/cnt_123/payment-methods/pm_missing
+mockResponse:
+  status: 404
+  headers:
+    x-request-id: req-cnt-pm-404-001
+  body:
+    error:
+      code: not_found
+      message: payment method pm_missing not found
+expectedError:
+  type: ThreeCommonNotFoundError
+  code: not_found
+  httpStatus: 404
+  requestId: req-cnt-pm-404-001

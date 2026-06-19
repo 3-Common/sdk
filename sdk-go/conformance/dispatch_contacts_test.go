@@ -65,9 +65,34 @@ func dispatchContacts(t *testing.T, api *client.API, ctx context.Context, sc sce
 			collected = append(collected, iter.Current())
 		}
 		return collected, iter.Err()
+	case "retrievePaymentMethod":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Contacts.RetrievePaymentMethod(ctx, id)
+	case "attachPaymentMethod":
+		id, _ := sc.Call.Args["id"].(string)
+		body, _ := sc.Call.Args["body"].(map[string]any)
+		return api.Contacts.AttachPaymentMethod(ctx, id, buildAttachPaymentMethodParams(body))
+	case "createPaymentMethodSetupIntent":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Contacts.CreatePaymentMethodSetupIntent(ctx, id)
+	case "removePaymentMethod":
+		id, _ := sc.Call.Args["id"].(string)
+		methodID, _ := sc.Call.Args["methodId"].(string)
+		return api.Contacts.RemovePaymentMethod(ctx, id, methodID)
 	}
 	t.Fatalf("unsupported contacts scenario method %q", sc.Call.Method)
 	return nil, nil
+}
+
+func buildAttachPaymentMethodParams(body map[string]any) *contacts.AttachPaymentMethodParams {
+	if body == nil {
+		return nil
+	}
+	p := &contacts.AttachPaymentMethodParams{}
+	if s, ok := body["setupIntentId"].(string); ok {
+		p.SetupIntentID = s
+	}
+	return p
 }
 
 func buildContactListParams(args map[string]any) *contacts.ListParams {

@@ -722,3 +722,207 @@ func TestFilterWith_NilFilterIsNoOp(t *testing.T) {
 	params := (&contacts.ListParams{Filters: "x"}).FilterWith(nil)
 	assert.Equal(t, "x", params.Filters)
 }
+
+func TestRetrievePaymentMethod_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "/v1/contacts/cnt_123/payment-methods", r.URL.Path)
+		_, _ = w.Write([]byte(`{"data":{"id":"pm_123","contactId":"cnt_123","card":{"brand":"visa","last4":"4242","expMonth":12,"expYear":2030,"funding":"credit"},"status":"active","createdAt":"2026-06-17T12:00:00Z","updatedAt":"2026-06-17T12:00:00Z"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.RetrievePaymentMethod(context.Background(), "cnt_123")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "pm_123", got.ID)
+	assert.Equal(t, "cnt_123", got.ContactID)
+	assert.Equal(t, contacts.PaymentMethodStatusActive, got.Status)
+	assert.Equal(t, "visa", got.Card.Brand)
+	assert.Equal(t, "4242", got.Card.Last4)
+	assert.Equal(t, 12, got.Card.ExpMonth)
+	assert.Equal(t, 2030, got.Card.ExpYear)
+}
+
+func TestRetrievePaymentMethod_NullReturnsNil(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/v1/contacts/cnt_nocard/payment-methods", r.URL.Path)
+		_, _ = w.Write([]byte(`{"data":null}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.RetrievePaymentMethod(context.Background(), "cnt_nocard")
+	require.NoError(t, err)
+	assert.Nil(t, got)
+}
+
+func TestRetrievePaymentMethod_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := contacts.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.RetrievePaymentMethod(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestRetrievePaymentMethod_404Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, `{"error":{"code":"not_found","message":"gone"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.RetrievePaymentMethod(context.Background(), "cnt_missing")
+	var nf *threecommon.NotFoundError
+	require.True(t, errors.As(err, &nf))
+}
+
+func TestAttachPaymentMethod_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/contacts/cnt_123/payment-methods", r.URL.Path)
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+		assert.Equal(t, "seti_123", got["setupIntentId"])
+
+		_, _ = w.Write([]byte(`{"data":{"id":"pm_123","contactId":"cnt_123","card":{"brand":"visa","last4":"4242","expMonth":12,"expYear":2030},"status":"active","createdAt":"2026-06-17T12:00:00Z","updatedAt":"2026-06-17T12:00:00Z"},"replacedExisting":true}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.AttachPaymentMethod(context.Background(), "cnt_123", &contacts.AttachPaymentMethodParams{
+		SetupIntentID: "seti_123",
+	})
+	require.NoError(t, err)
+	assert.True(t, got.ReplacedExisting)
+	assert.Equal(t, "pm_123", got.Data.ID)
+	assert.Equal(t, "visa", got.Data.Card.Brand)
+}
+
+func TestAttachPaymentMethod_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := contacts.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.AttachPaymentMethod(context.Background(), "", &contacts.AttachPaymentMethodParams{SetupIntentID: "seti_1"})
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestAttachPaymentMethod_RequiresParams(t *testing.T) {
+	t.Parallel()
+	cl, _ := contacts.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.AttachPaymentMethod(context.Background(), "cnt_123", nil)
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_body", v.Code)
+}
+
+func TestAttachPaymentMethod_400SurfacesAsValidation(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = io.WriteString(w, `{"error":{"code":"invalid_setup_intent","message":"not confirmed","details":{"field":"setupIntentId"}}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.AttachPaymentMethod(context.Background(), "cnt_123", &contacts.AttachPaymentMethodParams{SetupIntentID: "seti_unconfirmed"})
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "invalid_setup_intent", v.Code)
+}
+
+func TestCreatePaymentMethodSetupIntent_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/contacts/cnt_123/payment-methods/setup-intent", r.URL.Path)
+		// No body endpoint: must not advertise a JSON content type.
+		assert.Empty(t, r.Header.Get("Content-Type"))
+		body, _ := io.ReadAll(r.Body)
+		assert.Empty(t, body)
+
+		_, _ = w.Write([]byte(`{"data":{"setupIntentId":"seti_123","clientSecret":"seti_123_secret_abc","customerId":"cus_123"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.CreatePaymentMethodSetupIntent(context.Background(), "cnt_123")
+	require.NoError(t, err)
+	assert.Equal(t, "seti_123", got.SetupIntentID)
+	assert.Equal(t, "seti_123_secret_abc", got.ClientSecret)
+	assert.Equal(t, "cus_123", got.CustomerID)
+}
+
+func TestCreatePaymentMethodSetupIntent_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := contacts.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.CreatePaymentMethodSetupIntent(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestRemovePaymentMethod_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodDelete, r.Method)
+		assert.Equal(t, "/v1/contacts/cnt_123/payment-methods/pm_123", r.URL.Path)
+		_, _ = w.Write([]byte(`{"data":{"removed":true}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.RemovePaymentMethod(context.Background(), "cnt_123", "pm_123")
+	require.NoError(t, err)
+	assert.True(t, got.Removed)
+}
+
+func TestRemovePaymentMethod_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := contacts.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.RemovePaymentMethod(context.Background(), "", "pm_123")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestRemovePaymentMethod_RequiresMethodID(t *testing.T) {
+	t.Parallel()
+	cl, _ := contacts.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.RemovePaymentMethod(context.Background(), "cnt_123", "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_method_id", v.Code)
+}
+
+func TestRemovePaymentMethod_404Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, `{"error":{"code":"not_found","message":"payment method pm_missing not found"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.RemovePaymentMethod(context.Background(), "cnt_123", "pm_missing")
+	var nf *threecommon.NotFoundError
+	require.True(t, errors.As(err, &nf))
+}

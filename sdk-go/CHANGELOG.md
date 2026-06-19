@@ -6,6 +6,23 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.11.0
+
+### Added
+
+- Contact payment-method operations on the `api.Contacts` surface:
+  `RetrievePaymentMethod` (the saved card on file, or nil when none is saved),
+  `AttachPaymentMethod` (persist a card from a confirmed Stripe SetupIntent;
+  returns the saved method plus a `ReplacedExisting` flag),
+  `CreatePaymentMethodSetupIntent` (begin saving a card, returning a Stripe
+  SetupIntent to confirm client-side), and `RemovePaymentMethod` (detach the
+  saved card). Available via `api.Contacts` and `contacts.New` for standalone
+  use.
+- New public types in `resources/contacts`: `PaymentMethod`, `Card`,
+  `BillingDetails`, `AttachPaymentMethodParams`, `AttachPaymentMethodResult`,
+  `PaymentMethodSetupIntent`, `RemovedPaymentMethod`, and the
+  `PaymentMethodStatus` enum.
+
 ## 0.10.0
 
 ### Added
