@@ -284,6 +284,94 @@ type DeleteResult struct {
 	ID string `json:"id"`
 }
 
+// PaymentMethodStatus is the lifecycle status of a saved payment method.
+//
+//   - PaymentMethodStatusActive: usable card on file
+//   - PaymentMethodStatusDetached: removed from Stripe and the contact
+//   - PaymentMethodStatusExpired: past its expiry date
+type PaymentMethodStatus string
+
+// PaymentMethodStatus values returned by the API. Unknown values from a future
+// API version surface as the raw string.
+const (
+	PaymentMethodStatusActive   PaymentMethodStatus = "active"
+	PaymentMethodStatusDetached PaymentMethodStatus = "detached"
+	PaymentMethodStatusExpired  PaymentMethodStatus = "expired"
+)
+
+// Card is the stored card detail on a [PaymentMethod]. The raw card number
+// never touches our servers — only the brand, last-4, expiry, and (when
+// available) funding/country metadata Stripe returns are kept.
+type Card struct {
+	Brand    string `json:"brand"`
+	Last4    string `json:"last4"`
+	ExpMonth int    `json:"expMonth"`
+	ExpYear  int    `json:"expYear"`
+	Country  string `json:"country,omitempty"`
+	Funding  string `json:"funding,omitempty"`
+}
+
+// BillingDetails is the optional billing address/contact captured alongside a
+// saved card. Every field is optional.
+type BillingDetails struct {
+	Name         string `json:"name,omitempty"`
+	Email        string `json:"email,omitempty"`
+	Phone        string `json:"phone,omitempty"`
+	AddressLine1 string `json:"addressLine1,omitempty"`
+	AddressLine2 string `json:"addressLine2,omitempty"`
+	City         string `json:"city,omitempty"`
+	State        string `json:"state,omitempty"`
+	PostalCode   string `json:"postalCode,omitempty"`
+	Country      string `json:"country,omitempty"`
+}
+
+// PaymentMethod is the saved card on file for a contact, returned by
+// [Client.RetrievePaymentMethod] and (nested under
+// [AttachPaymentMethodResult.Data]) by [Client.AttachPaymentMethod]. One card
+// is supported per contact.
+type PaymentMethod struct {
+	ID             string              `json:"id"`
+	ContactID      string              `json:"contactId"`
+	Card           Card                `json:"card"`
+	BillingDetails *BillingDetails     `json:"billingDetails,omitempty"`
+	Status         PaymentMethodStatus `json:"status"`
+	DetachedAt     string              `json:"detachedAt,omitempty"`
+	CreatedAt      string              `json:"createdAt"`
+	UpdatedAt      string              `json:"updatedAt"`
+}
+
+// AttachPaymentMethodParams is the body shape accepted by
+// [Client.AttachPaymentMethod]. SetupIntentID is the id of a Stripe SetupIntent
+// already confirmed client-side.
+type AttachPaymentMethodParams struct {
+	SetupIntentID string `json:"setupIntentId"`
+}
+
+// AttachPaymentMethodResult is returned by [Client.AttachPaymentMethod]. Unlike
+// the other detail endpoints this is the whole response envelope, not just the
+// nested payment method: ReplacedExisting reports whether the saved card
+// replaced an existing card on file.
+type AttachPaymentMethodResult struct {
+	Data             PaymentMethod `json:"data"`
+	ReplacedExisting bool          `json:"replacedExisting"`
+}
+
+// PaymentMethodSetupIntent is the Stripe SetupIntent returned by
+// [Client.CreatePaymentMethodSetupIntent]. Confirm ClientSecret client-side
+// with Stripe Elements, then call [Client.AttachPaymentMethod] with
+// SetupIntentID to persist the card.
+type PaymentMethodSetupIntent struct {
+	SetupIntentID string `json:"setupIntentId"`
+	ClientSecret  string `json:"clientSecret"`
+	CustomerID    string `json:"customerId"`
+}
+
+// RemovedPaymentMethod is the data shape unwrapped from
+// DELETE /v1/contacts/{id}/payment-methods/{methodId}.
+type RemovedPaymentMethod struct {
+	Removed bool `json:"removed"`
+}
+
 // retrieveEnvelope is the {"data": Contact} shape used by detail-returning endpoints.
 type retrieveEnvelope struct {
 	Data Contact `json:"data"`
@@ -307,4 +395,23 @@ type bulkUpsertEnvelope struct {
 // deleteEnvelope is the {"data": {id}} shape used by Delete.
 type deleteEnvelope struct {
 	Data DeleteResult `json:"data"`
+}
+
+// paymentMethodEnvelope is the {"data": PaymentMethod|null} shape used by
+// RetrievePaymentMethod. Data is a pointer so a `null` body (no card on file)
+// decodes to nil rather than a zero-valued card.
+type paymentMethodEnvelope struct {
+	Data *PaymentMethod `json:"data"`
+}
+
+// setupIntentEnvelope is the {"data": PaymentMethodSetupIntent} shape used by
+// CreatePaymentMethodSetupIntent.
+type setupIntentEnvelope struct {
+	Data PaymentMethodSetupIntent `json:"data"`
+}
+
+// removedPaymentMethodEnvelope is the {"data": {removed}} shape used by
+// RemovePaymentMethod.
+type removedPaymentMethodEnvelope struct {
+	Data RemovedPaymentMethod `json:"data"`
 }

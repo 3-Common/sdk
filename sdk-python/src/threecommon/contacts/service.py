@@ -12,6 +12,8 @@ from urllib.parse import quote
 from threecommon._core.http_client import Request
 from threecommon.contacts.types import (
     ActivityListParams,
+    AttachPaymentMethodBody,
+    AttachPaymentMethodResult,
     BulkUpsertBody,
     BulkUpsertResult,
     Contact,
@@ -23,6 +25,9 @@ from threecommon.contacts.types import (
     ListActivityResponse,
     ListContactsResponse,
     ListParams,
+    PaymentMethod,
+    PaymentMethodSetupIntent,
+    RemovedPaymentMethod,
     UpdateBody,
 )
 from threecommon.errors.classes import ValidationError
@@ -56,12 +61,22 @@ def _require_id(method: str, contact_id: str) -> None:
         raise ValidationError(code="missing_id", message=msg)
 
 
+def _require_method_id(method: str, method_id: str) -> None:
+    if not method_id:
+        msg = f"contacts.{method}: method_id must be a non-empty string"
+        raise ValidationError(code="missing_method_id", message=msg)
+
+
 def _path_for(contact_id: str) -> str:
     return f"/contacts/{quote(contact_id, safe='')}"
 
 
 def _activity_path(contact_id: str) -> str:
     return f"{_path_for(contact_id)}/activity"
+
+
+def _payment_methods_path(contact_id: str) -> str:
+    return f"{_path_for(contact_id)}/payment-methods"
 
 
 # ---------------
@@ -154,6 +169,63 @@ class ContactsService:
             )
         )
         return ListActivityResponse.model_validate(body)
+
+    def retrieve_payment_method(self, contact_id: str) -> PaymentMethod | None:
+        """Retrieve the saved card on file for a contact.
+
+        Returns ``None`` when the contact has no card saved. One card is
+        supported per contact.
+        """
+        _require_id("retrieve_payment_method", contact_id)
+        body = self._http.request(Request(method="GET", path=_payment_methods_path(contact_id)))
+        data = body["data"]
+        if data is None:
+            return None
+        return PaymentMethod.model_validate(data)
+
+    def attach_payment_method(
+        self, contact_id: str, body: AttachPaymentMethodBody
+    ) -> AttachPaymentMethodResult:
+        """Persist the card from a confirmed SetupIntent against the contact.
+
+        Replaces any existing card; ``replaced_existing`` reports whether one
+        was overwritten. The SetupIntent is re-verified server-side.
+        """
+        _require_id("attach_payment_method", contact_id)
+        if body is None:
+            raise ValidationError(
+                code="missing_body",
+                message="contacts.attach_payment_method: body must be non-None",
+            )
+        payload = body.model_dump(by_alias=True, exclude_none=True)
+        response = self._http.request(
+            Request(method="POST", path=_payment_methods_path(contact_id), body=payload)
+        )
+        return AttachPaymentMethodResult.model_validate(response)
+
+    def create_payment_method_setup_intent(self, contact_id: str) -> PaymentMethodSetupIntent:
+        """Begin saving a card for a contact.
+
+        Returns a Stripe SetupIntent ``client_secret`` to confirm client-side;
+        afterwards call ``attach_payment_method`` with the ``setup_intent_id``.
+        """
+        _require_id("create_payment_method_setup_intent", contact_id)
+        response = self._http.request(
+            Request(method="POST", path=f"{_payment_methods_path(contact_id)}/setup-intent")
+        )
+        return PaymentMethodSetupIntent.model_validate(response["data"])
+
+    def remove_payment_method(self, contact_id: str, method_id: str) -> RemovedPaymentMethod:
+        """Detach the saved card from Stripe and remove it from the contact."""
+        _require_id("remove_payment_method", contact_id)
+        _require_method_id("remove_payment_method", method_id)
+        response = self._http.request(
+            Request(
+                method="DELETE",
+                path=f"{_payment_methods_path(contact_id)}/{quote(method_id, safe='')}",
+            )
+        )
+        return RemovedPaymentMethod.model_validate(response["data"])
 
     def list_auto_paginate(self, params: ListParams | None = None) -> Iter[Contact]:
         """Iterate every contact matching ``params``, paging automatically."""
@@ -280,6 +352,49 @@ class AsyncContactsService:
             )
         )
         return ListActivityResponse.model_validate(body)
+
+    async def retrieve_payment_method(self, contact_id: str) -> PaymentMethod | None:
+        _require_id("retrieve_payment_method", contact_id)
+        body = await self._http.request(
+            Request(method="GET", path=_payment_methods_path(contact_id))
+        )
+        data = body["data"]
+        if data is None:
+            return None
+        return PaymentMethod.model_validate(data)
+
+    async def attach_payment_method(
+        self, contact_id: str, body: AttachPaymentMethodBody
+    ) -> AttachPaymentMethodResult:
+        _require_id("attach_payment_method", contact_id)
+        if body is None:
+            raise ValidationError(
+                code="missing_body",
+                message="contacts.attach_payment_method: body must be non-None",
+            )
+        payload = body.model_dump(by_alias=True, exclude_none=True)
+        response = await self._http.request(
+            Request(method="POST", path=_payment_methods_path(contact_id), body=payload)
+        )
+        return AttachPaymentMethodResult.model_validate(response)
+
+    async def create_payment_method_setup_intent(self, contact_id: str) -> PaymentMethodSetupIntent:
+        _require_id("create_payment_method_setup_intent", contact_id)
+        response = await self._http.request(
+            Request(method="POST", path=f"{_payment_methods_path(contact_id)}/setup-intent")
+        )
+        return PaymentMethodSetupIntent.model_validate(response["data"])
+
+    async def remove_payment_method(self, contact_id: str, method_id: str) -> RemovedPaymentMethod:
+        _require_id("remove_payment_method", contact_id)
+        _require_method_id("remove_payment_method", method_id)
+        response = await self._http.request(
+            Request(
+                method="DELETE",
+                path=f"{_payment_methods_path(contact_id)}/{quote(method_id, safe='')}",
+            )
+        )
+        return RemovedPaymentMethod.model_validate(response["data"])
 
     def list_auto_paginate(self, params: ListParams | None = None) -> AsyncIter[Contact]:
         """Async iterate every contact matching ``params``."""

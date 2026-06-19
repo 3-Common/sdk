@@ -250,11 +250,105 @@ func (c *Client) ListActivityAutoPaginate(ctx context.Context, id string, params
 	})
 }
 
+// RetrievePaymentMethod fetches the saved card on file for a contact, or nil
+// when none is saved. One card is supported per contact.
+func (c *Client) RetrievePaymentMethod(ctx context.Context, id string) (*PaymentMethod, error) {
+	if err := requireID("RetrievePaymentMethod", id); err != nil {
+		return nil, err
+	}
+
+	var env paymentMethodEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodGet,
+		Path:   "/contacts/" + url.PathEscape(id) + "/payment-methods",
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return env.Data, nil
+}
+
+// AttachPaymentMethod persists the card from a confirmed Stripe SetupIntent
+// against the contact. The SetupIntent is re-verified server-side before the
+// card is saved, replacing any existing card on file. The returned
+// [AttachPaymentMethodResult] carries both the saved payment method and a
+// ReplacedExisting flag reporting whether an existing card was replaced.
+func (c *Client) AttachPaymentMethod(ctx context.Context, id string, params *AttachPaymentMethodParams) (*AttachPaymentMethodResult, error) {
+	if err := requireID("AttachPaymentMethod", id); err != nil {
+		return nil, err
+	}
+	if params == nil {
+		return nil, missingBody("AttachPaymentMethod")
+	}
+
+	var out AttachPaymentMethodResult
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/contacts/" + url.PathEscape(id) + "/payment-methods",
+		Body:   params,
+		Out:    &out,
+	}); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// CreatePaymentMethodSetupIntent begins saving a card for a contact. It returns
+// a Stripe SetupIntent whose ClientSecret is confirmed client-side with Stripe
+// Elements; once confirmed, call [Client.AttachPaymentMethod] with the returned
+// SetupIntentID to persist the card. Sends no request body.
+func (c *Client) CreatePaymentMethodSetupIntent(ctx context.Context, id string) (*PaymentMethodSetupIntent, error) {
+	if err := requireID("CreatePaymentMethodSetupIntent", id); err != nil {
+		return nil, err
+	}
+
+	var env setupIntentEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/contacts/" + url.PathEscape(id) + "/payment-methods/setup-intent",
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
+// RemovePaymentMethod detaches the saved card from Stripe and removes it from
+// the contact. methodID is the payment-method id (the deeper path segment).
+func (c *Client) RemovePaymentMethod(ctx context.Context, id, methodID string) (*RemovedPaymentMethod, error) {
+	if err := requireID("RemovePaymentMethod", id); err != nil {
+		return nil, err
+	}
+	if err := requireMethodID("RemovePaymentMethod", methodID); err != nil {
+		return nil, err
+	}
+
+	var env removedPaymentMethodEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodDelete,
+		Path:   "/contacts/" + url.PathEscape(id) + "/payment-methods/" + url.PathEscape(methodID),
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
 func requireID(method, id string) error {
 	if id == "" {
 		return &threecommon.ValidationError{APIError: &threecommon.APIError{
 			Code:    "missing_id",
 			Message: "contacts." + method + ": id must be non-empty",
+		}}
+	}
+	return nil
+}
+
+func requireMethodID(method, methodID string) error {
+	if methodID == "" {
+		return &threecommon.ValidationError{APIError: &threecommon.APIError{
+			Code:    "missing_method_id",
+			Message: "contacts." + method + ": methodId must be non-empty",
 		}}
 	}
 	return nil
