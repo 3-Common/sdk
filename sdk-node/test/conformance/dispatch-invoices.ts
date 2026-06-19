@@ -88,6 +88,10 @@ export function dispatchInvoices(
     case 'disableOtherOption':
     case 'addLogicRule':
     case 'removeLogicRule':
+    case 'retrievePaymentMethod':
+    case 'attachPaymentMethod':
+    case 'createPaymentMethodSetupIntent':
+    case 'removePaymentMethod':
       throw new Error(`invoices: unsupported method '${call.method}'`)
   }
 }

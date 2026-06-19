@@ -2,7 +2,11 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 
 import { ThreeCommon } from '@/client'
-import { ThreeCommonConflictError, ThreeCommonNotFoundError } from '@/errors'
+import {
+  ThreeCommonConflictError,
+  ThreeCommonNotFoundError,
+  ThreeCommonValidationError,
+} from '@/errors'
 
 import { setupMockServer, TEST_BASE_URL } from '../../helpers/mock-server'
 
@@ -15,6 +19,26 @@ function buildClient(): ThreeCommon {
     maxRetries: 0,
     telemetry: false,
   })
+}
+
+const samplePaymentMethod = {
+  id: 'pm_123',
+  contactId: 'cnt_123',
+  card: {
+    brand: 'visa',
+    last4: '4242',
+    expMonth: 12,
+    expYear: 2030,
+    country: 'US',
+    funding: 'credit',
+  },
+  billingDetails: {
+    name: 'Alex Garcia',
+    email: 'alex@example.com',
+  },
+  status: 'active' as const,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
 }
 
 const sampleContact = {
@@ -564,5 +588,168 @@ describe('contacts.listActivityAutoPaginate', () => {
       ids.push(evt._id)
     }
     expect(ids).toEqual(['act_1', 'act_2'])
+  })
+})
+
+describe('contacts.retrievePaymentMethod', () => {
+  it('returns the unwrapped saved card', async () => {
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/contacts/cnt_123/payment-methods`, () =>
+        HttpResponse.json({ data: samplePaymentMethod }),
+      ),
+    )
+    const client = buildClient()
+    const method = await client.contacts.retrievePaymentMethod('cnt_123')
+    expect(method?.id).toBe('pm_123')
+    expect(method?.card.last4).toBe('4242')
+    expect(method?.status).toBe('active')
+  })
+
+  it('returns null when no card is saved', async () => {
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/contacts/cnt_123/payment-methods`, () =>
+        HttpResponse.json({ data: null }),
+      ),
+    )
+    const client = buildClient()
+    const method = await client.contacts.retrievePaymentMethod('cnt_123')
+    expect(method).toBeNull()
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.contacts.retrievePaymentMethod('')).rejects.toThrow(TypeError)
+  })
+
+  it('surfaces 404 on missing contact', async () => {
+    server.use(
+      http.get(`${TEST_BASE_URL}/v1/contacts/cnt_missing/payment-methods`, () =>
+        HttpResponse.json({ error: { code: 'not_found', message: 'gone' } }, { status: 404 }),
+      ),
+    )
+    const client = buildClient()
+    await expect(client.contacts.retrievePaymentMethod('cnt_missing')).rejects.toBeInstanceOf(
+      ThreeCommonNotFoundError,
+    )
+  })
+})
+
+describe('contacts.attachPaymentMethod', () => {
+  it('POSTs the setupIntentId and returns the card + replacedExisting flag', async () => {
+    let body: unknown
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/contacts/cnt_123/payment-methods`, async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({ data: samplePaymentMethod, replacedExisting: true })
+      }),
+    )
+    const client = buildClient()
+    const result = await client.contacts.attachPaymentMethod('cnt_123', {
+      setupIntentId: 'seti_123',
+    })
+    expect(result.data.id).toBe('pm_123')
+    expect(result.replacedExisting).toBe(true)
+    expect(body).toEqual({ setupIntentId: 'seti_123' })
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(
+      client.contacts.attachPaymentMethod('', { setupIntentId: 'seti_123' }),
+    ).rejects.toThrow(TypeError)
+  })
+
+  it('throws ThreeCommonValidationError on a bad SetupIntent', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/contacts/cnt_123/payment-methods`, () =>
+        HttpResponse.json(
+          { error: { code: 'invalid_setup_intent', message: 'not confirmed' } },
+          { status: 400 },
+        ),
+      ),
+    )
+    const client = buildClient()
+    await expect(
+      client.contacts.attachPaymentMethod('cnt_123', { setupIntentId: 'seti_bad' }),
+    ).rejects.toBeInstanceOf(ThreeCommonValidationError)
+  })
+})
+
+describe('contacts.createPaymentMethodSetupIntent', () => {
+  it('POSTs and returns the unwrapped setup intent', async () => {
+    let captured: Request | undefined
+    server.use(
+      http.post(
+        `${TEST_BASE_URL}/v1/contacts/cnt_123/payment-methods/setup-intent`,
+        ({ request }) => {
+          captured = request
+          return HttpResponse.json({
+            data: {
+              setupIntentId: 'seti_123',
+              clientSecret: 'seti_123_secret_abc',
+              customerId: 'cus_123',
+            },
+          })
+        },
+      ),
+    )
+    const client = buildClient()
+    const intent = await client.contacts.createPaymentMethodSetupIntent('cnt_123')
+    expect(captured?.method).toBe('POST')
+    expect(intent.setupIntentId).toBe('seti_123')
+    expect(intent.clientSecret).toBe('seti_123_secret_abc')
+    expect(intent.customerId).toBe('cus_123')
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.contacts.createPaymentMethodSetupIntent('')).rejects.toThrow(TypeError)
+  })
+
+  it('surfaces 404 on missing contact', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/contacts/cnt_missing/payment-methods/setup-intent`, () =>
+        HttpResponse.json({ error: { code: 'not_found', message: 'gone' } }, { status: 404 }),
+      ),
+    )
+    const client = buildClient()
+    await expect(
+      client.contacts.createPaymentMethodSetupIntent('cnt_missing'),
+    ).rejects.toBeInstanceOf(ThreeCommonNotFoundError)
+  })
+})
+
+describe('contacts.removePaymentMethod', () => {
+  it('DELETEs and returns the removed flag', async () => {
+    server.use(
+      http.delete(`${TEST_BASE_URL}/v1/contacts/cnt_123/payment-methods/pm_123`, () =>
+        HttpResponse.json({ data: { removed: true } }),
+      ),
+    )
+    const client = buildClient()
+    const result = await client.contacts.removePaymentMethod('cnt_123', 'pm_123')
+    expect(result.removed).toBe(true)
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.contacts.removePaymentMethod('', 'pm_123')).rejects.toThrow(TypeError)
+  })
+
+  it('rejects empty methodId', async () => {
+    const client = buildClient()
+    await expect(client.contacts.removePaymentMethod('cnt_123', '')).rejects.toThrow(TypeError)
+  })
+
+  it('surfaces 404 on missing card', async () => {
+    server.use(
+      http.delete(`${TEST_BASE_URL}/v1/contacts/cnt_123/payment-methods/pm_missing`, () =>
+        HttpResponse.json({ error: { code: 'not_found', message: 'gone' } }, { status: 404 }),
+      ),
+    )
+    const client = buildClient()
+    await expect(
+      client.contacts.removePaymentMethod('cnt_123', 'pm_missing'),
+    ).rejects.toBeInstanceOf(ThreeCommonNotFoundError)
   })
 })

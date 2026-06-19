@@ -90,6 +90,10 @@ export type Method =
   | 'disableOtherOption'
   | 'addLogicRule'
   | 'removeLogicRule'
+  | 'retrievePaymentMethod'
+  | 'attachPaymentMethod'
+  | 'createPaymentMethodSetupIntent'
+  | 'removePaymentMethod'
 
 export interface ScenarioCall {
   readonly resource?: Resource
@@ -105,6 +109,8 @@ export interface Scenario {
   readonly mockResponse?: MockResponse
   readonly exchanges?: readonly { request: ExpectedRequest; response: MockResponse }[]
   readonly expectedResult?: unknown
+  /** Asserts the call resolves to a null result (for optional resources absent on the server). */
+  readonly expectedResultNull?: boolean
   readonly expectedAutoPaginated?: readonly Record<string, unknown>[]
   readonly expectedError?: ExpectedError
   readonly expectedCallCount?: number

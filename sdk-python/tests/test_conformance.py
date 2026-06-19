@@ -253,6 +253,9 @@ def test_conformance_sync(scenario: _Scenario, httpx_mock: HTTPXMock) -> None:
         elif "expectedResult" in body:
             result = _dispatch_sync(client, body["call"])
             _assert_result(body["expectedResult"], result)
+        elif body.get("expectedResultNull"):
+            result = _dispatch_sync(client, body["call"])
+            assert result is None, f"expected null result, got {result!r}"
         else:
             _dispatch_sync(client, body["call"])  # smoke
     finally:
@@ -333,6 +336,9 @@ async def test_conformance_async(scenario: _Scenario, httpx_mock: HTTPXMock) -> 
         elif "expectedResult" in body:
             result = await _dispatch_async(client, body["call"])
             _assert_result(body["expectedResult"], result)
+        elif body.get("expectedResultNull"):
+            result = await _dispatch_async(client, body["call"])
+            assert result is None, f"expected null result, got {result!r}"
         else:
             await _dispatch_async(client, body["call"])  # smoke
     finally:

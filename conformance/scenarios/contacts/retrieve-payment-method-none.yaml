@@ -1,0 +1,23 @@
+# A contact with no saved card returns `data: null`. The SDK must surface this
+# as a null/None/nil result, NOT throw. A null top-level result cannot be
+# subset-matched via `expectedResult`, so this scenario uses `expectedResultNull`
+# to assert the request shape and that the (null) body deserializes to a null
+# result without error; an SDK that crashes on null `data` fails by throwing.
+name: retrieve contact payment method — none on file (null)
+call:
+  resource: contacts
+  method: retrievePaymentMethod
+  args:
+    id: cnt_nocard
+expectedRequest:
+  method: GET
+  path: /v1/contacts/cnt_nocard/payment-methods
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-pm-retrieve-none-001
+  body:
+    data: null
+expectedResultNull: true

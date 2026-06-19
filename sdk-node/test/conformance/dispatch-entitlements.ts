@@ -71,6 +71,10 @@ export function dispatchEntitlements(
     case 'disableOtherOption':
     case 'addLogicRule':
     case 'removeLogicRule':
+    case 'retrievePaymentMethod':
+    case 'attachPaymentMethod':
+    case 'createPaymentMethodSetupIntent':
+    case 'removePaymentMethod':
       throw new Error(`entitlements: unsupported method '${call.method}'`)
   }
 }

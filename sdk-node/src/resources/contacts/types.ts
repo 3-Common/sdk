@@ -154,3 +154,46 @@ export type ContactUpdateBody =
 /** Body accepted by `POST /v1/contacts/bulk`. */
 export type ContactBulkUpsertBody =
   paths['/v1/contacts/bulk']['post']['requestBody']['content']['application/json']
+
+/**
+ * Lifecycle status of a saved payment method.
+ *
+ * - `active`: usable card on file
+ * - `detached`: removed from Stripe and the contact
+ * - `expired`: past its expiry date
+ */
+export type PaymentMethodStatus = 'active' | 'detached' | 'expired'
+
+/**
+ * A saved card on file for a contact, returned by
+ * {@link ContactsService.retrievePaymentMethod} and
+ * {@link ContactsService.attachPaymentMethod}. One card is supported per
+ * contact. The raw card number never touches our servers — only the brand,
+ * last-4, expiry, and billing metadata Stripe returns are stored.
+ */
+export type PaymentMethod = NonNullable<
+  paths['/v1/contacts/{id}/payment-methods']['get']['responses'][200]['content']['application/json']['data']
+>
+
+/** Body accepted by `POST /v1/contacts/{id}/payment-methods`. */
+export type AttachPaymentMethodBody =
+  paths['/v1/contacts/{id}/payment-methods']['post']['requestBody']['content']['application/json']
+
+/** Result of `POST /v1/contacts/{id}/payment-methods`. */
+export interface AttachPaymentMethodResult {
+  /** The newly saved payment method. */
+  readonly data: PaymentMethod
+  /** `true` when this card replaced an existing card on file for the contact. */
+  readonly replacedExisting: boolean
+}
+
+/**
+ * Result of `POST /v1/contacts/{id}/payment-methods/setup-intent` — the Stripe
+ * SetupIntent to confirm client-side with Stripe Elements before attaching.
+ */
+export type PaymentMethodSetupIntent =
+  paths['/v1/contacts/{id}/payment-methods/setup-intent']['post']['responses'][200]['content']['application/json']['data']
+
+/** Result of `DELETE /v1/contacts/{id}/payment-methods/{methodId}`. */
+export type RemovedPaymentMethod =
+  paths['/v1/contacts/{id}/payment-methods/{methodId}']['delete']['responses'][200]['content']['application/json']['data']

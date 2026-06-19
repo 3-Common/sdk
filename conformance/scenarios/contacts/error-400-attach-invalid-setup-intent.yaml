@@ -1,0 +1,35 @@
+# The SetupIntent is re-verified server-side (status + scope) before the card is
+# saved; an unconfirmed / out-of-scope SetupIntent is rejected with 400, which
+# the SDK surfaces as a validation error.
+name: 400 — attach payment method with unconfirmed setup intent
+call:
+  resource: contacts
+  method: attachPaymentMethod
+  args:
+    id: cnt_123
+    body:
+      setupIntentId: seti_unconfirmed
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/contacts/cnt_123/payment-methods
+  body:
+    setupIntentId: seti_unconfirmed
+mockResponse:
+  status: 400
+  headers:
+    x-request-id: req-cnt-pm-400-001
+  body:
+    error:
+      code: invalid_setup_intent
+      message: setup intent seti_unconfirmed has not been confirmed
+      details:
+        field: setupIntentId
+expectedError:
+  type: ThreeCommonValidationError
+  code: invalid_setup_intent
+  httpStatus: 400
+  requestId: req-cnt-pm-400-001
+  details:
+    field: setupIntentId

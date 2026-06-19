@@ -64,6 +64,10 @@ export function dispatchEvents(
     case 'disableOtherOption':
     case 'addLogicRule':
     case 'removeLogicRule':
+    case 'retrievePaymentMethod':
+    case 'attachPaymentMethod':
+    case 'createPaymentMethodSetupIntent':
+    case 'removePaymentMethod':
       throw new Error(`events: unsupported method '${call.method}'`)
   }
 }

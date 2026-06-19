@@ -1,0 +1,28 @@
+# Begins saving a card: POST with no body, so `content-type` must be absent.
+# Result is the unwrapped `data` envelope (the SetupIntent to confirm client-side).
+name: create contact payment method setup intent — happy path
+call:
+  resource: contacts
+  method: createPaymentMethodSetupIntent
+  args:
+    id: cnt_123
+expectedRequest:
+  method: POST
+  path: /v1/contacts/cnt_123/payment-methods/setup-intent
+  headers:
+    authorization: 'Bearer 3co_test'
+  headersAbsent:
+    - content-type
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-pm-setup-intent-001
+  body:
+    data:
+      setupIntentId: seti_123
+      clientSecret: seti_123_secret_abc
+      customerId: cus_123
+expectedResult:
+  setupIntentId: seti_123
+  clientSecret: seti_123_secret_abc
+  customerId: cus_123

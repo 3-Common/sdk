@@ -53,6 +53,27 @@ export function dispatchContacts(
       >[1]
       return client.contacts.listActivityAutoPaginate(id, params)
     }
+    case 'retrievePaymentMethod':
+      return client.contacts.retrievePaymentMethod(
+        expectString(args['id'], 'retrievePaymentMethod'),
+      )
+    case 'attachPaymentMethod': {
+      const id = expectString(args['id'], 'attachPaymentMethod')
+      const body = expectBody(args['body'], 'attachPaymentMethod')
+      return client.contacts.attachPaymentMethod(
+        id,
+        body as unknown as Parameters<typeof client.contacts.attachPaymentMethod>[1],
+      )
+    }
+    case 'createPaymentMethodSetupIntent':
+      return client.contacts.createPaymentMethodSetupIntent(
+        expectString(args['id'], 'createPaymentMethodSetupIntent'),
+      )
+    case 'removePaymentMethod': {
+      const id = expectString(args['id'], 'removePaymentMethod')
+      const methodId = expectString(args['methodId'], 'removePaymentMethod')
+      return client.contacts.removePaymentMethod(id, methodId)
+    }
     case 'finalize':
     case 'void':
     case 'recordPayment':

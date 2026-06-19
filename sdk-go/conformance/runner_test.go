@@ -41,13 +41,14 @@ type scenario struct {
 		APIVersion string `yaml:"apiVersion"`
 		Telemetry  *bool  `yaml:"telemetry"`
 	} `yaml:"client"`
-	ExpectedRequest   *expectedRequest `yaml:"expectedRequest"`
-	MockResponse      *mockResponse    `yaml:"mockResponse"`
-	Exchanges         []exchange       `yaml:"exchanges"`
-	ExpectedResult    map[string]any   `yaml:"expectedResult"`
-	ExpectedAutoPaged []map[string]any `yaml:"expectedAutoPaginated"`
-	ExpectedError     *expectedError   `yaml:"expectedError"`
-	ExpectedCallCount *int             `yaml:"expectedCallCount"`
+	ExpectedRequest    *expectedRequest `yaml:"expectedRequest"`
+	MockResponse       *mockResponse    `yaml:"mockResponse"`
+	Exchanges          []exchange       `yaml:"exchanges"`
+	ExpectedResult     map[string]any   `yaml:"expectedResult"`
+	ExpectedResultNull bool             `yaml:"expectedResultNull"`
+	ExpectedAutoPaged  []map[string]any `yaml:"expectedAutoPaginated"`
+	ExpectedError      *expectedError   `yaml:"expectedError"`
+	ExpectedCallCount  *int             `yaml:"expectedCallCount"`
 }
 
 type expectedRequest struct {
@@ -190,6 +191,9 @@ func runScenario(t *testing.T, sc scenario) {
 	case sc.ExpectedResult != nil:
 		require.NoError(t, callErr, "%s: %v", sc.Name, callErr)
 		assertJSONShape(t, sc.Name, sc.ExpectedResult, result)
+	case sc.ExpectedResultNull:
+		require.NoError(t, callErr, "%s: %v", sc.Name, callErr)
+		assert.Nil(t, result, "%s: result should be nil", sc.Name)
 	}
 
 	if sc.ExpectedCallCount != nil {

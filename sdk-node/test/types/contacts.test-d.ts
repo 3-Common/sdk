@@ -1,6 +1,7 @@
 import { expectAssignable, expectError, expectType } from 'tsd'
 
 import type {
+  AttachPaymentMethodResult,
   BulkUpsertContactsResult,
   Contact,
   ContactActivity,
@@ -14,6 +15,9 @@ import type {
   DeletedContact,
   ListContactActivityResponse,
   ListContactsResponse,
+  PaymentMethod,
+  PaymentMethodSetupIntent,
+  RemovedPaymentMethod,
   ThreeCommon,
 } from '@3common/sdk'
 
@@ -88,3 +92,20 @@ expectAssignable<AsyncIterable<Contact>>(client.contacts.listAutoPaginate({ filt
 expectAssignable<AsyncIterable<ContactActivity>>(
   client.contacts.listActivityAutoPaginate('cnt_123'),
 )
+
+// retrievePaymentMethod — returns the saved card or null.
+expectType<Promise<PaymentMethod | null>>(client.contacts.retrievePaymentMethod('cnt_123'))
+
+// attachPaymentMethod — body requires setupIntentId; returns the card + flag.
+expectType<Promise<AttachPaymentMethodResult>>(
+  client.contacts.attachPaymentMethod('cnt_123', { setupIntentId: 'seti_123' }),
+)
+expectError(client.contacts.attachPaymentMethod('cnt_123', {}))
+
+// createPaymentMethodSetupIntent — id only; returns the setup intent.
+expectType<Promise<PaymentMethodSetupIntent>>(
+  client.contacts.createPaymentMethodSetupIntent('cnt_123'),
+)
+
+// removePaymentMethod — id + methodId; returns the removed flag.
+expectType<Promise<RemovedPaymentMethod>>(client.contacts.removePaymentMethod('cnt_123', 'pm_456'))

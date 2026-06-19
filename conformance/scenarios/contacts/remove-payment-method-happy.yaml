@@ -1,0 +1,24 @@
+# removePaymentMethod takes the contact id AND the deeper payment-method id
+# (methodId), both interpolated into the path. Result is the unwrapped
+# `{ removed }` envelope.
+name: remove contact payment method — happy path
+call:
+  resource: contacts
+  method: removePaymentMethod
+  args:
+    id: cnt_123
+    methodId: pm_123
+expectedRequest:
+  method: DELETE
+  path: /v1/contacts/cnt_123/payment-methods/pm_123
+  headers:
+    authorization: 'Bearer 3co_test'
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-pm-remove-001
+  body:
+    data:
+      removed: true
+expectedResult:
+  removed: true

@@ -14,6 +14,7 @@ from threecommon import (
 )
 from threecommon.contacts import (
     ActivityListParams,
+    AttachPaymentMethodBody,
     BulkUpsertBody,
     BulkUpsertItem,
     ContactUpdate,
@@ -63,6 +64,28 @@ SAMPLE_ORDER_DETAILS = {
     "events_attended": [],
     "items_purchased": [],
     "products_purchased": [],
+}
+
+SAMPLE_PAYMENT_METHOD = {
+    "id": "pm_123",
+    "contactId": "cnt_123",
+    "card": {
+        "brand": "visa",
+        "last4": "4242",
+        "expMonth": 12,
+        "expYear": 2030,
+        "country": "US",
+        "funding": "credit",
+    },
+    "billingDetails": {
+        "name": "Alex Garcia",
+        "email": "alex@example.com",
+        "postalCode": "94107",
+        "country": "US",
+    },
+    "status": "active",
+    "createdAt": "2026-06-17T12:00:00.000Z",
+    "updatedAt": "2026-06-17T12:00:00.000Z",
 }
 
 
@@ -592,3 +615,253 @@ async def test_async_list_activity_auto_paginate_validates_id() -> None:
     async with _make_async() as c:
         with pytest.raises(ValidationError):
             c.contacts.list_activity_auto_paginate("")
+
+
+# ---------------
+# Sync payment methods
+# ---------------
+
+
+def test_retrieve_payment_method_happy(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods",
+        json={"data": SAMPLE_PAYMENT_METHOD},
+    )
+    with _make_sync() as c:
+        method = c.contacts.retrieve_payment_method("cnt_123")
+    assert method is not None
+    assert method.id == "pm_123"
+    assert method.contact_id == "cnt_123"
+    assert method.card.brand == "visa"
+    assert method.card.last4 == "4242"
+    assert method.card.exp_month == 12
+    assert method.status == "active"
+    assert method.billing_details is not None
+    assert method.billing_details.postal_code == "94107"
+
+
+def test_retrieve_payment_method_none(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_nocard/payment-methods",
+        json={"data": None},
+    )
+    with _make_sync() as c:
+        method = c.contacts.retrieve_payment_method("cnt_nocard")
+    assert method is None
+
+
+def test_retrieve_payment_method_requires_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.contacts.retrieve_payment_method("")
+    assert exc.value.code == "missing_id"
+
+
+def test_retrieve_payment_method_404_surfaces(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_missing/payment-methods",
+        status_code=404,
+        json={"error": {"code": "not_found", "message": "missing"}},
+    )
+    with _make_sync() as c, pytest.raises(NotFoundError):
+        c.contacts.retrieve_payment_method("cnt_missing")
+
+
+def test_attach_payment_method_sends_body(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods",
+        method="POST",
+        match_json={"setupIntentId": "seti_123"},
+        json={"data": SAMPLE_PAYMENT_METHOD, "replacedExisting": True},
+    )
+    with _make_sync() as c:
+        result = c.contacts.attach_payment_method(
+            "cnt_123", AttachPaymentMethodBody(setup_intent_id="seti_123")
+        )
+    assert result.replaced_existing is True
+    assert result.data.id == "pm_123"
+    assert result.data.card.last4 == "4242"
+
+
+def test_attach_payment_method_validates_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.contacts.attach_payment_method("", AttachPaymentMethodBody(setup_intent_id="seti_123"))
+    assert exc.value.code == "missing_id"
+
+
+def test_attach_payment_method_validates_body() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.contacts.attach_payment_method("cnt_123", None)  # type: ignore[arg-type]
+    assert exc.value.code == "missing_body"
+
+
+def test_attach_payment_method_400_surfaces(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods",
+        method="POST",
+        status_code=400,
+        json={
+            "error": {
+                "code": "invalid_setup_intent",
+                "message": "setup intent has not been confirmed",
+                "details": {"field": "setupIntentId"},
+            }
+        },
+    )
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.contacts.attach_payment_method(
+            "cnt_123", AttachPaymentMethodBody(setup_intent_id="seti_unconfirmed")
+        )
+    assert exc.value.code == "invalid_setup_intent"
+
+
+def test_create_payment_method_setup_intent_happy(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods/setup-intent",
+        method="POST",
+        json={
+            "data": {
+                "setupIntentId": "seti_123",
+                "clientSecret": "seti_123_secret_abc",
+                "customerId": "cus_123",
+            }
+        },
+    )
+    with _make_sync() as c:
+        intent = c.contacts.create_payment_method_setup_intent("cnt_123")
+    assert intent.setup_intent_id == "seti_123"
+    assert intent.client_secret == "seti_123_secret_abc"  # noqa: S105
+    assert intent.customer_id == "cus_123"
+    # No request body, so content-type must be absent.
+    request = httpx_mock.get_requests()[0]
+    assert not request.content
+    assert "content-type" not in {k.lower() for k in request.headers}
+
+
+def test_create_payment_method_setup_intent_validates_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.contacts.create_payment_method_setup_intent("")
+    assert exc.value.code == "missing_id"
+
+
+def test_remove_payment_method_happy(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods/pm_123",
+        method="DELETE",
+        json={"data": {"removed": True}},
+    )
+    with _make_sync() as c:
+        result = c.contacts.remove_payment_method("cnt_123", "pm_123")
+    assert result.removed is True
+
+
+def test_remove_payment_method_validates_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.contacts.remove_payment_method("", "pm_123")
+    assert exc.value.code == "missing_id"
+
+
+def test_remove_payment_method_validates_method_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.contacts.remove_payment_method("cnt_123", "")
+    assert exc.value.code == "missing_method_id"
+
+
+def test_remove_payment_method_404_surfaces(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods/pm_missing",
+        method="DELETE",
+        status_code=404,
+        json={"error": {"code": "not_found", "message": "gone"}},
+    )
+    with _make_sync() as c, pytest.raises(NotFoundError):
+        c.contacts.remove_payment_method("cnt_123", "pm_missing")
+
+
+# ---------------
+# Async payment methods
+# ---------------
+
+
+@pytest.mark.asyncio
+async def test_async_retrieve_payment_method(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods",
+        json={"data": SAMPLE_PAYMENT_METHOD},
+    )
+    async with _make_async() as c:
+        method = await c.contacts.retrieve_payment_method("cnt_123")
+    assert method is not None
+    assert method.id == "pm_123"
+
+
+@pytest.mark.asyncio
+async def test_async_retrieve_payment_method_none(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_nocard/payment-methods",
+        json={"data": None},
+    )
+    async with _make_async() as c:
+        method = await c.contacts.retrieve_payment_method("cnt_nocard")
+    assert method is None
+
+
+@pytest.mark.asyncio
+async def test_async_attach_payment_method(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods",
+        method="POST",
+        json={"data": SAMPLE_PAYMENT_METHOD, "replacedExisting": False},
+    )
+    async with _make_async() as c:
+        result = await c.contacts.attach_payment_method(
+            "cnt_123", AttachPaymentMethodBody(setup_intent_id="seti_123")
+        )
+    assert result.replaced_existing is False
+    assert result.data.id == "pm_123"
+
+
+@pytest.mark.asyncio
+async def test_async_attach_payment_method_validates_body() -> None:
+    async with _make_async() as c:
+        with pytest.raises(ValidationError):
+            await c.contacts.attach_payment_method("cnt_123", None)  # type: ignore[arg-type]
+
+
+@pytest.mark.asyncio
+async def test_async_create_payment_method_setup_intent(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods/setup-intent",
+        method="POST",
+        json={
+            "data": {
+                "setupIntentId": "seti_123",
+                "clientSecret": "seti_123_secret_abc",
+                "customerId": "cus_123",
+            }
+        },
+    )
+    async with _make_async() as c:
+        intent = await c.contacts.create_payment_method_setup_intent("cnt_123")
+    assert intent.setup_intent_id == "seti_123"
+    request = httpx_mock.get_requests()[0]
+    assert not request.content
+
+
+@pytest.mark.asyncio
+async def test_async_remove_payment_method(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts/cnt_123/payment-methods/pm_123",
+        method="DELETE",
+        json={"data": {"removed": True}},
+    )
+    async with _make_async() as c:
+        result = await c.contacts.remove_payment_method("cnt_123", "pm_123")
+    assert result.removed is True
+
+
+@pytest.mark.asyncio
+async def test_async_remove_payment_method_validates_method_id() -> None:
+    async with _make_async() as c:
+        with pytest.raises(ValidationError) as exc:
+            await c.contacts.remove_payment_method("cnt_123", "")
+    assert exc.value.code == "missing_method_id"
