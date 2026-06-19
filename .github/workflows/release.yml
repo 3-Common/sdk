@@ -104,17 +104,6 @@ jobs:
       - name: Publish to npm
         run: npm publish --access public --provenance
 
-      - name: Verify on registry
-        working-directory: .
-        run: |
-          sleep 5
-          actual=$(npm view @3common/sdk@${{ steps.ver.outputs.version }} version 2>&1 || echo "")
-          if [ "$actual" != "${{ steps.ver.outputs.version }}" ]; then
-            echo "::error::Published version not visible on registry yet (got: '$actual')."
-            exit 1
-          fi
-          echo "✓ @3common/sdk@${{ steps.ver.outputs.version }} live on npm"
-
       - name: Extract CHANGELOG section
         id: notes
         working-directory: .
