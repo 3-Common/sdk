@@ -54,10 +54,13 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          # Node 24 (LTS) bundles npm >= 11.5.1, required for OIDC trusted publishing.
+          # Node 20/22 ship npm 10.x, which falls back to token auth and 404s.
+          node-version: "24"
           cache: yarn
           cache-dependency-path: sdk-node/yarn.lock
-          registry-url: "https://registry.npmjs.org"
+          # No registry-url: it writes an .npmrc with _authToken=${NODE_AUTH_TOKEN},
+          # and an empty token blocks the OIDC trusted-publishing fallback (404).
 
       - name: Install
         run: yarn install --frozen-lockfile
