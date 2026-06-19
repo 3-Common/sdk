@@ -1,8 +1,8 @@
 # A contact with no saved card returns `data: null`. The SDK must surface this
-# as a null/None/nil result, NOT throw — so this scenario asserts only the
-# request shape and that the (null) body deserializes without error. There is no
-# `expectedResult` because the top-level result is null and cannot be
-# subset-matched; an SDK that crashes on null `data` fails by throwing.
+# as a null/None/nil result, NOT throw. A null top-level result cannot be
+# subset-matched via `expectedResult`, so this scenario uses `expectedResultNull`
+# to assert the request shape and that the (null) body deserializes to a null
+# result without error; an SDK that crashes on null `data` fails by throwing.
 name: retrieve contact payment method — none on file (null)
 call:
   resource: contacts
@@ -20,3 +20,4 @@ mockResponse:
     x-request-id: req-cnt-pm-retrieve-none-001
   body:
     data: null
+expectedResultNull: true

@@ -204,12 +204,17 @@ def validate_scenario(path: Path) -> None:
         validate_mock_response(path, doc["mockResponse"])
     if "expectedError" in doc:
         validate_expected_error(path, doc["expectedError"])
+    if "expectedResultNull" in doc and doc["expectedResultNull"] is not True:
+        err(path, "expectedResultNull must be `true` when present")
 
-    if not any(k in doc for k in ("expectedResult", "expectedAutoPaginated", "expectedError")):
+    if not any(
+        k in doc
+        for k in ("expectedResult", "expectedResultNull", "expectedAutoPaginated", "expectedError")
+    ):
         err(
             path,
-            "scenario must define one of expectedResult, expectedAutoPaginated, "
-            "or expectedError",
+            "scenario must define one of expectedResult, expectedResultNull, "
+            "expectedAutoPaginated, or expectedError",
         )
 
 

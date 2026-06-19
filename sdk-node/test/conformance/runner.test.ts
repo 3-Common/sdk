@@ -268,6 +268,10 @@ describe('cross-language conformance', () => {
       })
     }
 
+    if (scenario.expectedResultNull === true) {
+      expect(result, `[${scenario.name}] result should be null`).toBeNull()
+    }
+
     if (scenario.expectedResult !== undefined) {
       expect(result, `[${scenario.name}] result`).toMatchObject(scenario.expectedResult as object)
     }

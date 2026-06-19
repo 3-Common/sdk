@@ -81,6 +81,24 @@ expectedResult:               # the SDK's return value (deep-equal subset match)
   hasMore: false
 ```
 
+### Single-call scenarios — null result
+
+Some calls legitimately resolve to a null/None/nil value — e.g. an optional
+resource the server reports as absent via `data: null`. A null top-level result
+can't be subset-matched with `expectedResult`, so assert it explicitly:
+
+```yaml
+mockResponse:
+  status: 200
+  body:
+    data: null
+
+expectedResultNull: true      # use INSTEAD of expectedResult; asserts the SDK
+                              # surfaces the null body as a null result without
+                              # throwing. An SDK that crashes on null `data`
+                              # fails by throwing.
+```
+
 ### Single-call scenarios — error path
 
 ```yaml
