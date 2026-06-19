@@ -1,0 +1,43 @@
+name: auto-paginate walks every subscription page
+call:
+  resource: subscriptions
+  method: listAutoPaginate
+  args:
+    status: active
+exchanges:
+  - request:
+      method: GET
+      path: /v1/subscriptions
+      query:
+        status: active
+        page: '0'
+    response:
+      status: 200
+      body:
+        data:
+          - id: sub_1
+            status: active
+          - id: sub_2
+            status: active
+        hasMore: true
+  - request:
+      method: GET
+      path: /v1/subscriptions
+      query:
+        status: active
+        page: '1'
+    response:
+      status: 200
+      body:
+        data:
+          - id: sub_3
+            status: active
+        hasMore: false
+expectedAutoPaginated:
+  - id: sub_1
+    status: active
+  - id: sub_2
+    status: active
+  - id: sub_3
+    status: active
+expectedCallCount: 2
