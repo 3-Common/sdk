@@ -1,0 +1,45 @@
+# attachPaymentMethod returns the whole envelope `{ data, replacedExisting }`
+# (it is NOT unwrapped to just `data` like retrieve), so the result asserts both
+# the nested payment method and the top-level `replacedExisting` flag.
+name: attach contact payment method — happy path
+call:
+  resource: contacts
+  method: attachPaymentMethod
+  args:
+    id: cnt_123
+    body:
+      setupIntentId: seti_123
+expectedRequest:
+  method: POST
+  path: /v1/contacts/cnt_123/payment-methods
+  body:
+    setupIntentId: seti_123
+  headers:
+    authorization: 'Bearer 3co_test'
+    content-type: application/json
+mockResponse:
+  status: 200
+  headers:
+    x-request-id: req-cnt-pm-attach-001
+  body:
+    data:
+      id: pm_123
+      contactId: cnt_123
+      card:
+        brand: visa
+        last4: '4242'
+        expMonth: 12
+        expYear: 2030
+      status: active
+      createdAt: '2026-06-17T12:00:00Z'
+      updatedAt: '2026-06-17T12:00:00Z'
+    replacedExisting: true
+expectedResult:
+  replacedExisting: true
+  data:
+    id: pm_123
+    contactId: cnt_123
+    status: active
+    card:
+      brand: visa
+      last4: '4242'
