@@ -1,0 +1,53 @@
+# Fails a PR that touches sdk-node/ without including a changeset.
+#
+# Without this check, a PR can merge to main without a changeset, and the next
+# `yarn changeset version` produces the wrong bump — exactly how v0.2.0
+# accidentally rolled to 1.0.0.
+#
+# Maintainers can bypass intentionally by adding the `skip-changeset` label
+# (e.g. docs-only PRs that don't ship to npm consumers).
+
+name: Changeset required
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "sdk-node/**"
+      - "!sdk-node/CHANGELOG.md"
+      - "!sdk-node/**/*.md"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: changeset-required-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-changeset') }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: sdk-node/yarn.lock
+
+      - name: Install deps
+        working-directory: sdk-node
+        run: yarn install --frozen-lockfile
+
+      - name: Verify changeset is staged
+        working-directory: sdk-node
+        run: |
+          # `changeset status --since=<ref>` exits non-zero when the diff
+          # touches packages but no changeset file is present. That's exactly
+          # the gate we want.
+          yarn changeset status --since=origin/${{ github.base_ref }}
