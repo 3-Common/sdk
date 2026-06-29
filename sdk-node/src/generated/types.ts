@@ -119,6 +119,9 @@ export interface paths {
         /**
          * List Contacts
          * @description Lists the host's contacts, sorted and filtered. Paginated.
+         *     Use this to inspect specific rows. For "most common", "top values", or
+         *     distribution questions, prefer `summarize_contact_field_values` so the
+         *     model does not fetch hundreds of contacts just to count them.
          */
         get: {
             parameters: {
@@ -464,7 +467,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated (not just inserted) so re-imports refresh the persisted fields. */
+                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated (not just inserted) so re-imports refresh the persisted fields. Capped at 1000 per request — clients batch larger imports. */
                         contacts: ({
                             email: string;
                             firstName?: string;
@@ -26313,6 +26316,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -26321,6 +26328,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -26632,6 +26646,10 @@ export interface paths {
                                     sectionReferenceId?: string;
                                     priceLevelId?: string;
                                 };
+                                /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                disableQrCode?: boolean;
+                                /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                willCall?: boolean;
                             }[];
                             /**
                              * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -26640,6 +26658,13 @@ export interface paths {
                              *     the host opts the product out via this flag.
                              */
                             disableQrCode?: boolean;
+                            /**
+                             * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                             *     the issued ticket uses will call fulfillment: no PDF stub is
+                             *     rendered, the ticket is not scannable, and the customer collects
+                             *     it at the venue. Independent of `disableQrCode`.
+                             */
+                            willCall?: boolean;
                             /**
                              * @description Snapshot of the underlying `Product.image` URL — rendered as
                              *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -26829,6 +26854,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -26837,6 +26866,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -27187,6 +27223,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -27195,6 +27235,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -27628,6 +27675,10 @@ export interface paths {
                                     sectionReferenceId?: string;
                                     priceLevelId?: string;
                                 };
+                                /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                disableQrCode?: boolean;
+                                /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                willCall?: boolean;
                             }[];
                             /**
                              * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -27636,6 +27687,13 @@ export interface paths {
                              *     the host opts the product out via this flag.
                              */
                             disableQrCode?: boolean;
+                            /**
+                             * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                             *     the issued ticket uses will call fulfillment: no PDF stub is
+                             *     rendered, the ticket is not scannable, and the customer collects
+                             *     it at the venue. Independent of `disableQrCode`.
+                             */
+                            willCall?: boolean;
                             /**
                              * @description Snapshot of the underlying `Product.image` URL — rendered as
                              *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -27813,6 +27871,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -27821,6 +27883,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -28196,6 +28265,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -28204,6 +28277,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -28590,6 +28670,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -28598,6 +28682,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -28988,6 +29079,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -28996,6 +29091,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -29383,6 +29485,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -29391,6 +29497,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -29830,6 +29943,10 @@ export interface paths {
                                             sectionReferenceId?: string;
                                             priceLevelId?: string;
                                         };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
                                     }[];
                                     /**
                                      * @description Snapshot of the underlying `Product.disable_qr_code` flag.
@@ -29838,6 +29955,13 @@ export interface paths {
                                      *     the host opts the product out via this flag.
                                      */
                                     disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
                                     /**
                                      * @description Snapshot of the underlying `Product.image` URL — rendered as
                                      *     the ticket-stub artwork on the issued PDF. Absent products fall
@@ -36229,6 +36353,428 @@ export interface paths {
                 };
                 /** @description Default Response */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/subscriptions/{id}/comp-next-cycle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Comp Subscription Next Cycle
+         * @description Stages a one-time fully-free (100% off) next renewal cycle on the subscription. The next renewal consumes it exactly once, then bills normally. Rejected on a canceled/unpaid subscription.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Subscription id, discoverable via list_subscriptions */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id; optional until linked */
+                                contactId?: string;
+                                /** @description Email; allows late-linking to a contact */
+                                customerEmail?: string;
+                                /** @description Primary item shortcut — mirrors items[0].priceId */
+                                priceId?: string;
+                                /** @description Primary item shortcut — mirrors items[0].quantity */
+                                quantity?: number;
+                                /** @description All billed lines on this subscription. Each item shares the parent sub's billing cycle (Phase 1). */
+                                items?: {
+                                    id: string;
+                                    priceId: string;
+                                    quantity: number;
+                                }[];
+                                /**
+                                 * @description Subscription lifecycle.
+                                 *     - incomplete: created, awaiting first payment
+                                 *     - trialing: in trial period
+                                 *     - active: paying
+                                 *     - past_due: renewal payment failed; scheduler is retrying per dunning policy
+                                 *     - canceled: terminal — clean cancellation
+                                 *     - unpaid: terminal — payment failed (retries exhausted or manual override), access revoked
+                                 * @enum {string}
+                                 */
+                                status?: "incomplete" | "trialing" | "active" | "past_due" | "canceled" | "unpaid";
+                                /** Format: date-time */
+                                currentPeriodStart?: string;
+                                /** Format: date-time */
+                                currentPeriodEnd?: string;
+                                /** Format: date-time */
+                                trialStart?: string;
+                                /** Format: date-time */
+                                trialEnd?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Absolute first-billing date; when set, the first paid cycle begins on this date
+                                 */
+                                billingCycleAnchor?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Absolute scheduled end date; the sub auto-cancels on renewal once this date passes
+                                 */
+                                cancelAt?: string;
+                                /** @description When true, the next renewal will cancel instead of advancing */
+                                cancelAtPeriodEnd?: boolean;
+                                /** Format: date-time */
+                                canceledAt?: string;
+                                cancelReason?: string;
+                                /** Format: date-time */
+                                endedAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When status first transitioned to active
+                                 */
+                                startedAt?: string;
+                                /** @description When false, failed renewal payments mark the sub unpaid immediately (no retries) */
+                                dunningEnabled?: boolean;
+                                /**
+                                 * Format: date-time
+                                 * @description When the renewal payment first failed for the current past-due cycle
+                                 */
+                                firstFailureAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the dunning scheduler will attempt the next retry
+                                 */
+                                nextRetryAt?: string;
+                                /** @description Retries attempted on the current past-due cycle */
+                                retryCount?: number;
+                                /** @description Memo forwarded onto every renewal invoice */
+                                notes?: string;
+                                /** @description Host tax-ID snapshot rolled forward onto each renewal invoice */
+                                taxIds?: {
+                                    type: string;
+                                    value: string;
+                                }[];
+                                /** @description When true (default), the scheduler attempts an off-session charge on renewal. When false, finalize stops at email-payment-link. */
+                                autoCharge?: boolean;
+                                /** @description Days the customer has to pay each renewal invoice when autoCharge=false. */
+                                paymentDueDays?: number;
+                                /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
+                                taxRate?: number;
+                                metadata?: {
+                                    [key: string]: string;
+                                };
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/subscriptions/{id}/uncomp-next-cycle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Uncomp Subscription Next Cycle
+         * @description Removes a staged "comp next cycle" from the subscription, so the next renewal bills at full price again. The inverse of comp_subscription_next_cycle. A no-op when no comp is pending; allowed on a subscription in any state.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Subscription id, discoverable via list_subscriptions */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id; optional until linked */
+                                contactId?: string;
+                                /** @description Email; allows late-linking to a contact */
+                                customerEmail?: string;
+                                /** @description Primary item shortcut — mirrors items[0].priceId */
+                                priceId?: string;
+                                /** @description Primary item shortcut — mirrors items[0].quantity */
+                                quantity?: number;
+                                /** @description All billed lines on this subscription. Each item shares the parent sub's billing cycle (Phase 1). */
+                                items?: {
+                                    id: string;
+                                    priceId: string;
+                                    quantity: number;
+                                }[];
+                                /**
+                                 * @description Subscription lifecycle.
+                                 *     - incomplete: created, awaiting first payment
+                                 *     - trialing: in trial period
+                                 *     - active: paying
+                                 *     - past_due: renewal payment failed; scheduler is retrying per dunning policy
+                                 *     - canceled: terminal — clean cancellation
+                                 *     - unpaid: terminal — payment failed (retries exhausted or manual override), access revoked
+                                 * @enum {string}
+                                 */
+                                status?: "incomplete" | "trialing" | "active" | "past_due" | "canceled" | "unpaid";
+                                /** Format: date-time */
+                                currentPeriodStart?: string;
+                                /** Format: date-time */
+                                currentPeriodEnd?: string;
+                                /** Format: date-time */
+                                trialStart?: string;
+                                /** Format: date-time */
+                                trialEnd?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Absolute first-billing date; when set, the first paid cycle begins on this date
+                                 */
+                                billingCycleAnchor?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Absolute scheduled end date; the sub auto-cancels on renewal once this date passes
+                                 */
+                                cancelAt?: string;
+                                /** @description When true, the next renewal will cancel instead of advancing */
+                                cancelAtPeriodEnd?: boolean;
+                                /** Format: date-time */
+                                canceledAt?: string;
+                                cancelReason?: string;
+                                /** Format: date-time */
+                                endedAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When status first transitioned to active
+                                 */
+                                startedAt?: string;
+                                /** @description When false, failed renewal payments mark the sub unpaid immediately (no retries) */
+                                dunningEnabled?: boolean;
+                                /**
+                                 * Format: date-time
+                                 * @description When the renewal payment first failed for the current past-due cycle
+                                 */
+                                firstFailureAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the dunning scheduler will attempt the next retry
+                                 */
+                                nextRetryAt?: string;
+                                /** @description Retries attempted on the current past-due cycle */
+                                retryCount?: number;
+                                /** @description Memo forwarded onto every renewal invoice */
+                                notes?: string;
+                                /** @description Host tax-ID snapshot rolled forward onto each renewal invoice */
+                                taxIds?: {
+                                    type: string;
+                                    value: string;
+                                }[];
+                                /** @description When true (default), the scheduler attempts an off-session charge on renewal. When false, finalize stops at email-payment-link. */
+                                autoCharge?: boolean;
+                                /** @description Days the customer has to pay each renewal invoice when autoCharge=false. */
+                                paymentDueDays?: number;
+                                /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
+                                taxRate?: number;
+                                metadata?: {
+                                    [key: string]: string;
+                                };
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
