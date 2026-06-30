@@ -64,6 +64,8 @@ export type Method =
   | 'activate'
   | 'cancel'
   | 'cancelImmediately'
+  | 'compNextCycle'
+  | 'uncompNextCycle'
   | 'markUnpaid'
   | 'bill'
   | 'renew'

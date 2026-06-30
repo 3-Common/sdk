@@ -62,6 +62,12 @@ expectType<Promise<Subscription>>(
   client.subscriptions.cancelImmediately('sub_123', cancelImmediatelyBody),
 )
 
+// compNextCycle — id only; returns Subscription.
+expectType<Promise<Subscription>>(client.subscriptions.compNextCycle('sub_123'))
+
+// uncompNextCycle — id only; returns Subscription.
+expectType<Promise<Subscription>>(client.subscriptions.uncompNextCycle('sub_123'))
+
 // markUnpaid — id only; returns Subscription.
 expectType<Promise<Subscription>>(client.subscriptions.markUnpaid('sub_123'))
 

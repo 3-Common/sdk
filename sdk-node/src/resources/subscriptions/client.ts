@@ -158,6 +158,30 @@ export interface SubscriptionsService {
   ): Promise<Subscription>
 
   /**
+   * Stage a one-time fully-free (100% off) next renewal cycle. The next
+   * renewal consumes the comp exactly once, then billing resumes at full
+   * price. Rejected on a `canceled` or `unpaid` subscription.
+   *
+   * @example
+   * ```ts
+   * await client.subscriptions.compNextCycle('sub_123')
+   * ```
+   */
+  compNextCycle(id: string, options?: RequestOptions): Promise<Subscription>
+
+  /**
+   * Remove a staged comp so the next renewal bills at full price again — the
+   * inverse of `compNextCycle`. A no-op when no comp is pending, and allowed
+   * on a subscription in any state.
+   *
+   * @example
+   * ```ts
+   * await client.subscriptions.uncompNextCycle('sub_123')
+   * ```
+   */
+  uncompNextCycle(id: string, options?: RequestOptions): Promise<Subscription>
+
+  /**
    * Admin override — mark a subscription `unpaid` (terminal), bypassing
    * dunning retries.
    *
@@ -328,6 +352,26 @@ export function subscriptionsService(http: HttpClient): SubscriptionsService {
         method: 'POST',
         path: `/subscriptions/${encodeURIComponent(id)}/cancel-immediately`,
         body: body ?? {},
+        options,
+      })
+      return response.data
+    },
+
+    async compNextCycle(id: string, options?: RequestOptions): Promise<Subscription> {
+      requireId('compNextCycle', id)
+      const response = await http.request<DetailEnvelope<Subscription>>({
+        method: 'POST',
+        path: `/subscriptions/${encodeURIComponent(id)}/comp-next-cycle`,
+        options,
+      })
+      return response.data
+    },
+
+    async uncompNextCycle(id: string, options?: RequestOptions): Promise<Subscription> {
+      requireId('uncompNextCycle', id)
+      const response = await http.request<DetailEnvelope<Subscription>>({
+        method: 'POST',
+        path: `/subscriptions/${encodeURIComponent(id)}/uncomp-next-cycle`,
         options,
       })
       return response.data

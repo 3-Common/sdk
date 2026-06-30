@@ -49,6 +49,8 @@ export function dispatchEntitlements(
     case 'activate':
     case 'cancel':
     case 'cancelImmediately':
+    case 'compNextCycle':
+    case 'uncompNextCycle':
     case 'markUnpaid':
     case 'bill':
     case 'renew':
