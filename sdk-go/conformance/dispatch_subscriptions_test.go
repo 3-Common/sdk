@@ -60,6 +60,12 @@ func dispatchSubscriptions(t *testing.T, api *client.API, ctx context.Context, s
 			}
 		}
 		return api.Subscriptions.CancelImmediately(ctx, id, cp)
+	case "compNextCycle":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Subscriptions.CompNextCycle(ctx, id)
+	case "uncompNextCycle":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Subscriptions.UncompNextCycle(ctx, id)
 	case "markUnpaid":
 		id, _ := sc.Call.Args["id"].(string)
 		return api.Subscriptions.MarkUnpaid(ctx, id)

@@ -1,8 +1,8 @@
 // Pre-release smoke test against the live API.
 //
-// Runs <= 12 calls and verifies the happy path + the common error paths
-// across the events, invoices, and subscriptions resources. Used by
-// .github/workflows/live-smoke.yml (maintainer-only).
+// Runs the happy path + the common error paths across the events, invoices,
+// and subscriptions resources. Used by .github/workflows/live-smoke.yml
+// (maintainer-only).
 //
 // Required env:
 //
@@ -16,7 +16,8 @@
 //	SMOKE_INVOICE_ID       — an invoice ID owned by the API-key host; if set,
 //	                         exercises the invoices.Retrieve happy path
 //	SMOKE_SUBSCRIPTION_ID  — a subscription ID owned by the API-key host; if
-//	                         set, exercises the subscriptions.Retrieve happy path
+//	                         set, exercises subscriptions.Retrieve and
+//	                         subscriptions.PreviewUpcomingInvoice
 //
 // Run with: go run ./scripts/livesmoke
 package main
@@ -211,18 +212,30 @@ func main() {
 		results = append(results, result{check: "subscriptions.List", status: "fail", detail: errMsg(listErr)})
 	}
 
-	// 9. Retrieve a known subscription (if configured).
+	// 9. Retrieve a known subscription + preview its upcoming invoice (if configured).
 	if knownSubscriptionID != "" {
 		if sub, retrieveErr := api.Subscriptions.Retrieve(ctx, knownSubscriptionID, nil); retrieveErr == nil {
 			results = append(results, result{check: "subscriptions.Retrieve", status: "pass", detail: "id=" + sub.ID})
 		} else {
 			results = append(results, result{check: "subscriptions.Retrieve", status: "fail", detail: errMsg(retrieveErr)})
 		}
+
+		// 10. Preview upcoming invoice on the known subscription.
+		if preview, previewErr := api.Subscriptions.PreviewUpcomingInvoice(ctx, knownSubscriptionID); previewErr == nil {
+			detail := "null (cancel-at-period-end)"
+			if preview != nil {
+				detail = fmt.Sprintf("total=%d", preview.Total)
+			}
+			results = append(results, result{check: "subscriptions.PreviewUpcomingInvoice", status: "pass", detail: detail})
+		} else {
+			results = append(results, result{check: "subscriptions.PreviewUpcomingInvoice", status: "fail", detail: errMsg(previewErr)})
+		}
 	} else {
 		results = append(results, result{check: "subscriptions.Retrieve", status: "skip", detail: "SMOKE_SUBSCRIPTION_ID not set"})
+		results = append(results, result{check: "subscriptions.PreviewUpcomingInvoice", status: "skip", detail: "SMOKE_SUBSCRIPTION_ID not set"})
 	}
 
-	// 10. 404 path on subscriptions.
+	// 11. 404 path on subscriptions.
 	if _, missErr := api.Subscriptions.Retrieve(ctx, missingObjectID, nil); missErr != nil {
 		var nf *threecommon.NotFoundError
 		if errors.As(missErr, &nf) {
@@ -238,7 +251,32 @@ func main() {
 		results = append(results, result{check: "subscriptions 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
 	}
 
-	// 11. 401 path — wrong API key.
+	// 11b. Not-found paths for the comp/uncomp methods. Both stage or clear a
+	// 100%-off next renewal — mutating real subscription state — so only the 404
+	// path is smoke-tested: a missing id 404s before any state change.
+	if _, missErr := api.Subscriptions.CompNextCycle(ctx, missingObjectID); missErr != nil {
+		var nf *threecommon.NotFoundError
+		if errors.As(missErr, &nf) {
+			results = append(results, result{check: "subscriptions.CompNextCycle 404 path", status: "pass", detail: "code=" + nf.Code})
+		} else {
+			results = append(results, result{check: "subscriptions.CompNextCycle 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+		}
+	} else {
+		results = append(results, result{check: "subscriptions.CompNextCycle 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+	}
+
+	if _, missErr := api.Subscriptions.UncompNextCycle(ctx, missingObjectID); missErr != nil {
+		var nf *threecommon.NotFoundError
+		if errors.As(missErr, &nf) {
+			results = append(results, result{check: "subscriptions.UncompNextCycle 404 path", status: "pass", detail: "code=" + nf.Code})
+		} else {
+			results = append(results, result{check: "subscriptions.UncompNextCycle 404 path", status: "fail", detail: "unexpected error: " + errMsg(missErr)})
+		}
+	} else {
+		results = append(results, result{check: "subscriptions.UncompNextCycle 404 path", status: "fail", detail: "expected NotFoundError but call succeeded"})
+	}
+
+	// 12. 401 path — wrong API key.
 	zero := 0
 	//nolint:gosec // G101: deliberate fake to test the 401 path; not a real credential.
 	const fakeKey = "3co_smoke_test_invalid_key" //gitleaks:allow

@@ -203,6 +203,44 @@ func (c *Client) CancelImmediately(ctx context.Context, id string, params *Cance
 	return &env.Data, nil
 }
 
+// CompNextCycle stages a one-time fully-free (100% off) next renewal cycle.
+// The next renewal consumes the comp exactly once, then billing resumes at
+// full price. Rejected on a canceled or unpaid subscription.
+func (c *Client) CompNextCycle(ctx context.Context, id string) (*Subscription, error) {
+	if err := requireID("CompNextCycle", id); err != nil {
+		return nil, err
+	}
+
+	var env retrieveEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/subscriptions/" + url.PathEscape(id) + "/comp-next-cycle",
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
+// UncompNextCycle removes a staged comp so the next renewal bills at full price
+// again — the inverse of [Client.CompNextCycle]. A no-op when no comp is
+// pending, and allowed on a subscription in any state.
+func (c *Client) UncompNextCycle(ctx context.Context, id string) (*Subscription, error) {
+	if err := requireID("UncompNextCycle", id); err != nil {
+		return nil, err
+	}
+
+	var env retrieveEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/subscriptions/" + url.PathEscape(id) + "/uncomp-next-cycle",
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
 // MarkUnpaid is an admin override that marks a subscription unpaid (terminal),
 // bypassing dunning retries.
 func (c *Client) MarkUnpaid(ctx context.Context, id string) (*Subscription, error) {

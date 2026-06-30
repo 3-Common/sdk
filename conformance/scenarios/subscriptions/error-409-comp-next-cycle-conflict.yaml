@@ -1,0 +1,28 @@
+name: 409 Conflict — comp next cycle on a canceled subscription
+call:
+  resource: subscriptions
+  method: compNextCycle
+  args:
+    id: sub_canceled
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/subscriptions/sub_canceled/comp-next-cycle
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-sub-comp-409-001
+  body:
+    error:
+      code: subscription_not_compable
+      message: Subscription sub_canceled is canceled and cannot have its next cycle comped
+      details:
+        currentStatus: canceled
+expectedError:
+  type: ThreeCommonConflictError
+  code: subscription_not_compable
+  httpStatus: 409
+  requestId: req-sub-comp-409-001
+  details:
+    currentStatus: canceled
