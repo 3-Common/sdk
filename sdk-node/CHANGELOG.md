@@ -5,24 +5,24 @@
 ### Minor Changes
 
 - 4d31f5d: Add saved-card management to the `contacts` resource. The `client.contacts`
-surface gains `retrievePaymentMethod` (the saved card on file, or `null`),
-`attachPaymentMethod` (persist a card from a confirmed Stripe SetupIntent,
-reporting whether an existing card was replaced),
-`createPaymentMethodSetupIntent` (start a Stripe SetupIntent to confirm
-client-side with Stripe Elements), and `removePaymentMethod` (detach the saved
-card). Includes the typed `PaymentMethod`, `PaymentMethodSetupIntent`,
-`AttachPaymentMethodResult`, `RemovedPaymentMethod`, `AttachPaymentMethodBody`,
-and `PaymentMethodStatus` aliases.
+  surface gains `retrievePaymentMethod` (the saved card on file, or `null`),
+  `attachPaymentMethod` (persist a card from a confirmed Stripe SetupIntent,
+  reporting whether an existing card was replaced),
+  `createPaymentMethodSetupIntent` (start a Stripe SetupIntent to confirm
+  client-side with Stripe Elements), and `removePaymentMethod` (detach the saved
+  card). Includes the typed `PaymentMethod`, `PaymentMethodSetupIntent`,
+  `AttachPaymentMethodResult`, `RemovedPaymentMethod`, `AttachPaymentMethodBody`,
+  and `PaymentMethodStatus` aliases.
 
 ## 0.10.0
 
 ### Minor Changes
 
 - e27c8d4: Add `client.subscriptions.retrieveManageUrl(id)`, wrapping
-`GET /v1/subscriptions/{id}/manage-url`. It returns the signed, customer-facing
-self-service portal link (`{ url }`, typed as the new `SubscriptionManageUrl`)
-scoped to a single subscription, which the subscriber can use to view, cancel,
-or resume it.
+  `GET /v1/subscriptions/{id}/manage-url`. It returns the signed, customer-facing
+  self-service portal link (`{ url }`, typed as the new `SubscriptionManageUrl`)
+  scoped to a single subscription, which the subscriber can use to view, cancel,
+  or resume it.
 
 ## 0.9.0
 
