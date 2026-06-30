@@ -294,6 +294,35 @@ async function run(): Promise<SmokeResult[]> {
     }
   }
 
+  // 11b. New subscription write methods — only their not-found paths are
+  // smoke-tested. `compNextCycle` stages a 100%-off next renewal and
+  // `uncompNextCycle` clears it; both mutate real subscription state, so
+  // running the happy paths against the live host on every maintainer run
+  // isn't safe. A well-formed-but-missing id 404s when the handler loads the
+  // subscription, before any state change, so these exercise the wire path +
+  // error mapping without touching real data.
+  try {
+    await client.subscriptions.compNextCycle(MISSING_OBJECT_ID)
+    results.push({
+      check: 'subscriptions.compNextCycle 404 path',
+      status: 'fail',
+      detail: 'expected ThreeCommonNotFoundError but call succeeded',
+    })
+  } catch (err) {
+    results.push(notFoundCheck('subscriptions.compNextCycle 404 path', err))
+  }
+
+  try {
+    await client.subscriptions.uncompNextCycle(MISSING_OBJECT_ID)
+    results.push({
+      check: 'subscriptions.uncompNextCycle 404 path',
+      status: 'fail',
+      detail: 'expected ThreeCommonNotFoundError but call succeeded',
+    })
+  } catch (err) {
+    results.push(notFoundCheck('subscriptions.uncompNextCycle 404 path', err))
+  }
+
   // 12. 401 path — wrong API key.
   try {
     const badClient = new ThreeCommon({
