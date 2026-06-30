@@ -9,6 +9,13 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Subscriptions comp controls. The `client.subscriptions` surface gains
+  `comp_next_cycle` (stages a one-time fully-free, 100% off next renewal cycle
+  via `POST /v1/subscriptions/{id}/comp-next-cycle`, consumed exactly once
+  before billing resumes at full price and rejected on a `canceled`/`unpaid`
+  subscription) and `uncomp_next_cycle` (the inverse — clears a pending comp via
+  `POST /v1/subscriptions/{id}/uncomp-next-cycle`, a no-op when none is staged).
+  Both return the updated `Subscription`, on both sync and async surfaces.
 - Contact payment methods. The `client.contacts` surface gains
   `retrieve_payment_method` (returns the saved card or `None`),
   `attach_payment_method` (persists the card from a confirmed SetupIntent and

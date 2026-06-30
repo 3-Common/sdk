@@ -116,6 +116,10 @@ def dispatch_sync(  # noqa: PLR0911, PLR0912
         body_raw = args.get("body")
         cancel_imm_body = CancelImmediatelyBody(reason=body_raw.get("reason")) if body_raw else None
         return client.subscriptions.cancel_immediately(args["id"], cancel_imm_body)
+    if method == "compNextCycle":
+        return client.subscriptions.comp_next_cycle(args["id"])
+    if method == "uncompNextCycle":
+        return client.subscriptions.uncomp_next_cycle(args["id"])
     if method == "markUnpaid":
         return client.subscriptions.mark_unpaid(args["id"])
     if method == "bill":
@@ -156,6 +160,10 @@ async def dispatch_async(  # noqa: PLR0911, PLR0912
         body_raw = args.get("body")
         cancel_imm_body = CancelImmediatelyBody(reason=body_raw.get("reason")) if body_raw else None
         return await client.subscriptions.cancel_immediately(args["id"], cancel_imm_body)
+    if method == "compNextCycle":
+        return await client.subscriptions.comp_next_cycle(args["id"])
+    if method == "uncompNextCycle":
+        return await client.subscriptions.uncomp_next_cycle(args["id"])
     if method == "markUnpaid":
         return await client.subscriptions.mark_unpaid(args["id"])
     if method == "bill":
