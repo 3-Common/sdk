@@ -1,6 +1,6 @@
 {
   "name": "@3common/sdk",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Official Node.js / TypeScript client for the 3Common Public API.",
   "keywords": [
     "3common",
@@ -59,6 +59,7 @@
     "docs": "typedoc",
     "docs:check": "typedoc --emit none --treatWarningsAsErrors",
     "smoke": "tsx scripts/live-smoke.ts",
+    "smoke:local": "tsx --env-file=.env scripts/live-smoke.ts",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {

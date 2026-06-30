@@ -2,7 +2,7 @@
 #
 # - Triggered manually (workflow_dispatch) or by the `live-smoke` label on a PR.
 # - Reads secrets.THREECOMMON_API_KEY (set ONLY in the upstream repo, never on forks).
-# - Runs <= 10 calls per SDK: happy paths across events + invoices plus the common error paths (401, 404).
+# - Runs a handful of calls per SDK: happy paths across events, invoices, and subscriptions plus the common error paths (401, 404).
 
 name: Live smoke (maintainer-only)
 
@@ -76,6 +76,7 @@ jobs:
           THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
           SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
           SMOKE_INVOICE_ID: ${{ vars.SMOKE_INVOICE_ID }}
+          SMOKE_SUBSCRIPTION_ID: ${{ vars.SMOKE_SUBSCRIPTION_ID }}
         run: python scripts/livesmoke.py
 
   smoke-go:
@@ -96,4 +97,5 @@ jobs:
           THREECOMMON_BASE_URL: ${{ vars.THREECOMMON_BASE_URL || 'https://api.3common.com' }}
           SMOKE_EVENT_ID: ${{ vars.SMOKE_EVENT_ID }}
           SMOKE_INVOICE_ID: ${{ vars.SMOKE_INVOICE_ID }}
+          SMOKE_SUBSCRIPTION_ID: ${{ vars.SMOKE_SUBSCRIPTION_ID }}
         run: go run ./scripts/livesmoke

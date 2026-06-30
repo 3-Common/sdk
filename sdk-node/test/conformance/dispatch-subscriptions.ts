@@ -43,6 +43,10 @@ export function dispatchSubscriptions(
       const body = args['body'] as Record<string, unknown> | undefined
       return client.subscriptions.cancelImmediately(id, body)
     }
+    case 'compNextCycle':
+      return client.subscriptions.compNextCycle(expectString(args['id'], 'compNextCycle'))
+    case 'uncompNextCycle':
+      return client.subscriptions.uncompNextCycle(expectString(args['id'], 'uncompNextCycle'))
     case 'markUnpaid':
       return client.subscriptions.markUnpaid(expectString(args['id'], 'markUnpaid'))
     case 'bill':

@@ -246,6 +246,42 @@ describe('subscriptions.cancelImmediately', () => {
   })
 })
 
+describe('subscriptions.compNextCycle', () => {
+  it('POSTs to /comp-next-cycle and returns the subscription', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/subscriptions/sub_123/comp-next-cycle`, () =>
+        HttpResponse.json({ data: sampleSubscription }),
+      ),
+    )
+    const client = buildClient()
+    const sub = await client.subscriptions.compNextCycle('sub_123')
+    expect(sub.id).toBe('sub_123')
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.subscriptions.compNextCycle('')).rejects.toThrow(TypeError)
+  })
+})
+
+describe('subscriptions.uncompNextCycle', () => {
+  it('POSTs to /uncomp-next-cycle and returns the subscription', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/subscriptions/sub_123/uncomp-next-cycle`, () =>
+        HttpResponse.json({ data: sampleSubscription }),
+      ),
+    )
+    const client = buildClient()
+    const sub = await client.subscriptions.uncompNextCycle('sub_123')
+    expect(sub.id).toBe('sub_123')
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.subscriptions.uncompNextCycle('')).rejects.toThrow(TypeError)
+  })
+})
+
 describe('subscriptions.markUnpaid', () => {
   it('POSTs to /mark-unpaid', async () => {
     server.use(

@@ -35,7 +35,7 @@ export class ThreeCommon {
   /** Invoices resource — list, retrieve, create, update, finalize, void, recordPayment. */
   public readonly invoices: InvoicesService
 
-  /** Subscriptions resource — list, retrieve, create, update, activate, cancel, cancelImmediately, markUnpaid, bill, renew, previewUpcomingInvoice. */
+  /** Subscriptions resource — list, retrieve, create, update, activate, cancel, cancelImmediately, compNextCycle, uncompNextCycle, markUnpaid, bill, renew, previewUpcomingInvoice. */
   public readonly subscriptions: SubscriptionsService
 
   /** Contacts resource — list, count, retrieve, create, update, delete, bulkUpsert, listActivity, plus auto-paginators. */

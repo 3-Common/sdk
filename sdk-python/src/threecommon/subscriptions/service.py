@@ -187,6 +187,31 @@ class SubscriptionsService:
         )
         return Subscription.model_validate(response["data"])
 
+    def comp_next_cycle(self, subscription_id: str) -> Subscription:
+        """Stage a one-time fully-free (100% off) next renewal cycle.
+
+        The next renewal consumes the comp exactly once, then billing resumes
+        at full price. Rejected on a ``canceled`` or ``unpaid`` subscription.
+        """
+        _require_id("comp_next_cycle", subscription_id)
+        response = self._http.request(
+            Request(method="POST", path=_action_path(subscription_id, "comp-next-cycle"))
+        )
+        return Subscription.model_validate(response["data"])
+
+    def uncomp_next_cycle(self, subscription_id: str) -> Subscription:
+        """Remove a staged comp so the next renewal bills at full price again.
+
+        The inverse of [comp_next_cycle][SubscriptionsService.comp_next_cycle].
+        A no-op when no comp is pending, and allowed on a subscription in any
+        state.
+        """
+        _require_id("uncomp_next_cycle", subscription_id)
+        response = self._http.request(
+            Request(method="POST", path=_action_path(subscription_id, "uncomp-next-cycle"))
+        )
+        return Subscription.model_validate(response["data"])
+
     def mark_unpaid(self, subscription_id: str) -> Subscription:
         """Admin override — mark a subscription ``unpaid`` (terminal)."""
         _require_id("mark_unpaid", subscription_id)
@@ -336,6 +361,31 @@ class AsyncSubscriptionsService:
                 path=_action_path(subscription_id, "cancel-immediately"),
                 body=payload,
             )
+        )
+        return Subscription.model_validate(response["data"])
+
+    async def comp_next_cycle(self, subscription_id: str) -> Subscription:
+        """Stage a one-time fully-free (100% off) next renewal cycle.
+
+        The next renewal consumes the comp exactly once, then billing resumes
+        at full price. Rejected on a ``canceled`` or ``unpaid`` subscription.
+        """
+        _require_id("comp_next_cycle", subscription_id)
+        response = await self._http.request(
+            Request(method="POST", path=_action_path(subscription_id, "comp-next-cycle"))
+        )
+        return Subscription.model_validate(response["data"])
+
+    async def uncomp_next_cycle(self, subscription_id: str) -> Subscription:
+        """Remove a staged comp so the next renewal bills at full price again.
+
+        The inverse of
+        [comp_next_cycle][AsyncSubscriptionsService.comp_next_cycle]. A no-op
+        when no comp is pending, and allowed on a subscription in any state.
+        """
+        _require_id("uncomp_next_cycle", subscription_id)
+        response = await self._http.request(
+            Request(method="POST", path=_action_path(subscription_id, "uncomp-next-cycle"))
         )
         return Subscription.model_validate(response["data"])
 
