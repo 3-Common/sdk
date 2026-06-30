@@ -59,6 +59,7 @@
     "docs": "typedoc",
     "docs:check": "typedoc --emit none --treatWarningsAsErrors",
     "smoke": "tsx scripts/live-smoke.ts",
+    "smoke:local": "tsx --env-file=.env scripts/live-smoke.ts",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
