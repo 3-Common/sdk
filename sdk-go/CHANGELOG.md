@@ -6,6 +6,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- `Subscriptions.CompNextCycle` and `Subscriptions.UncompNextCycle` — stage a
+  one-time fully-free (100% off) next renewal cycle and clear a staged comp
+  (`POST /v1/subscriptions/{id}/comp-next-cycle` and
+  `POST /v1/subscriptions/{id}/uncomp-next-cycle`). The next renewal consumes
+  the comp exactly once, then billing resumes at full price; `CompNextCycle` is
+  rejected on a canceled or unpaid subscription, while `UncompNextCycle` is a
+  no-op when no comp is pending. Available via `api.Subscriptions` and
+  `subscriptions.New` for standalone use.
+
 ## 0.11.0
 
 ### Added
