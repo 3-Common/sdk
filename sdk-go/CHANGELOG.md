@@ -6,6 +6,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 0.12.0
+
 ### Added
 
 - `Subscriptions.CompNextCycle` and `Subscriptions.UncompNextCycle` — stage a
