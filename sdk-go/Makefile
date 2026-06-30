@@ -1,4 +1,4 @@
-.PHONY: tools vet lint format test test-race coverage gen ci
+.PHONY: tools vet lint format test test-race coverage gen ci smoke-local
 
 GO ?= go
 GOFLAGS ?= -trimpath
@@ -40,3 +40,10 @@ gen:
 		--config=generated/oapi-codegen.yaml ../openapi/spec.yaml
 
 ci: vet lint test-race coverage
+
+# Run the live smoke test against the host configured in ./.env (gitignored).
+# Mirrors `yarn smoke:local` (sdk-node) and `make`-less `scripts/smoke-local.sh`
+# (sdk-python): loads variables from .env, then runs the smoke harness. The CI
+# path stays `go run ./scripts/livesmoke` (see .github/workflows/live-smoke.yml).
+smoke-local:
+	set -a && . ./.env && set +a && $(GO) run ./scripts/livesmoke
