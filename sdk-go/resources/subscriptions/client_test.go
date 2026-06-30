@@ -386,6 +386,93 @@ func TestMarkUnpaid_Posts(t *testing.T) {
 	assert.Equal(t, subscriptions.StatusUnpaid, got.Status)
 }
 
+func TestCompNextCycle_Posts(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/subscriptions/sub_1/comp-next-cycle", r.URL.Path)
+		body, _ := io.ReadAll(r.Body)
+		assert.Empty(t, body, "comp-next-cycle takes no request body")
+		_, _ = w.Write([]byte(`{"data":{"id":"sub_1","status":"active"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.CompNextCycle(context.Background(), "sub_1")
+	require.NoError(t, err)
+	assert.Equal(t, "sub_1", got.ID)
+	assert.Equal(t, subscriptions.StatusActive, got.Status)
+}
+
+func TestCompNextCycle_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := subscriptions.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.CompNextCycle(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestCompNextCycle_409Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusConflict)
+		_, _ = io.WriteString(w, `{"error":{"code":"subscription_not_compable","message":"canceled and cannot have its next cycle comped"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.CompNextCycle(context.Background(), "sub_canceled")
+	var c *threecommon.ConflictError
+	require.True(t, errors.As(err, &c))
+	assert.Equal(t, "subscription_not_compable", c.Code)
+}
+
+func TestUncompNextCycle_Posts(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/subscriptions/sub_1/uncomp-next-cycle", r.URL.Path)
+		body, _ := io.ReadAll(r.Body)
+		assert.Empty(t, body, "uncomp-next-cycle takes no request body")
+		_, _ = w.Write([]byte(`{"data":{"id":"sub_1","status":"active"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.UncompNextCycle(context.Background(), "sub_1")
+	require.NoError(t, err)
+	assert.Equal(t, "sub_1", got.ID)
+	assert.Equal(t, subscriptions.StatusActive, got.Status)
+}
+
+func TestUncompNextCycle_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := subscriptions.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.UncompNextCycle(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+	assert.Equal(t, "missing_id", v.Code)
+}
+
+func TestUncompNextCycle_404Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = io.WriteString(w, `{"error":{"code":"not_found","message":"missing"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.UncompNextCycle(context.Background(), "sub_missing")
+	var nf *threecommon.NotFoundError
+	require.True(t, errors.As(err, &nf))
+}
+
 func TestBill_ReturnsInvoice(t *testing.T) {
 	t.Parallel()
 

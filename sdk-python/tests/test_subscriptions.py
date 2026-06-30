@@ -7,6 +7,7 @@ from pytest_httpx import HTTPXMock
 
 from threecommon import (
     AsyncThreeCommon,
+    ConflictError,
     NotFoundError,
     ThreeCommon,
     ValidationError,
@@ -295,6 +296,56 @@ def test_mark_unpaid(httpx_mock: HTTPXMock) -> None:
     assert sub.status == "unpaid"
 
 
+def test_comp_next_cycle_posts(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_123/comp-next-cycle",
+        method="POST",
+        match_content=b"",
+        json={"data": {**SAMPLE, "status": "active"}},
+    )
+    with _make_sync() as c:
+        sub = c.subscriptions.comp_next_cycle("sub_123")
+    assert sub.id == "sub_123"
+    assert sub.status == "active"
+
+
+def test_comp_next_cycle_validates_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.subscriptions.comp_next_cycle("")
+    assert exc.value.code == "missing_id"
+
+
+def test_comp_next_cycle_409_surfaces(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_canceled/comp-next-cycle",
+        method="POST",
+        status_code=409,
+        json={"error": {"code": "subscription_not_compable", "message": "canceled"}},
+    )
+    with _make_sync() as c, pytest.raises(ConflictError) as exc:
+        c.subscriptions.comp_next_cycle("sub_canceled")
+    assert exc.value.code == "subscription_not_compable"
+
+
+def test_uncomp_next_cycle_posts(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_123/uncomp-next-cycle",
+        method="POST",
+        match_content=b"",
+        json={"data": {**SAMPLE, "status": "active"}},
+    )
+    with _make_sync() as c:
+        sub = c.subscriptions.uncomp_next_cycle("sub_123")
+    assert sub.id == "sub_123"
+    assert sub.status == "active"
+
+
+def test_uncomp_next_cycle_validates_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError) as exc:
+        c.subscriptions.uncomp_next_cycle("")
+    assert exc.value.code == "missing_id"
+
+
 def test_bill_returns_invoice(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/subscriptions/sub_123/bill",
@@ -468,6 +519,32 @@ async def test_async_bill(httpx_mock: HTTPXMock) -> None:
     async with _make_async() as c:
         result = await c.subscriptions.bill("sub_1")
     assert result.invoice.id == "inv_9"
+
+
+@pytest.mark.asyncio
+async def test_async_comp_next_cycle(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_1/comp-next-cycle",
+        method="POST",
+        match_content=b"",
+        json={"data": {**SAMPLE, "id": "sub_1"}},
+    )
+    async with _make_async() as c:
+        sub = await c.subscriptions.comp_next_cycle("sub_1")
+    assert sub.id == "sub_1"
+
+
+@pytest.mark.asyncio
+async def test_async_uncomp_next_cycle(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_1/uncomp-next-cycle",
+        method="POST",
+        match_content=b"",
+        json={"data": {**SAMPLE, "id": "sub_1"}},
+    )
+    async with _make_async() as c:
+        sub = await c.subscriptions.uncomp_next_cycle("sub_1")
+    assert sub.id == "sub_1"
 
 
 @pytest.mark.asyncio
