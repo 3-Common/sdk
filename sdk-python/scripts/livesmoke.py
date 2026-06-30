@@ -1,7 +1,7 @@
 """Pre-release smoke test against the live API.
 
 Runs a small set of calls and verifies the happy path + the common error
-paths across the events and invoices resources. Used by
+paths across the events, invoices, and subscriptions resources. Used by
 .github/workflows/live-smoke.yml (maintainer-only).
 
 Required env:
@@ -13,6 +13,9 @@ Optional env:
                              exercises the events.retrieve happy path
     SMOKE_INVOICE_ID       — an invoice ID owned by the API-key host; if set,
                              exercises the invoices.retrieve happy path
+    SMOKE_SUBSCRIPTION_ID  — a subscription ID owned by the API-key host; if
+                             set, exercises subscriptions.retrieve and
+                             subscriptions.preview_upcoming_invoice
 
 Run with: python scripts/livesmoke.py
 """
@@ -27,6 +30,7 @@ from threecommon import APIError, AuthError, NotFoundError, ThreeCommon
 from threecommon.events import ListParams
 from threecommon.invoices import ListParams as InvoiceListParams
 from threecommon.invoices import RefundBody
+from threecommon.subscriptions import ListParams as SubscriptionListParams
 
 # Syntactically valid 24-hex ObjectId that will not match any real record.
 # The API rejects non-ObjectId strings with a 400 before reaching the
@@ -152,6 +156,77 @@ def _check_invoices_delete_draft_404(client: ThreeCommon) -> _Result:
     return _Result("invoices.delete_draft 404 path", "fail", "expected NotFoundError")
 
 
+def _check_subscriptions_list(client: ThreeCommon) -> _Result:
+    try:
+        result = client.subscriptions.list(SubscriptionListParams(page_size=1))
+    except APIError as e:
+        return _Result("subscriptions.list", "fail", repr(e))
+    return _Result(
+        "subscriptions.list",
+        "pass",
+        f"data.len={len(result.data)} has_more={result.has_more}",
+    )
+
+
+def _check_subscriptions_retrieve(
+    client: ThreeCommon, known_subscription_id: str | None
+) -> _Result:
+    if not known_subscription_id:
+        return _Result("subscriptions.retrieve", "skip", "SMOKE_SUBSCRIPTION_ID not set")
+    try:
+        sub = client.subscriptions.retrieve(known_subscription_id)
+    except APIError as e:
+        return _Result("subscriptions.retrieve", "fail", repr(e))
+    return _Result("subscriptions.retrieve", "pass", f"id={sub.id} status={sub.status}")
+
+
+def _check_subscriptions_preview(client: ThreeCommon, known_subscription_id: str | None) -> _Result:
+    if not known_subscription_id:
+        return _Result(
+            "subscriptions.preview_upcoming_invoice", "skip", "SMOKE_SUBSCRIPTION_ID not set"
+        )
+    try:
+        preview = client.subscriptions.preview_upcoming_invoice(known_subscription_id)
+    except APIError as e:
+        return _Result("subscriptions.preview_upcoming_invoice", "fail", repr(e))
+    detail = "null (cancel-at-period-end)" if preview is None else f"total={preview.total}"
+    return _Result("subscriptions.preview_upcoming_invoice", "pass", detail)
+
+
+def _check_subscriptions_404(client: ThreeCommon) -> _Result:
+    try:
+        client.subscriptions.retrieve(MISSING_OBJECT_ID)
+    except NotFoundError as e:
+        return _Result("subscriptions 404 path", "pass", f"code={e.code} request_id={e.request_id}")
+    except APIError as e:
+        return _Result("subscriptions 404 path", "fail", f"unexpected: {e!r}")
+    return _Result("subscriptions 404 path", "fail", "expected NotFoundError")
+
+
+# The comp/uncomp methods stage and clear a 100%-off next renewal; both mutate
+# real subscription state, so only their not-found paths are smoke-tested
+# against the live host. A well-formed-but-missing id 404s when the handler
+# loads the subscription, before any state change.
+def _check_subscriptions_comp_404(client: ThreeCommon) -> _Result:
+    try:
+        client.subscriptions.comp_next_cycle(MISSING_OBJECT_ID)
+    except NotFoundError as e:
+        return _Result("subscriptions.comp_next_cycle 404 path", "pass", f"code={e.code}")
+    except APIError as e:
+        return _Result("subscriptions.comp_next_cycle 404 path", "fail", f"unexpected: {e!r}")
+    return _Result("subscriptions.comp_next_cycle 404 path", "fail", "expected NotFoundError")
+
+
+def _check_subscriptions_uncomp_404(client: ThreeCommon) -> _Result:
+    try:
+        client.subscriptions.uncomp_next_cycle(MISSING_OBJECT_ID)
+    except NotFoundError as e:
+        return _Result("subscriptions.uncomp_next_cycle 404 path", "pass", f"code={e.code}")
+    except APIError as e:
+        return _Result("subscriptions.uncomp_next_cycle 404 path", "fail", f"unexpected: {e!r}")
+    return _Result("subscriptions.uncomp_next_cycle 404 path", "fail", "expected NotFoundError")
+
+
 def _check_401(base_url: str) -> _Result:
     fake = "3co_smoke_test_invalid_key"  # gitleaks:allow
     try:
@@ -178,6 +253,7 @@ def main() -> int:
     base_url = os.environ.get("THREECOMMON_BASE_URL") or "https://api.3common.com"
     known_event_id = os.environ.get("SMOKE_EVENT_ID")
     known_invoice_id = os.environ.get("SMOKE_INVOICE_ID")
+    known_subscription_id = os.environ.get("SMOKE_SUBSCRIPTION_ID")
 
     results: list[_Result] = []
     with ThreeCommon(api_key=api_key, base_url=base_url, telemetry=False) as client:
@@ -191,6 +267,12 @@ def main() -> int:
         results.append(_check_invoices_auto_charge_404(client))
         results.append(_check_invoices_refund_404(client))
         results.append(_check_invoices_delete_draft_404(client))
+        results.append(_check_subscriptions_list(client))
+        results.append(_check_subscriptions_retrieve(client, known_subscription_id))
+        results.append(_check_subscriptions_preview(client, known_subscription_id))
+        results.append(_check_subscriptions_404(client))
+        results.append(_check_subscriptions_comp_404(client))
+        results.append(_check_subscriptions_uncomp_404(client))
     results.append(_check_401(base_url))
 
     failed = 0
