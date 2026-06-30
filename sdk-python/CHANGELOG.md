@@ -20,7 +20,7 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 ### 0.11.0
 
 ### Added
-
+- Contact payment methods. The `client.contacts` surface gains
   `retrieve_payment_method` (returns the saved card or `None`),
   `attach_payment_method` (persists the card from a confirmed SetupIntent and
   reports `replaced_existing`), `create_payment_method_setup_intent` (begins
