@@ -455,7 +455,7 @@ export interface paths {
         put?: never;
         /**
          * Bulk Upsert Contacts
-         * @description Upserts up to many contacts in one round-trip. Deduplicated server-side by email.
+         * @description Upserts up to many contacts in one round-trip, deduplicated server-side by email. Partial-safe: scalar fieldsupdate only when supplied, and custom properties merge by property_id (supplied properties are added/overwritten, omitted ones are preserved). Never wipes properties you do not resend.
          */
         post: {
             parameters: {
@@ -467,7 +467,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated (not just inserted) so re-imports refresh the persisted fields. Capped at 1000 per request — clients batch larger imports. */
+                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated in place: scalar fields (name, phone, status) update only when you supply them, and custom properties merge by property_id — supplied properties are added/overwritten, omitted ones are preserved. Capped at 1000 per request — clients batch larger imports. */
                         contacts: ({
                             email: string;
                             firstName?: string;
@@ -481,6 +481,7 @@ export interface paths {
                              * @enum {string}
                              */
                             status?: "deleted" | "imported" | "unsubscribed" | "opted-in" | "unknown";
+                            /** @description Custom properties to upsert, merged by property_id. Properties you include are added or overwritten; properties already on the contact that you omit are left untouched. You do NOT need to resend a contact's existing properties to preserve them. */
                             properties?: {
                                 property_id: string;
                                 value: string | string[] | boolean;
