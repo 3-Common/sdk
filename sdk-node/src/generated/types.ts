@@ -178,6 +178,7 @@ export interface paths {
                                 lastName: string;
                                 fullName: string;
                                 email: string;
+                                billingEmail?: string;
                                 phone?: string;
                                 vendorId: string;
                                 orderSum: number;
@@ -259,6 +260,11 @@ export interface paths {
                          * @description Contact email — unique per host, lowercased on persist
                          */
                         email: string;
+                        /**
+                         * Format: email
+                         * @description Billing / invoice-receipt email. Defaults to the contact email when omitted.
+                         */
+                        billingEmail?: string;
                         firstName?: string;
                         lastName?: string;
                         phone?: string;
@@ -279,6 +285,7 @@ export interface paths {
                                 lastName: string;
                                 fullName: string;
                                 email: string;
+                                billingEmail?: string;
                                 phone?: string;
                                 vendorId: string;
                                 orderSum: number;
@@ -455,7 +462,7 @@ export interface paths {
         put?: never;
         /**
          * Bulk Upsert Contacts
-         * @description Upserts up to many contacts in one round-trip. Deduplicated server-side by email.
+         * @description Upserts up to many contacts in one round-trip, deduplicated server-side by email. Partial-safe: scalar fieldsupdate only when supplied, and custom properties merge by property_id (supplied properties are added/overwritten, omitted ones are preserved). Never wipes properties you do not resend.
          */
         post: {
             parameters: {
@@ -467,7 +474,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated (not just inserted) so re-imports refresh the persisted fields. Capped at 1000 per request — clients batch larger imports. */
+                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated in place: scalar fields (name, phone, status) update only when you supply them, and custom properties merge by property_id — supplied properties are added/overwritten, omitted ones are preserved. Capped at 1000 per request — clients batch larger imports. */
                         contacts: ({
                             email: string;
                             firstName?: string;
@@ -481,6 +488,7 @@ export interface paths {
                              * @enum {string}
                              */
                             status?: "deleted" | "imported" | "unsubscribed" | "opted-in" | "unknown";
+                            /** @description Custom properties to upsert, merged by property_id. Properties you include are added or overwritten; properties already on the contact that you omit are left untouched. You do NOT need to resend a contact's existing properties to preserve them. */
                             properties?: {
                                 property_id: string;
                                 value: string | string[] | boolean;
@@ -597,6 +605,7 @@ export interface paths {
                                 lastName: string;
                                 fullName: string;
                                 email: string;
+                                billingEmail?: string;
                                 phone?: string;
                                 vendorId: string;
                                 orderSum: number;
@@ -771,6 +780,7 @@ export interface paths {
                             lastName: string;
                             /** Format: email */
                             email: string;
+                            billingEmail?: (string | "") | (null);
                             phone?: string | (null);
                             /**
                              * @description Contact lifecycle status.
@@ -806,6 +816,7 @@ export interface paths {
                             data: {
                                 _id: string;
                                 email: string;
+                                billingEmail?: string;
                                 vendorId: string;
                                 firstName: string;
                                 lastName: string;
@@ -5757,6 +5768,21 @@ export interface paths {
                 };
                 /** @description Default Response */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                402: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -27080,6 +27106,21 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                402: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
                 403: {
                     headers: {
                         [name: string]: unknown;
@@ -31208,6 +31249,21 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                402: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
                 403: {
                     headers: {
                         [name: string]: unknown;
@@ -33336,6 +33392,21 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                402: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
                 403: {
                     headers: {
                         [name: string]: unknown;
@@ -34809,7 +34880,7 @@ export interface paths {
                     contactId?: string;
                     /** @description Filter by Price reference */
                     priceId?: string;
-                    /** @description Comma-separated list of fields to return. Valid: id, hostId, contactId, customerEmail, priceId, quantity, status, currentPeriodStart, currentPeriodEnd, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, endedAt, startedAt, dunningEnabled, autoCharge, nextRetryAt, retryCount, createdAt, updatedAt. Omit for all. */
+                    /** @description Comma-separated list of fields to return. Valid: id, hostId, contactId, customerEmail, priceId, quantity, status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, endedAt, startedAt, dunningEnabled, autoCharge, nextRetryAt, retryCount, nextCycleDiscount, createdAt, updatedAt. Omit for all. */
                     fields?: string;
                 };
                 header?: never;
@@ -34910,6 +34981,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35108,6 +35187,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35136,6 +35223,21 @@ export interface paths {
                 };
                 /** @description Default Response */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                402: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -35201,7 +35303,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    /** @description Comma-separated list of fields. Valid: id, hostId, contactId, customerEmail, priceId, quantity, items, status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, cancelReason, endedAt, startedAt, dunningEnabled, autoCharge, paymentDueDays, taxRate, notes, taxIds, firstFailureAt, nextRetryAt, retryCount, metadata, createdAt, updatedAt. Omit for all. */
+                    /** @description Comma-separated list of fields. Valid: id, hostId, contactId, customerEmail, priceId, quantity, items, status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, cancelReason, endedAt, startedAt, dunningEnabled, autoCharge, paymentDueDays, taxRate, notes, taxIds, firstFailureAt, nextRetryAt, retryCount, nextCycleDiscount, metadata, createdAt, updatedAt. Omit for all. */
                     fields?: string;
                 };
                 header?: never;
@@ -35305,6 +35407,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35515,6 +35625,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35860,6 +35978,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36078,6 +36204,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36295,6 +36429,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36491,6 +36633,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36702,6 +36852,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36913,6 +37071,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -37109,6 +37275,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -37468,6 +37642,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
