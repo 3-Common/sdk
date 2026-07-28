@@ -9,6 +9,7 @@ from threecommon import (
     AuthError,
     ConflictError,
     NotFoundError,
+    PaymentRequiredError,
     PermissionError,
     RateLimitError,
     ServerError,
@@ -57,6 +58,7 @@ def test_sync_decodes_success_response(httpx_mock: HTTPXMock) -> None:
     ("status", "exc"),
     [
         (401, AuthError),
+        (402, PaymentRequiredError),
         (403, PermissionError),
         (404, NotFoundError),
         (409, ConflictError),

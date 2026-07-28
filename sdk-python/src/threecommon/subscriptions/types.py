@@ -48,6 +48,19 @@ class SubscriptionTaxId(_BaseModel):
     value: str
 
 
+class SubscriptionDiscount(_BaseModel):
+    """A one-time discount staged for the next renewal cycle (e.g. a comped
+    "free cycle"), consumed at that renewal. Read-only; carried on
+    :attr:`Subscription.next_cycle_discount`."""
+
+    kind: Literal["percent", "amount"]
+    value: float
+    reason: str | None = None
+    source_id: str | None = Field(
+        default=None, serialization_alias="sourceId", validation_alias="sourceId"
+    )
+
+
 class Subscription(_BaseModel):
     """One subscription as returned by the API.
 
@@ -144,6 +157,11 @@ class Subscription(_BaseModel):
     )
     tax_rate: float | None = Field(
         default=None, serialization_alias="taxRate", validation_alias="taxRate"
+    )
+    next_cycle_discount: SubscriptionDiscount | None = Field(
+        default=None,
+        serialization_alias="nextCycleDiscount",
+        validation_alias="nextCycleDiscount",
     )
     metadata: dict[str, str] | None = None
     created_at: str | None = Field(

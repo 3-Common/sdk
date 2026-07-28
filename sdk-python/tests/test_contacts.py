@@ -172,6 +172,20 @@ def test_create_sends_body(httpx_mock: HTTPXMock) -> None:
     assert contact.id == "cnt_123"
 
 
+def test_create_sends_billing_email(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/contacts",
+        method="POST",
+        match_json={"email": "alex@example.com", "billingEmail": "billing@example.com"},
+        json={"data": {**SAMPLE_CONTACT, "billingEmail": "billing@example.com"}},
+    )
+    with _make_sync() as c:
+        contact = c.contacts.create(
+            CreateBody(email="alex@example.com", billing_email="billing@example.com")
+        )
+    assert contact.billing_email == "billing@example.com"
+
+
 def test_create_409_surfaces(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/contacts",

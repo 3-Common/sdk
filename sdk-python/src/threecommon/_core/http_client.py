@@ -39,6 +39,7 @@ from threecommon.errors.classes import (
     ConflictError,
     ConnectionError,
     NotFoundError,
+    PaymentRequiredError,
     PermissionError,
     RateLimitError,
     ServerError,
@@ -107,6 +108,7 @@ def _resolve(
 # for any unmapped 4xx; ServerError covers >= 500.
 _STATUS_TO_ERROR: dict[int, type[APIError]] = {
     HTTPStatus.UNAUTHORIZED: AuthError,
+    HTTPStatus.PAYMENT_REQUIRED: PaymentRequiredError,
     HTTPStatus.FORBIDDEN: PermissionError,
     HTTPStatus.NOT_FOUND: NotFoundError,
     HTTPStatus.CONFLICT: ConflictError,
@@ -118,6 +120,7 @@ _STATUS_TO_ERROR: dict[int, type[APIError]] = {
 # parsable error envelope.
 _STATUS_TO_CODE: dict[int, str] = {
     HTTPStatus.UNAUTHORIZED: "unauthorized",
+    HTTPStatus.PAYMENT_REQUIRED: "payment_required",
     HTTPStatus.FORBIDDEN: "forbidden",
     HTTPStatus.NOT_FOUND: "not_found",
     HTTPStatus.CONFLICT: "conflict",

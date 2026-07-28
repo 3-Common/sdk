@@ -91,7 +91,10 @@ def dispatch_sync(client: ThreeCommon, method: str, args: dict[str, Any]) -> Any
     if method == "update":
         return client.invoices.update(args["id"], build_update_body(args.get("body") or {}))
     if method == "finalize":
-        return client.invoices.finalize(args["id"])
+        params_raw = args.get("params") or {}
+        return client.invoices.finalize(args["id"], send_email=params_raw.get("sendEmail"))
+    if method == "send":
+        return client.invoices.send(args["id"])
     if method == "void":
         body_raw = args.get("body")
         body = VoidBody(reason=body_raw.get("reason")) if body_raw else None
@@ -141,7 +144,10 @@ async def dispatch_async(  # noqa: PLR0911
     if method == "update":
         return await client.invoices.update(args["id"], build_update_body(args.get("body") or {}))
     if method == "finalize":
-        return await client.invoices.finalize(args["id"])
+        params_raw = args.get("params") or {}
+        return await client.invoices.finalize(args["id"], send_email=params_raw.get("sendEmail"))
+    if method == "send":
+        return await client.invoices.send(args["id"])
     if method == "void":
         body_raw = args.get("body")
         body = VoidBody(reason=body_raw.get("reason")) if body_raw else None
