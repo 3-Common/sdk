@@ -241,6 +241,8 @@ paths:
                           type: string
                         email:
                           type: string
+                        billingEmail:
+                          type: string
                         phone:
                           type: string
                         vendorId:
@@ -373,6 +375,11 @@ paths:
                   format: email
                   pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
                   description: Contact email — unique per host, lowercased on persist
+                billingEmail:
+                  description: Billing / invoice-receipt email. Defaults to the contact email when omitted.
+                  type: string
+                  format: email
+                  pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
                 firstName:
                   type: string
                 lastName:
@@ -403,6 +410,8 @@ paths:
                       fullName:
                         type: string
                       email:
+                        type: string
+                      billingEmail:
                         type: string
                       phone:
                         type: string
@@ -625,7 +634,10 @@ paths:
       summary: Bulk Upsert Contacts
       tags:
         - Contacts
-      description: Upserts up to many contacts in one round-trip. Deduplicated server-side by email.
+      description: >-
+        Upserts up to many contacts in one round-trip, deduplicated server-side by email. Partial-safe: scalar
+        fieldsupdate only when supplied, and custom properties merge by property_id (supplied properties are
+        added/overwritten, omitted ones are preserved). Never wipes properties you do not resend.
       requestBody:
         required: true
         content:
@@ -666,6 +678,10 @@ paths:
                           - unknown: never recorded a choice
                           - imported / deleted: lifecycle states from list imports / soft-deletes
                       properties:
+                        description: >-
+                          Custom properties to upsert, merged by property_id. Properties you include are added or
+                          overwritten; properties already on the contact that you omit are left untouched. You do NOT
+                          need to resend a contact's existing properties to preserve them.
                         type: array
                         items:
                           type: object
@@ -698,8 +714,10 @@ paths:
                       - email
                     additionalProperties: {}
                   description: >-
-                    Contacts to upsert, deduped server-side by email. Existing rows are updated (not just inserted) so
-                    re-imports refresh the persisted fields. Capped at 1000 per request — clients batch larger imports.
+                    Contacts to upsert, deduped server-side by email. Existing rows are updated in place: scalar fields
+                    (name, phone, status) update only when you supply them, and custom properties merge by property_id —
+                    supplied properties are added/overwritten, omitted ones are preserved. Capped at 1000 per request —
+                    clients batch larger imports.
               required:
                 - contacts
       security:
@@ -826,6 +844,8 @@ paths:
                       fullName:
                         type: string
                       email:
+                        type: string
+                      billingEmail:
                         type: string
                       phone:
                         type: string
@@ -971,6 +991,19 @@ paths:
                       type: string
                       format: email
                       pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+                    billingEmail:
+                      anyOf:
+                        - anyOf:
+                            - type: string
+                              format: email
+                              pattern: >-
+                                ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+                            - type: string
+                              enum:
+                                - ''
+                        - nullable: true
+                          enum:
+                            - null
                     phone:
                       anyOf:
                         - type: string
@@ -1034,6 +1067,8 @@ paths:
                       _id:
                         type: string
                       email:
+                        type: string
+                      billingEmail:
                         type: string
                       vendorId:
                         type: string
@@ -9489,6 +9524,28 @@ paths:
                   - error
                 additionalProperties: false
         '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '402':
           description: Default Response
           content:
             application/json:
@@ -49527,6 +49584,28 @@ paths:
                 required:
                   - error
                 additionalProperties: false
+        '402':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
         '403':
           description: Default Response
           content:
@@ -51158,7 +51237,632 @@ paths:
       summary: Finalize Invoice
       tags:
         - Invoices
-      description: Transitions a draft invoice to open, assigns a sequential number, and stamps issuedAt.
+      description: >-
+        Transitions a draft invoice to open, assigns a sequential number, and stamps issuedAt. Pass sendEmail=true to
+        also email the customer their invoice (payment-link, or receipt for a zero-dollar auto-pay) as part of
+        finalizing.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: sendEmail
+          required: false
+          description: |-
+            When true, email the customer as part of finalizing: an invoice
+            left `open` gets a payment-link email (Pay button + invoice PDF);
+            a zero-dollar invoice that auto-pays on finalize gets its receipt.
+            Requires a customer email on the invoice. Default false (finalize only).
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+          description: Invoice id, discoverable via list_invoices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      hostId:
+                        type: string
+                      customerId:
+                        type: string
+                        description: CRM contact id of the recipient
+                      customerEmail:
+                        description: Snapshot of the recipient's email captured at create time
+                        type: string
+                      customerFirstName:
+                        description: Snapshot of the recipient's first name captured at create time
+                        type: string
+                      customerLastName:
+                        description: Snapshot of the recipient's last name captured at create time
+                        type: string
+                      customerPhone:
+                        description: Snapshot of the recipient's phone captured at create time
+                        type: string
+                      number:
+                        anyOf:
+                          - type: string
+                          - nullable: true
+                            enum:
+                              - null
+                        description: Sequential invoice number; null while in draft
+                      currency:
+                        type: string
+                        enum:
+                          - USD
+                          - CAD
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            description:
+                              type: string
+                              description: Human-readable description shown on the invoice
+                            quantity:
+                              type: integer
+                              minimum: 1
+                              maximum: 9007199254740991
+                              description: Whole units billed
+                            unitAmount:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                              description: Per-unit price in the invoice currency, minor units (cents for USD)
+                            productId:
+                              description: Optional reference to a Product in the catalog
+                              type: string
+                            priceId:
+                              description: Optional reference to the Price doc that backed this line (subscription billing)
+                              type: string
+                            eventId:
+                              description: Optional reference to an Event when the underlying product was event-attached
+                              type: string
+                            taxAmount:
+                              description: Optional tax for this line, minor units
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                            productType:
+                              description: Snapshot of the product type at line-creation time; drives post-payment fulfillment
+                              type: string
+                              enum:
+                                - product
+                                - add-on
+                                - bundle
+                                - donation
+                                - event-ticket
+                            productName:
+                              description: Snapshot of the product display name at line-creation time
+                              type: string
+                            components:
+                              description: |-
+                                Snapshot of the bundle's components, flat-expanded by qty. Set
+                                only when `productType === "bundle"`. Carries each component's
+                                product id + display name + image URL + (when applicable) event
+                                + seating snapshot so the fulfillment pipeline can issue
+                                information-equivalent component tickets and the tickets PDF
+                                can render the legacy "ticket"-style block per item.
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  productId:
+                                    type: string
+                                  productName:
+                                    type: string
+                                  productType:
+                                    description: >-
+                                      Catalog product type for the component — drives sort + visual treatment in the
+                                      rendered bundle items list.
+                                    type: string
+                                    enum:
+                                      - product
+                                      - add-on
+                                      - bundle
+                                      - donation
+                                      - event-ticket
+                                  productImageUrl:
+                                    type: string
+                                  eventId:
+                                    description: >-
+                                      Per-component parent event id — snapshotted onto the issued component ticket as
+                                      legacy `event_id` so b2c availability and seat-occupation queries see the sale.
+                                    type: string
+                                  eventImageUrl:
+                                    description: >-
+                                      Component event hero image — fallback artwork for the pulled-out ticket card when
+                                      the component product has no image.
+                                    type: string
+                                  eventName:
+                                    type: string
+                                  eventStart:
+                                    description: ISO 8601 start datetime for the component's event/timeslot.
+                                    type: string
+                                    format: date-time
+                                    pattern: >-
+                                      ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                                  eventEnd:
+                                    type: string
+                                    format: date-time
+                                    pattern: >-
+                                      ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                                  eventLocation:
+                                    type: string
+                                  eventTimezone:
+                                    description: >-
+                                      IANA timezone identifier for the component event — drives printed-date
+                                      localization on the pulled-out ticket.
+                                    type: string
+                                  seatingInformation:
+                                    type: object
+                                    properties:
+                                      sectionId:
+                                        description: Section display label (e.g. "A").
+                                        type: string
+                                      rowId:
+                                        description: Row display label (e.g. "5").
+                                        type: string
+                                      seatId:
+                                        description: Seat display label (e.g. "12").
+                                        type: string
+                                      seatReferenceId:
+                                        type: string
+                                      sectionReferenceId:
+                                        type: string
+                                      priceLevelId:
+                                        type: string
+                                    additionalProperties: false
+                                    description: |-
+                                      Slim venue seating assignment. The display labels (sectionId,
+                                      rowId, seatId) are what the printed ticket shows; the reference
+                                      ids are preserved for compatibility with the legacy seat-chart
+                                      system.
+                                  disableQrCode:
+                                    description: >-
+                                      Component product's own disable_qr_code — the issued component ticket skips its QR
+                                      (printable stub only).
+                                    type: boolean
+                                  willCall:
+                                    description: >-
+                                      Component product's own will_call — the issued component ticket uses will call
+                                      fulfillment (no stub, collected at the venue).
+                                    type: boolean
+                                required:
+                                  - productId
+                                  - productName
+                                additionalProperties: false
+                            disableQrCode:
+                              description: |-
+                                Snapshot of the underlying `Product.disable_qr_code` flag.
+                                When true, the issued ticket renders a "No scan" badge on the PDF
+                                and skips QR generation. Donations are scannable by default unless
+                                the host opts the product out via this flag.
+                              type: boolean
+                            willCall:
+                              description: |-
+                                Snapshot of the underlying `Product.will_call` flag. When true,
+                                the issued ticket uses will call fulfillment: no PDF stub is
+                                rendered, the ticket is not scannable, and the customer collects
+                                it at the venue. Independent of `disableQrCode`.
+                              type: boolean
+                            productImageUrl:
+                              description: |-
+                                Snapshot of the underlying `Product.image` URL — rendered as
+                                the ticket-stub artwork on the issued PDF. Absent products fall
+                                back to the event image (when set), then to a typographic
+                                placeholder.
+                              type: string
+                            eventName:
+                              description: Snapshot of the parent event's display name when the line was event-attached.
+                              type: string
+                            eventImageUrl:
+                              description: |-
+                                Snapshot of the parent event's hero image URL — the renderer
+                                uses it as the ticket-stub artwork fallback when the product
+                                itself has no image.
+                              type: string
+                            eventStart:
+                              description: ISO 8601 start datetime for the parent event (or per-occurrence timeslot).
+                              type: string
+                              format: date-time
+                              pattern: >-
+                                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            eventEnd:
+                              description: ISO 8601 end datetime for the parent event.
+                              type: string
+                              format: date-time
+                              pattern: >-
+                                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            eventLocation:
+                              description: Pre-formatted location label snapshotted at line creation.
+                              type: string
+                            eventTimezone:
+                              description: |-
+                                IANA timezone identifier for the parent event (e.g.
+                                `America/Los_Angeles`). Drives printed-date localization
+                                so the holder sees the event-local time + TZ abbreviation.
+                              type: string
+                            seatingInformation:
+                              description: |-
+                                Per-line venue seating assignment. Mirrors the legacy
+                                `seatingInformation` field on a ticket so the new tickets
+                                PDF prints the same seat info the legacy PDF did.
+                              type: object
+                              properties:
+                                sectionId:
+                                  description: Section display label (e.g. "A").
+                                  type: string
+                                rowId:
+                                  description: Row display label (e.g. "5").
+                                  type: string
+                                seatId:
+                                  description: Seat display label (e.g. "12").
+                                  type: string
+                                seatReferenceId:
+                                  type: string
+                                sectionReferenceId:
+                                  type: string
+                                priceLevelId:
+                                  type: string
+                              additionalProperties: false
+                            inventoryConsumedAt:
+                              description: |-
+                                Stamped by the fulfillment pipeline once
+                                `InventoryRepository.consume()` has succeeded for this
+                                line. Drives per-line consume idempotency: a replayed
+                                fulfillment skips already-stamped lines and runs consume
+                                on unstamped ones, so a partial-failure state (tickets
+                                persisted but consume threw) recovers without
+                                double-decrementing inventory.
+                              type: string
+                              format: date-time
+                              pattern: >-
+                                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                          required:
+                            - description
+                            - quantity
+                            - unitAmount
+                          additionalProperties: false
+                      payments:
+                        description: Audit log of every payment applied to this invoice
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            status:
+                              type: string
+                              enum:
+                                - succeeded
+                                - failed
+                              description: |-
+                                Outcome of this payment attempt.
+                                - succeeded: money was captured. Counts toward the parent invoice's
+                                `amountPaid` total.
+                                - failed: an auto-charge attempt was rejected (decline / SCA / no
+                                card). Kept on the audit log for visibility; does NOT count
+                                toward `amountPaid`.
+                            amount:
+                              type: integer
+                              minimum: 0
+                              maximum: 9007199254740991
+                              description: Amount applied, minor units
+                            paidAt:
+                              type: string
+                              format: date-time
+                              pattern: >-
+                                ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                            idempotencyKey:
+                              description: Caller-supplied dedupe key, if one was provided
+                              type: string
+                            note:
+                              description: Free-form note (payment method, upstream provider id, etc.)
+                              type: string
+                            externalId:
+                              description: Stripe PaymentIntent id (`pi_…`) for Stripe-Connect payments
+                              type: string
+                            chargeId:
+                              description: Stripe Charge id (`ch_…`); refund operations key off this
+                              type: string
+                            failureCode:
+                              description: Stripe error code on a failed attempt (e.g. `card_declined`, `authentication_required`)
+                              type: string
+                            failureMessage:
+                              description: Stripe customer-facing decline message on a failed attempt
+                              type: string
+                            refunds:
+                              description: |-
+                                Refunds applied against this payment. Cumulative refunds are
+                                capped at `amount`; the host's true net = amount - sum(refunds).
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  amount:
+                                    type: integer
+                                    minimum: 0
+                                    maximum: 9007199254740991
+                                    description: Refund amount, minor units of the parent invoice currency
+                                  refundedAt:
+                                    type: string
+                                    format: date-time
+                                    pattern: >-
+                                      ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                                  idempotencyKey:
+                                    type: string
+                                  reason:
+                                    description: 'Stripe reason: duplicate | fraudulent | requested_by_customer'
+                                    type: string
+                                  note:
+                                    description: Free-form host note (internal, not shown to customer)
+                                    type: string
+                                  externalRefundId:
+                                    description: Stripe Refund id (`re_…`) for ops lookups
+                                    type: string
+                                  ledgerEntryId:
+                                    description: Pointer to the matching Ledger row that drives payouts
+                                    type: string
+                                required:
+                                  - id
+                                  - amount
+                                  - refundedAt
+                                additionalProperties: false
+                          required:
+                            - id
+                            - status
+                            - amount
+                            - paidAt
+                          additionalProperties: false
+                      subtotal:
+                        type: integer
+                        minimum: -9007199254740991
+                        maximum: 9007199254740991
+                        description: Sum of (qty * unitAmount), minor units
+                      taxTotal:
+                        type: integer
+                        minimum: -9007199254740991
+                        maximum: 9007199254740991
+                        description: Sum of line taxAmount, minor units
+                      total:
+                        type: integer
+                        minimum: -9007199254740991
+                        maximum: 9007199254740991
+                        description: subtotal + taxTotal, minor units
+                      amountPaid:
+                        type: integer
+                        minimum: -9007199254740991
+                        maximum: 9007199254740991
+                        description: Sum of payments received, minor units
+                      amountDue:
+                        type: integer
+                        minimum: -9007199254740991
+                        maximum: 9007199254740991
+                        description: total - amountPaid, clamped to >= 0
+                      status:
+                        type: string
+                        enum:
+                          - draft
+                          - open
+                          - payment_failed
+                          - paid
+                          - void
+                        description: |-
+                          Invoice lifecycle status.
+                          - draft: not yet issued; freely editable
+                          - open: finalized and issued; awaiting payment
+                          - payment_failed: an off-session auto-charge attempt was rejected
+                          (decline / SCA / no card). The invoice is still owed; the host
+                          can retry the charge or the customer can pay manually.
+                          - paid: fully paid
+                          - void: cancelled before payment
+                      autoCharge:
+                        type: boolean
+                        description: |-
+                          When true, finalize attempts to off-session charge the customer's
+                          saved card immediately. On charge success the invoice transitions
+                          straight to `paid`; on failure to `payment_failed`. Default
+                          false — host has to opt in.
+                      notes:
+                        type: string
+                      taxIds:
+                        description: |-
+                          Snapshot of the host's registered tax-IDs at the time the invoice
+                          was issued. Rendered alongside the host's company info on the PDF
+                          and email body. Optional/empty when the host hasn't recorded any.
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                              description: |-
+                                Internal type code for the tax-ID (e.g. 'us_ein', 'ca_gst_hst', 'eu_vat').
+                                Display labels are derived at render time so the persisted invoice
+                                doesn't bake in a label that might be reworded.
+                            value:
+                              type: string
+                              description: The tax-ID number as the host has it registered
+                          required:
+                            - type
+                            - value
+                          additionalProperties: false
+                      issuedAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      dueAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      paidAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      voidedAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      subscriptionId:
+                        description: Set when generated by a billing Subscription
+                        type: string
+                      quoteId:
+                        description: Set when accepted from a Quote
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        pattern: >-
+                          ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                    additionalProperties: false
+                required:
+                  - data
+                additionalProperties: false
+        '400':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '403':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '404':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '409':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+  /v1/invoices/{id}/send:
+    post:
+      summary: Send Invoice Email
+      tags:
+        - Invoices
+      description: |-
+        Emails the customer their invoice. An `open` (or
+        `payment_failed`) invoice gets a payment-link email, Pay button
+        plus the invoice PDF; a `paid` invoice gets its receipt.
+        Re-callable, so it doubles as a resend. Rejects `draft` invoices
+        (finalize first) and `void` ones with a 409. Requires a customer
+        email on the invoice.
       parameters:
         - schema:
             type: string
@@ -56051,6 +56755,28 @@ paths:
                 required:
                   - error
                 additionalProperties: false
+        '402':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
         '403':
           description: Default Response
           content:
@@ -59710,6 +60436,28 @@ paths:
                 required:
                   - error
                 additionalProperties: false
+        '402':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
         '403':
           description: Default Response
           content:
@@ -61917,9 +62665,9 @@ paths:
           required: false
           description: >-
             Comma-separated list of fields to return. Valid: id, hostId, contactId, customerEmail, priceId, quantity,
-            status, currentPeriodStart, currentPeriodEnd, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd,
-            canceledAt, endedAt, startedAt, dunningEnabled, autoCharge, nextRetryAt, retryCount, createdAt, updatedAt.
-            Omit for all.
+            status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt,
+            cancelAtPeriodEnd, canceledAt, endedAt, startedAt, dunningEnabled, autoCharge, nextRetryAt, retryCount,
+            nextCycleDiscount, createdAt, updatedAt. Omit for all.
       security:
         - bearerAuth: []
       responses:
@@ -62096,6 +62844,28 @@ paths:
                           type: number
                           minimum: 0
                           maximum: 100
+                        nextCycleDiscount:
+                          description: >-
+                            One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                            renewal. Absent when the next cycle bills normally.
+                          type: object
+                          properties:
+                            kind:
+                              type: string
+                              enum:
+                                - percent
+                                - amount
+                            value:
+                              type: number
+                            reason:
+                              type: string
+                            sourceId:
+                              type: string
+                          required:
+                            - kind
+                            - value
+                            - reason
+                          additionalProperties: false
                         metadata:
                           type: object
                           additionalProperties:
@@ -62446,6 +63216,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -62487,6 +63279,28 @@ paths:
                   - error
                 additionalProperties: false
         '401':
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                      message:
+                        type: string
+                      details: {}
+                    required:
+                      - code
+                      - message
+                    additionalProperties: false
+                required:
+                  - error
+                additionalProperties: false
+        '402':
           description: Default Response
           content:
             application/json:
@@ -62568,8 +63382,8 @@ paths:
             Comma-separated list of fields. Valid: id, hostId, contactId, customerEmail, priceId, quantity, items,
             status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt,
             cancelAtPeriodEnd, canceledAt, cancelReason, endedAt, startedAt, dunningEnabled, autoCharge, paymentDueDays,
-            taxRate, notes, taxIds, firstFailureAt, nextRetryAt, retryCount, metadata, createdAt, updatedAt. Omit for
-            all.
+            taxRate, notes, taxIds, firstFailureAt, nextRetryAt, retryCount, nextCycleDiscount, metadata, createdAt,
+            updatedAt. Omit for all.
         - schema:
             type: string
           in: path
@@ -62750,6 +63564,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -63098,6 +63934,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -63621,6 +64479,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -63948,6 +64828,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -64274,6 +65176,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -64569,6 +65493,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -64887,6 +65833,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -65204,6 +66172,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -65499,6 +66489,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
@@ -66058,6 +67070,28 @@ paths:
                         type: number
                         minimum: 0
                         maximum: 100
+                      nextCycleDiscount:
+                        description: >-
+                          One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that
+                          renewal. Absent when the next cycle bills normally.
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                            enum:
+                              - percent
+                              - amount
+                          value:
+                            type: number
+                          reason:
+                            type: string
+                          sourceId:
+                            type: string
+                        required:
+                          - kind
+                          - value
+                          - reason
+                        additionalProperties: false
                       metadata:
                         type: object
                         additionalProperties:
