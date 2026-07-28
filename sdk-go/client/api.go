@@ -34,7 +34,7 @@ type API struct {
 	Events *events.Client
 
 	// Invoices is the invoices resource — List, Retrieve, Create, Update,
-	// Finalize, Void, RecordPayment.
+	// Finalize, Send, Void, RecordPayment.
 	Invoices *invoices.Client
 
 	// Subscriptions is the subscriptions resource — List, Retrieve, Create,

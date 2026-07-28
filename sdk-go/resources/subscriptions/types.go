@@ -48,41 +48,53 @@ type TaxID struct {
 	Value string `json:"value"`
 }
 
+// NextCycleDiscount is a one-time discount staged for the next renewal cycle
+// (e.g. a comped "free cycle"), consumed at that renewal. Read-only; absent
+// when the next cycle bills normally.
+type NextCycleDiscount struct {
+	// Kind is "percent" or "amount".
+	Kind     string  `json:"kind"`
+	Value    float64 `json:"value"`
+	Reason   string  `json:"reason,omitempty"`
+	SourceID string  `json:"sourceId,omitempty"`
+}
+
 // Subscription is the resource shape returned by the API. Pointer fields and
 // `omitempty` strings are populated only when the server returned them —
 // list responses with a `Fields` filter omit unrequested values.
 type Subscription struct {
-	ID                 string            `json:"id"`
-	HostID             string            `json:"hostId,omitempty"`
-	ContactID          string            `json:"contactId,omitempty"`
-	CustomerEmail      string            `json:"customerEmail,omitempty"`
-	PriceID            string            `json:"priceId,omitempty"`
-	Quantity           *int64            `json:"quantity,omitempty"`
-	Items              []Item            `json:"items,omitempty"`
-	Status             Status            `json:"status,omitempty"`
-	CurrentPeriodStart string            `json:"currentPeriodStart,omitempty"`
-	CurrentPeriodEnd   string            `json:"currentPeriodEnd,omitempty"`
-	TrialStart         string            `json:"trialStart,omitempty"`
-	TrialEnd           string            `json:"trialEnd,omitempty"`
-	BillingCycleAnchor string            `json:"billingCycleAnchor,omitempty"`
-	CancelAt           string            `json:"cancelAt,omitempty"`
-	CancelAtPeriodEnd  *bool             `json:"cancelAtPeriodEnd,omitempty"`
-	CanceledAt         string            `json:"canceledAt,omitempty"`
-	CancelReason       string            `json:"cancelReason,omitempty"`
-	EndedAt            string            `json:"endedAt,omitempty"`
-	StartedAt          string            `json:"startedAt,omitempty"`
-	DunningEnabled     *bool             `json:"dunningEnabled,omitempty"`
-	FirstFailureAt     string            `json:"firstFailureAt,omitempty"`
-	NextRetryAt        string            `json:"nextRetryAt,omitempty"`
-	RetryCount         *int64            `json:"retryCount,omitempty"`
-	Notes              string            `json:"notes,omitempty"`
-	TaxIDs             []TaxID           `json:"taxIds,omitempty"`
-	AutoCharge         *bool             `json:"autoCharge,omitempty"`
-	PaymentDueDays     *int64            `json:"paymentDueDays,omitempty"`
-	TaxRate            *float64          `json:"taxRate,omitempty"`
-	Metadata           map[string]string `json:"metadata,omitempty"`
-	CreatedAt          string            `json:"createdAt,omitempty"`
-	UpdatedAt          string            `json:"updatedAt,omitempty"`
+	ID                 string             `json:"id"`
+	HostID             string             `json:"hostId,omitempty"`
+	ContactID          string             `json:"contactId,omitempty"`
+	CustomerEmail      string             `json:"customerEmail,omitempty"`
+	PriceID            string             `json:"priceId,omitempty"`
+	Quantity           *int64             `json:"quantity,omitempty"`
+	Items              []Item             `json:"items,omitempty"`
+	Status             Status             `json:"status,omitempty"`
+	CurrentPeriodStart string             `json:"currentPeriodStart,omitempty"`
+	CurrentPeriodEnd   string             `json:"currentPeriodEnd,omitempty"`
+	TrialStart         string             `json:"trialStart,omitempty"`
+	TrialEnd           string             `json:"trialEnd,omitempty"`
+	BillingCycleAnchor string             `json:"billingCycleAnchor,omitempty"`
+	CancelAt           string             `json:"cancelAt,omitempty"`
+	CancelAtPeriodEnd  *bool              `json:"cancelAtPeriodEnd,omitempty"`
+	CanceledAt         string             `json:"canceledAt,omitempty"`
+	CancelReason       string             `json:"cancelReason,omitempty"`
+	EndedAt            string             `json:"endedAt,omitempty"`
+	StartedAt          string             `json:"startedAt,omitempty"`
+	DunningEnabled     *bool              `json:"dunningEnabled,omitempty"`
+	FirstFailureAt     string             `json:"firstFailureAt,omitempty"`
+	NextRetryAt        string             `json:"nextRetryAt,omitempty"`
+	RetryCount         *int64             `json:"retryCount,omitempty"`
+	Notes              string             `json:"notes,omitempty"`
+	TaxIDs             []TaxID            `json:"taxIds,omitempty"`
+	AutoCharge         *bool              `json:"autoCharge,omitempty"`
+	PaymentDueDays     *int64             `json:"paymentDueDays,omitempty"`
+	TaxRate            *float64           `json:"taxRate,omitempty"`
+	NextCycleDiscount  *NextCycleDiscount `json:"nextCycleDiscount,omitempty"`
+	Metadata           map[string]string  `json:"metadata,omitempty"`
+	CreatedAt          string             `json:"createdAt,omitempty"`
+	UpdatedAt          string             `json:"updatedAt,omitempty"`
 }
 
 // InvoiceRef is a slim invoice reference returned alongside renew/bill/update.

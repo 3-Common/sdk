@@ -256,6 +256,28 @@ func TestCreate_SendsBody(t *testing.T) {
 	assert.Equal(t, "cnt_new", got.ID)
 }
 
+func TestCreate_SendsBillingEmail(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var got map[string]any
+		require.NoError(t, json.Unmarshal(body, &got))
+		assert.Equal(t, "billing@example.com", got["billingEmail"])
+
+		_, _ = w.Write([]byte(`{"data":{"id":"cnt_new","firstName":"Alex","lastName":"","fullName":"Alex","email":"alex@example.com","billingEmail":"billing@example.com","vendorId":"hst_1","orderSum":0,"grossSum":0,"status":"opted-in","eventsAttended_IDS":[],"itemsPurchased_IDS":[],"productsPurchased_IDS":[]}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.Create(context.Background(), &contacts.CreateParams{
+		Email:        "alex@example.com",
+		BillingEmail: "billing@example.com",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "billing@example.com", got.BillingEmail)
+}
+
 func TestCreate_RequiresParams(t *testing.T) {
 	t.Parallel()
 	cl, _ := contacts.New(threecommon.Config{APIKey: "k"})

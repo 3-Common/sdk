@@ -23,7 +23,7 @@ func main() {
 	// Try to finalize a draft. The error tree below covers the realistic
 	// failure modes: not-found, already-open (conflict), auth, rate limit,
 	// and network errors.
-	_, err = api.Invoices.Finalize(context.Background(), "000000000000000000000000")
+	_, err = api.Invoices.Finalize(context.Background(), "000000000000000000000000", nil)
 	if err == nil {
 		fmt.Println("(no error)")
 		return
