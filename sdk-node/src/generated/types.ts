@@ -178,6 +178,7 @@ export interface paths {
                                 lastName: string;
                                 fullName: string;
                                 email: string;
+                                billingEmail?: string;
                                 phone?: string;
                                 vendorId: string;
                                 orderSum: number;
@@ -259,6 +260,11 @@ export interface paths {
                          * @description Contact email — unique per host, lowercased on persist
                          */
                         email: string;
+                        /**
+                         * Format: email
+                         * @description Billing / invoice-receipt email. Defaults to the contact email when omitted.
+                         */
+                        billingEmail?: string;
                         firstName?: string;
                         lastName?: string;
                         phone?: string;
@@ -279,6 +285,7 @@ export interface paths {
                                 lastName: string;
                                 fullName: string;
                                 email: string;
+                                billingEmail?: string;
                                 phone?: string;
                                 vendorId: string;
                                 orderSum: number;
@@ -455,7 +462,7 @@ export interface paths {
         put?: never;
         /**
          * Bulk Upsert Contacts
-         * @description Upserts up to many contacts in one round-trip. Deduplicated server-side by email.
+         * @description Upserts up to many contacts in one round-trip, deduplicated server-side by email. Partial-safe: scalar fieldsupdate only when supplied, and custom properties merge by property_id (supplied properties are added/overwritten, omitted ones are preserved). Never wipes properties you do not resend.
          */
         post: {
             parameters: {
@@ -467,7 +474,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated (not just inserted) so re-imports refresh the persisted fields. Capped at 1000 per request — clients batch larger imports. */
+                        /** @description Contacts to upsert, deduped server-side by email. Existing rows are updated in place: scalar fields (name, phone, status) update only when you supply them, and custom properties merge by property_id — supplied properties are added/overwritten, omitted ones are preserved. Capped at 1000 per request — clients batch larger imports. */
                         contacts: ({
                             email: string;
                             firstName?: string;
@@ -481,6 +488,7 @@ export interface paths {
                              * @enum {string}
                              */
                             status?: "deleted" | "imported" | "unsubscribed" | "opted-in" | "unknown";
+                            /** @description Custom properties to upsert, merged by property_id. Properties you include are added or overwritten; properties already on the contact that you omit are left untouched. You do NOT need to resend a contact's existing properties to preserve them. */
                             properties?: {
                                 property_id: string;
                                 value: string | string[] | boolean;
@@ -597,6 +605,7 @@ export interface paths {
                                 lastName: string;
                                 fullName: string;
                                 email: string;
+                                billingEmail?: string;
                                 phone?: string;
                                 vendorId: string;
                                 orderSum: number;
@@ -771,6 +780,7 @@ export interface paths {
                             lastName: string;
                             /** Format: email */
                             email: string;
+                            billingEmail?: (string | "") | (null);
                             phone?: string | (null);
                             /**
                              * @description Contact lifecycle status.
@@ -806,6 +816,7 @@ export interface paths {
                             data: {
                                 _id: string;
                                 email: string;
+                                billingEmail?: string;
                                 vendorId: string;
                                 firstName: string;
                                 lastName: string;
@@ -5757,6 +5768,21 @@ export interface paths {
                 };
                 /** @description Default Response */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                402: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -27080,6 +27106,21 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                402: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
                 403: {
                     headers: {
                         [name: string]: unknown;
@@ -28156,7 +28197,418 @@ export interface paths {
         put?: never;
         /**
          * Finalize Invoice
-         * @description Transitions a draft invoice to open, assigns a sequential number, and stamps issuedAt.
+         * @description Transitions a draft invoice to open, assigns a sequential number, and stamps issuedAt. Pass sendEmail=true to also email the customer their invoice (payment-link, or receipt for a zero-dollar auto-pay) as part of finalizing.
+         */
+        post: {
+            parameters: {
+                query?: {
+                    /**
+                     * @description When true, email the customer as part of finalizing: an invoice
+                     *     left `open` gets a payment-link email (Pay button + invoice PDF);
+                     *     a zero-dollar invoice that auto-pays on finalize gets its receipt.
+                     *     Requires a customer email on the invoice. Default false (finalize only).
+                     */
+                    sendEmail?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Invoice id, discoverable via list_invoices */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id?: string;
+                                hostId?: string;
+                                /** @description CRM contact id of the recipient */
+                                customerId?: string;
+                                /** @description Snapshot of the recipient's email captured at create time */
+                                customerEmail?: string;
+                                /** @description Snapshot of the recipient's first name captured at create time */
+                                customerFirstName?: string;
+                                /** @description Snapshot of the recipient's last name captured at create time */
+                                customerLastName?: string;
+                                /** @description Snapshot of the recipient's phone captured at create time */
+                                customerPhone?: string;
+                                /** @description Sequential invoice number; null while in draft */
+                                number?: string | (null);
+                                /** @enum {string} */
+                                currency?: "USD" | "CAD";
+                                lineItems?: {
+                                    /** @description Human-readable description shown on the invoice */
+                                    description: string;
+                                    /** @description Whole units billed */
+                                    quantity: number;
+                                    /** @description Per-unit price in the invoice currency, minor units (cents for USD) */
+                                    unitAmount: number;
+                                    /** @description Optional reference to a Product in the catalog */
+                                    productId?: string;
+                                    /** @description Optional reference to the Price doc that backed this line (subscription billing) */
+                                    priceId?: string;
+                                    /** @description Optional reference to an Event when the underlying product was event-attached */
+                                    eventId?: string;
+                                    /** @description Optional tax for this line, minor units */
+                                    taxAmount?: number;
+                                    /**
+                                     * @description Snapshot of the product type at line-creation time; drives post-payment fulfillment
+                                     * @enum {string}
+                                     */
+                                    productType?: "product" | "add-on" | "bundle" | "donation" | "event-ticket";
+                                    /** @description Snapshot of the product display name at line-creation time */
+                                    productName?: string;
+                                    /**
+                                     * @description Snapshot of the bundle's components, flat-expanded by qty. Set
+                                     *     only when `productType === "bundle"`. Carries each component's
+                                     *     product id + display name + image URL + (when applicable) event
+                                     *     + seating snapshot so the fulfillment pipeline can issue
+                                     *     information-equivalent component tickets and the tickets PDF
+                                     *     can render the legacy "ticket"-style block per item.
+                                     */
+                                    components?: {
+                                        productId: string;
+                                        productName: string;
+                                        /**
+                                         * @description Catalog product type for the component — drives sort + visual treatment in the rendered bundle items list.
+                                         * @enum {string}
+                                         */
+                                        productType?: "product" | "add-on" | "bundle" | "donation" | "event-ticket";
+                                        productImageUrl?: string;
+                                        /** @description Per-component parent event id — snapshotted onto the issued component ticket as legacy `event_id` so b2c availability and seat-occupation queries see the sale. */
+                                        eventId?: string;
+                                        /** @description Component event hero image — fallback artwork for the pulled-out ticket card when the component product has no image. */
+                                        eventImageUrl?: string;
+                                        eventName?: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description ISO 8601 start datetime for the component's event/timeslot.
+                                         */
+                                        eventStart?: string;
+                                        /** Format: date-time */
+                                        eventEnd?: string;
+                                        eventLocation?: string;
+                                        /** @description IANA timezone identifier for the component event — drives printed-date localization on the pulled-out ticket. */
+                                        eventTimezone?: string;
+                                        /**
+                                         * @description Slim venue seating assignment. The display labels (sectionId,
+                                         *     rowId, seatId) are what the printed ticket shows; the reference
+                                         *     ids are preserved for compatibility with the legacy seat-chart
+                                         *     system.
+                                         */
+                                        seatingInformation?: {
+                                            /** @description Section display label (e.g. "A"). */
+                                            sectionId?: string;
+                                            /** @description Row display label (e.g. "5"). */
+                                            rowId?: string;
+                                            /** @description Seat display label (e.g. "12"). */
+                                            seatId?: string;
+                                            seatReferenceId?: string;
+                                            sectionReferenceId?: string;
+                                            priceLevelId?: string;
+                                        };
+                                        /** @description Component product's own disable_qr_code — the issued component ticket skips its QR (printable stub only). */
+                                        disableQrCode?: boolean;
+                                        /** @description Component product's own will_call — the issued component ticket uses will call fulfillment (no stub, collected at the venue). */
+                                        willCall?: boolean;
+                                    }[];
+                                    /**
+                                     * @description Snapshot of the underlying `Product.disable_qr_code` flag.
+                                     *     When true, the issued ticket renders a "No scan" badge on the PDF
+                                     *     and skips QR generation. Donations are scannable by default unless
+                                     *     the host opts the product out via this flag.
+                                     */
+                                    disableQrCode?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.will_call` flag. When true,
+                                     *     the issued ticket uses will call fulfillment: no PDF stub is
+                                     *     rendered, the ticket is not scannable, and the customer collects
+                                     *     it at the venue. Independent of `disableQrCode`.
+                                     */
+                                    willCall?: boolean;
+                                    /**
+                                     * @description Snapshot of the underlying `Product.image` URL — rendered as
+                                     *     the ticket-stub artwork on the issued PDF. Absent products fall
+                                     *     back to the event image (when set), then to a typographic
+                                     *     placeholder.
+                                     */
+                                    productImageUrl?: string;
+                                    /** @description Snapshot of the parent event's display name when the line was event-attached. */
+                                    eventName?: string;
+                                    /**
+                                     * @description Snapshot of the parent event's hero image URL — the renderer
+                                     *     uses it as the ticket-stub artwork fallback when the product
+                                     *     itself has no image.
+                                     */
+                                    eventImageUrl?: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description ISO 8601 start datetime for the parent event (or per-occurrence timeslot).
+                                     */
+                                    eventStart?: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description ISO 8601 end datetime for the parent event.
+                                     */
+                                    eventEnd?: string;
+                                    /** @description Pre-formatted location label snapshotted at line creation. */
+                                    eventLocation?: string;
+                                    /**
+                                     * @description IANA timezone identifier for the parent event (e.g.
+                                     *     `America/Los_Angeles`). Drives printed-date localization
+                                     *     so the holder sees the event-local time + TZ abbreviation.
+                                     */
+                                    eventTimezone?: string;
+                                    /**
+                                     * @description Per-line venue seating assignment. Mirrors the legacy
+                                     *     `seatingInformation` field on a ticket so the new tickets
+                                     *     PDF prints the same seat info the legacy PDF did.
+                                     */
+                                    seatingInformation?: {
+                                        /** @description Section display label (e.g. "A"). */
+                                        sectionId?: string;
+                                        /** @description Row display label (e.g. "5"). */
+                                        rowId?: string;
+                                        /** @description Seat display label (e.g. "12"). */
+                                        seatId?: string;
+                                        seatReferenceId?: string;
+                                        sectionReferenceId?: string;
+                                        priceLevelId?: string;
+                                    };
+                                    /**
+                                     * Format: date-time
+                                     * @description Stamped by the fulfillment pipeline once
+                                     *     `InventoryRepository.consume()` has succeeded for this
+                                     *     line. Drives per-line consume idempotency: a replayed
+                                     *     fulfillment skips already-stamped lines and runs consume
+                                     *     on unstamped ones, so a partial-failure state (tickets
+                                     *     persisted but consume threw) recovers without
+                                     *     double-decrementing inventory.
+                                     */
+                                    inventoryConsumedAt?: string;
+                                }[];
+                                /** @description Audit log of every payment applied to this invoice */
+                                payments?: {
+                                    id: string;
+                                    /**
+                                     * @description Outcome of this payment attempt.
+                                     *     - succeeded: money was captured. Counts toward the parent invoice's
+                                     *     `amountPaid` total.
+                                     *     - failed: an auto-charge attempt was rejected (decline / SCA / no
+                                     *     card). Kept on the audit log for visibility; does NOT count
+                                     *     toward `amountPaid`.
+                                     * @enum {string}
+                                     */
+                                    status: "succeeded" | "failed";
+                                    /** @description Amount applied, minor units */
+                                    amount: number;
+                                    /** Format: date-time */
+                                    paidAt: string;
+                                    /** @description Caller-supplied dedupe key, if one was provided */
+                                    idempotencyKey?: string;
+                                    /** @description Free-form note (payment method, upstream provider id, etc.) */
+                                    note?: string;
+                                    /** @description Stripe PaymentIntent id (`pi_…`) for Stripe-Connect payments */
+                                    externalId?: string;
+                                    /** @description Stripe Charge id (`ch_…`); refund operations key off this */
+                                    chargeId?: string;
+                                    /** @description Stripe error code on a failed attempt (e.g. `card_declined`, `authentication_required`) */
+                                    failureCode?: string;
+                                    /** @description Stripe customer-facing decline message on a failed attempt */
+                                    failureMessage?: string;
+                                    /**
+                                     * @description Refunds applied against this payment. Cumulative refunds are
+                                     *     capped at `amount`; the host's true net = amount - sum(refunds).
+                                     */
+                                    refunds?: {
+                                        id: string;
+                                        /** @description Refund amount, minor units of the parent invoice currency */
+                                        amount: number;
+                                        /** Format: date-time */
+                                        refundedAt: string;
+                                        idempotencyKey?: string;
+                                        /** @description Stripe reason: duplicate | fraudulent | requested_by_customer */
+                                        reason?: string;
+                                        /** @description Free-form host note (internal, not shown to customer) */
+                                        note?: string;
+                                        /** @description Stripe Refund id (`re_…`) for ops lookups */
+                                        externalRefundId?: string;
+                                        /** @description Pointer to the matching Ledger row that drives payouts */
+                                        ledgerEntryId?: string;
+                                    }[];
+                                }[];
+                                /** @description Sum of (qty * unitAmount), minor units */
+                                subtotal?: number;
+                                /** @description Sum of line taxAmount, minor units */
+                                taxTotal?: number;
+                                /** @description subtotal + taxTotal, minor units */
+                                total?: number;
+                                /** @description Sum of payments received, minor units */
+                                amountPaid?: number;
+                                /** @description total - amountPaid, clamped to >= 0 */
+                                amountDue?: number;
+                                /**
+                                 * @description Invoice lifecycle status.
+                                 *     - draft: not yet issued; freely editable
+                                 *     - open: finalized and issued; awaiting payment
+                                 *     - payment_failed: an off-session auto-charge attempt was rejected
+                                 *     (decline / SCA / no card). The invoice is still owed; the host
+                                 *     can retry the charge or the customer can pay manually.
+                                 *     - paid: fully paid
+                                 *     - void: cancelled before payment
+                                 * @enum {string}
+                                 */
+                                status?: "draft" | "open" | "payment_failed" | "paid" | "void";
+                                /**
+                                 * @description When true, finalize attempts to off-session charge the customer's
+                                 *     saved card immediately. On charge success the invoice transitions
+                                 *     straight to `paid`; on failure to `payment_failed`. Default
+                                 *     false — host has to opt in.
+                                 */
+                                autoCharge?: boolean;
+                                notes?: string;
+                                /**
+                                 * @description Snapshot of the host's registered tax-IDs at the time the invoice
+                                 *     was issued. Rendered alongside the host's company info on the PDF
+                                 *     and email body. Optional/empty when the host hasn't recorded any.
+                                 */
+                                taxIds?: {
+                                    /**
+                                     * @description Internal type code for the tax-ID (e.g. 'us_ein', 'ca_gst_hst', 'eu_vat').
+                                     *     Display labels are derived at render time so the persisted invoice
+                                     *     doesn't bake in a label that might be reworded.
+                                     */
+                                    type: string;
+                                    /** @description The tax-ID number as the host has it registered */
+                                    value: string;
+                                }[];
+                                /** Format: date-time */
+                                issuedAt?: string;
+                                /** Format: date-time */
+                                dueAt?: string;
+                                /** Format: date-time */
+                                paidAt?: string;
+                                /** Format: date-time */
+                                voidedAt?: string;
+                                /** @description Set when generated by a billing Subscription */
+                                subscriptionId?: string;
+                                /** @description Set when accepted from a Quote */
+                                quoteId?: string;
+                                /** Format: date-time */
+                                createdAt?: string;
+                                /** Format: date-time */
+                                updatedAt?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/invoices/{id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Invoice Email
+         * @description Emails the customer their invoice. An `open` (or
+         *     `payment_failed`) invoice gets a payment-link email, Pay button
+         *     plus the invoice PDF; a `paid` invoice gets its receipt.
+         *     Re-callable, so it doubles as a resend. Rejects `draft` invoices
+         *     (finalize first) and `void` ones with a 409. Requires a customer
+         *     email on the invoice.
          */
         post: {
             parameters: {
@@ -31208,6 +31660,21 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                402: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
                 403: {
                     headers: {
                         [name: string]: unknown;
@@ -33336,6 +33803,21 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                402: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
                 403: {
                     headers: {
                         [name: string]: unknown;
@@ -34809,7 +35291,7 @@ export interface paths {
                     contactId?: string;
                     /** @description Filter by Price reference */
                     priceId?: string;
-                    /** @description Comma-separated list of fields to return. Valid: id, hostId, contactId, customerEmail, priceId, quantity, status, currentPeriodStart, currentPeriodEnd, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, endedAt, startedAt, dunningEnabled, autoCharge, nextRetryAt, retryCount, createdAt, updatedAt. Omit for all. */
+                    /** @description Comma-separated list of fields to return. Valid: id, hostId, contactId, customerEmail, priceId, quantity, status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, endedAt, startedAt, dunningEnabled, autoCharge, nextRetryAt, retryCount, nextCycleDiscount, createdAt, updatedAt. Omit for all. */
                     fields?: string;
                 };
                 header?: never;
@@ -34910,6 +35392,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35108,6 +35598,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35136,6 +35634,21 @@ export interface paths {
                 };
                 /** @description Default Response */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                                details?: unknown;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                402: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -35201,7 +35714,7 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    /** @description Comma-separated list of fields. Valid: id, hostId, contactId, customerEmail, priceId, quantity, items, status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, cancelReason, endedAt, startedAt, dunningEnabled, autoCharge, paymentDueDays, taxRate, notes, taxIds, firstFailureAt, nextRetryAt, retryCount, metadata, createdAt, updatedAt. Omit for all. */
+                    /** @description Comma-separated list of fields. Valid: id, hostId, contactId, customerEmail, priceId, quantity, items, status, currentPeriodStart, currentPeriodEnd, trialStart, trialEnd, billingCycleAnchor, cancelAt, cancelAtPeriodEnd, canceledAt, cancelReason, endedAt, startedAt, dunningEnabled, autoCharge, paymentDueDays, taxRate, notes, taxIds, firstFailureAt, nextRetryAt, retryCount, nextCycleDiscount, metadata, createdAt, updatedAt. Omit for all. */
                     fields?: string;
                 };
                 header?: never;
@@ -35305,6 +35818,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35515,6 +36036,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -35860,6 +36389,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36078,6 +36615,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36295,6 +36840,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36491,6 +37044,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36702,6 +37263,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -36913,6 +37482,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -37109,6 +37686,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
@@ -37468,6 +38053,14 @@ export interface paths {
                                 paymentDueDays?: number;
                                 /** @description Single tax rate (percent) applied to every renewal invoice subtotal. */
                                 taxRate?: number;
+                                /** @description One-time discount staged for the NEXT renewal (e.g. a comped "free cycle"); consumed at that renewal. Absent when the next cycle bills normally. */
+                                nextCycleDiscount?: {
+                                    /** @enum {string} */
+                                    kind: "percent" | "amount";
+                                    value: number;
+                                    reason: string;
+                                    sourceId?: string;
+                                };
                                 metadata?: {
                                     [key: string]: string;
                                 };
