@@ -17,8 +17,12 @@ const client = new ThreeCommon({
   apiKey: '3co_your_api_key_here',
 })
 
-// One step: finalize and email the payment link in a single call.
-const issued = await client.invoices.finalize('inv_replace_with_real_id', { sendEmail: true })
+// One step: finalize and email the payment link in a single call. `finalize`
+// takes request options second and its params third, so pass `undefined` for
+// options here.
+const issued = await client.invoices.finalize('inv_replace_with_real_id', undefined, {
+  sendEmail: true,
+})
 console.log(`finalized ${issued.id ?? '?'} as ${issued.number ?? '?'} [${issued.status ?? '?'}]`)
 
 // Or send (or re-send) the email for an already-finalized invoice.

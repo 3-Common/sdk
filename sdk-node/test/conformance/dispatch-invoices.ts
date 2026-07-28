@@ -32,7 +32,7 @@ export function dispatchInvoices(
     case 'finalize': {
       const id = expectString(args['id'], 'finalize')
       const params = args['params'] as { sendEmail?: boolean } | undefined
-      return client.invoices.finalize(id, params)
+      return client.invoices.finalize(id, undefined, params)
     }
     case 'send':
       return client.invoices.send(expectString(args['id'], 'send'))

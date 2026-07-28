@@ -182,7 +182,7 @@ describe('invoices.finalize', () => {
       }),
     )
     const client = buildClient()
-    await client.invoices.finalize('inv_123', { sendEmail: true })
+    await client.invoices.finalize('inv_123', undefined, { sendEmail: true })
     expect(url).toContain('sendEmail=true')
   })
 
@@ -195,8 +195,22 @@ describe('invoices.finalize', () => {
       }),
     )
     const client = buildClient()
-    await client.invoices.finalize('inv_123', { sendEmail: false })
+    await client.invoices.finalize('inv_123', undefined, { sendEmail: false })
     expect(url).toContain('sendEmail=false')
+  })
+
+  it('accepts request options as the second argument (backward compatible) without adding a query', async () => {
+    let url = ''
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/finalize`, ({ request }) => {
+        url = request.url
+        return HttpResponse.json({ data: { ...sampleInvoice, status: 'open' } })
+      }),
+    )
+    const client = buildClient()
+    const issued = await client.invoices.finalize('inv_123', { maxRetries: 0 })
+    expect(issued.status).toBe('open')
+    expect(url).not.toContain('sendEmail')
   })
 
   it('rejects empty id', async () => {

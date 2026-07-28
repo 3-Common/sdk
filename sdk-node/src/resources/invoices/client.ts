@@ -80,16 +80,16 @@ export interface InvoicesService {
 
   /**
    * Finalize a draft invoice: assigns a sequential number, stamps `issuedAt`,
-   * and transitions the status to `open`. Pass `{ sendEmail: true }` to also
-   * email the customer their invoice (payment link, or receipt for a
-   * zero-dollar auto-pay) as part of finalizing.
+   * and transitions the status to `open`. Pass `{ sendEmail: true }` as the
+   * third argument to also email the customer their invoice (payment link, or
+   * receipt for a zero-dollar auto-pay) as part of finalizing.
    *
    * @example
    * ```ts
-   * const issued = await client.invoices.finalize('inv_123', { sendEmail: true })
+   * const issued = await client.invoices.finalize('inv_123', undefined, { sendEmail: true })
    * ```
    */
-  finalize(id: string, params?: InvoiceFinalizeParams, options?: RequestOptions): Promise<Invoice>
+  finalize(id: string, options?: RequestOptions, params?: InvoiceFinalizeParams): Promise<Invoice>
 
   /**
    * Email the customer their invoice. An `open` (or `payment_failed`) invoice
@@ -246,8 +246,8 @@ export function invoicesService(http: HttpClient): InvoicesService {
 
     async finalize(
       id: string,
-      params: InvoiceFinalizeParams = {},
       options?: RequestOptions,
+      params: InvoiceFinalizeParams = {},
     ): Promise<Invoice> {
       requireId('finalize', id)
       const response = await http.request<DetailEnvelope<Invoice>>({

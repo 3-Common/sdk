@@ -6,7 +6,7 @@ Add `client.invoices.send(id)`, wrapping `POST /v1/invoices/{id}/send`, which
 emails the customer their invoice, a payment-link email for an `open` or
 `payment_failed` invoice, or a receipt for a `paid` one. It is re-callable
 (doubling as a resend) and rejects `draft` and `void` invoices with a `409`.
-`client.invoices.finalize(id, params)` now accepts an optional
+`client.invoices.finalize(id, options, params)` now accepts an optional
 `InvoiceFinalizeParams` with `sendEmail`, mapping to
 `POST /v1/invoices/{id}/finalize?sendEmail=true`, so finalizing can email the
 customer in one step.
