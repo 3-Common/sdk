@@ -6,6 +6,7 @@ import type {
   DeletedInvoice,
   Invoice,
   InvoiceCreateBody,
+  InvoiceFinalizeParams,
   InvoiceListParams,
   InvoicePaymentBody,
   InvoiceRefundBody,
@@ -79,14 +80,30 @@ export interface InvoicesService {
 
   /**
    * Finalize a draft invoice: assigns a sequential number, stamps `issuedAt`,
-   * and transitions the status to `open`.
+   * and transitions the status to `open`. Pass `{ sendEmail: true }` to also
+   * email the customer their invoice (payment link, or receipt for a
+   * zero-dollar auto-pay) as part of finalizing.
    *
    * @example
    * ```ts
-   * const issued = await client.invoices.finalize('inv_123')
+   * const issued = await client.invoices.finalize('inv_123', { sendEmail: true })
    * ```
    */
-  finalize(id: string, options?: RequestOptions): Promise<Invoice>
+  finalize(id: string, params?: InvoiceFinalizeParams, options?: RequestOptions): Promise<Invoice>
+
+  /**
+   * Email the customer their invoice. An `open` (or `payment_failed`) invoice
+   * gets a payment-link email (Pay button + the invoice PDF); a `paid` invoice
+   * gets its receipt. Re-callable, so it doubles as a resend. Rejects `draft`
+   * invoices (finalize first) and `void` ones with a `409`. Requires a customer
+   * email on the invoice.
+   *
+   * @example
+   * ```ts
+   * await client.invoices.send('inv_123')
+   * ```
+   */
+  send(id: string, options?: RequestOptions): Promise<Invoice>
 
   /**
    * Void an invoice. Permitted from `draft` or `open`; paid invoices cannot be voided.
@@ -227,11 +244,26 @@ export function invoicesService(http: HttpClient): InvoicesService {
       return response.data
     },
 
-    async finalize(id: string, options?: RequestOptions): Promise<Invoice> {
+    async finalize(
+      id: string,
+      params: InvoiceFinalizeParams = {},
+      options?: RequestOptions,
+    ): Promise<Invoice> {
       requireId('finalize', id)
       const response = await http.request<DetailEnvelope<Invoice>>({
         method: 'POST',
         path: `/invoices/${encodeURIComponent(id)}/finalize`,
+        query: finalizeParamsToQuery(params),
+        options,
+      })
+      return response.data
+    },
+
+    async send(id: string, options?: RequestOptions): Promise<Invoice> {
+      requireId('send', id)
+      const response = await http.request<DetailEnvelope<Invoice>>({
+        method: 'POST',
+        path: `/invoices/${encodeURIComponent(id)}/send`,
         options,
       })
       return response.data
@@ -349,4 +381,9 @@ function listParamsToQuery(
 function retrieveParamsToQuery(params: InvoiceRetrieveParams): Record<string, string | undefined> {
   if (params.fields === undefined) return {}
   return { fields: params.fields }
+}
+
+function finalizeParamsToQuery(params: InvoiceFinalizeParams): Record<string, boolean | undefined> {
+  if (params.sendEmail === undefined) return {}
+  return { sendEmail: params.sendEmail }
 }

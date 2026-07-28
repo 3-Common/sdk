@@ -31,6 +31,7 @@ export function dispatchEvents(
       return client.events.listAutoPaginate(args)
     case 'create':
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':

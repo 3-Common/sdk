@@ -40,6 +40,7 @@ export function dispatchFeatures(
     case 'listAutoPaginate':
       return client.features.listAutoPaginate(args)
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':

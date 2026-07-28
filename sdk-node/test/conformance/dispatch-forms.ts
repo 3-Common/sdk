@@ -94,6 +94,7 @@ export function dispatchForms(
     case 'listAutoPaginate':
       return client.forms.listAutoPaginate(args)
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':

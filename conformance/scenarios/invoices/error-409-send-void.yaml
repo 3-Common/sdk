@@ -1,0 +1,28 @@
+name: 409 Conflict — send a void invoice
+call:
+  resource: invoices
+  method: send
+  args:
+    id: inv_void
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_void/send
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-inv-send-409-void
+  body:
+    error:
+      code: invoice_not_sendable
+      message: Invoice inv_void is void and cannot be sent
+      details:
+        currentStatus: void
+expectedError:
+  type: ThreeCommonConflictError
+  code: invoice_not_sendable
+  httpStatus: 409
+  requestId: req-inv-send-409-void
+  details:
+    currentStatus: void

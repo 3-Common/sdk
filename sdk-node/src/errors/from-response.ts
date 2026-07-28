@@ -2,6 +2,7 @@ import {
   ThreeCommonAuthError,
   ThreeCommonConflictError,
   ThreeCommonNotFoundError,
+  ThreeCommonPaymentRequiredError,
   ThreeCommonPermissionError,
   ThreeCommonRateLimitError,
   ThreeCommonServerError,
@@ -15,6 +16,7 @@ const STATUS_TO_SUBCLASS: Readonly<
 > = {
   400: ThreeCommonValidationError,
   401: ThreeCommonAuthError,
+  402: ThreeCommonPaymentRequiredError,
   403: ThreeCommonPermissionError,
   404: ThreeCommonNotFoundError,
   409: ThreeCommonConflictError,
@@ -74,6 +76,7 @@ function isErrorResponseBody(value: unknown): value is ErrorResponseBody {
 
 function defaultCodeForStatus(status: number): string {
   if (status === 401) return 'unauthorized'
+  if (status === 402) return 'payment_required'
   if (status === 403) return 'forbidden'
   if (status === 404) return 'not_found'
   if (status === 409) return 'conflict'

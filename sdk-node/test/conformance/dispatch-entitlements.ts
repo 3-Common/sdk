@@ -41,6 +41,7 @@ export function dispatchEntitlements(
     case 'update':
     case 'create':
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':
