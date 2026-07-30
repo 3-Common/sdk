@@ -51,9 +51,21 @@ class SubscriptionTaxId(_BaseModel):
 class SubscriptionDiscount(_BaseModel):
     """A one-time discount staged for the next renewal cycle (e.g. a comped
     "free cycle"), consumed at that renewal. Read-only; carried on
-    :attr:`Subscription.next_cycle_discount`."""
+    :attr:`Subscription.next_cycle_discount`.
+
+    How :attr:`value` is interpreted depends on :attr:`kind`:
+
+    - ``"percent"``: a percentage from ``0`` to ``100`` (e.g. ``100`` is a
+      fully-free/comped cycle, ``25`` is 25% off), the same scale as
+      :attr:`Subscription.tax_rate`.
+    - ``"amount"``: a flat discount in the invoice currency's minor units
+      (cents for USD; e.g. ``500`` is $5.00 off).
+    """
 
     kind: Literal["percent", "amount"]
+    #: Discount magnitude, interpreted per :attr:`kind`: a ``0`` to ``100``
+    #: percentage when ``kind == "percent"``, or a flat amount in minor units
+    #: (cents for USD) when ``kind == "amount"``.
     value: float
     reason: str | None = None
     source_id: str | None = Field(
