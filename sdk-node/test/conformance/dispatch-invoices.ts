@@ -29,8 +29,13 @@ export function dispatchInvoices(
       const body = expectBody(args['body'], 'update')
       return client.invoices.update(id, body)
     }
-    case 'finalize':
-      return client.invoices.finalize(expectString(args['id'], 'finalize'))
+    case 'finalize': {
+      const id = expectString(args['id'], 'finalize')
+      const params = args['params'] as { sendEmail?: boolean } | undefined
+      return client.invoices.finalize(id, undefined, params)
+    }
+    case 'send':
+      return client.invoices.send(expectString(args['id'], 'send'))
     case 'void': {
       const id = expectString(args['id'], 'void')
       const body = args['body'] as Record<string, unknown> | undefined

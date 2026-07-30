@@ -6,6 +6,26 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### 0.13.0
+
+### Added
+
+- `Invoices.Send` — emails the customer their invoice
+  (`POST /v1/invoices/{id}/send`): a payment-link email for an `open` /
+  `payment_failed` invoice, or a receipt for a `paid` one. Re-callable as a
+  resend; rejects `draft` and `void` invoices with a `409`.
+- `Invoices.Finalize` now takes a `*FinalizeParams`; set `SendEmail` to email
+  the customer as part of finalizing (`POST
+  /v1/invoices/{id}/finalize?sendEmail=true`). Pass `nil` to finalize only.
+  This changes the `Finalize` signature.
+- `PaymentRequiredError` for `402 Payment Required` responses (e.g. creating an
+  invoice or subscription while the host account is past due); previously a
+  `402` surfaced as a `ValidationError`.
+- `BillingEmail` on `contacts.Contact`, `contacts.CreateParams`, and
+  `contacts.ContactUpdate`; and the read-only `NextCycleDiscount` field (new
+  `subscriptions.NextCycleDiscount` type) on `subscriptions.Subscription`,
+  describing a one-time discount staged for the next renewal.
+
 ## 0.12.0
 
 ### Added

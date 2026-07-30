@@ -19,6 +19,12 @@ class PermissionError(APIError):
     """403 Forbidden — the API key lacks the scope required by the endpoint."""
 
 
+class PaymentRequiredError(APIError):
+    """402 Payment Required — the request cannot proceed until a payment or
+    billing prerequisite is satisfied (e.g. the host account is past due or
+    lacks an active plan for the operation)."""
+
+
 class NotFoundError(APIError):
     """404 Not Found."""
 

@@ -60,6 +60,7 @@ export function dispatchSubscriptions(
     case 'listAutoPaginate':
       return client.subscriptions.listAutoPaginate(args)
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':

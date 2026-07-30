@@ -56,6 +56,7 @@ export type Method =
   | 'update'
   | 'create'
   | 'finalize'
+  | 'send'
   | 'void'
   | 'recordPayment'
   | 'autoCharge'

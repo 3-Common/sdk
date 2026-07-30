@@ -32,6 +32,18 @@ export class ThreeCommonValidationError extends ThreeCommonError {
   }
 }
 
+/**
+ * 402 Payment Required — the request cannot proceed until a payment or billing
+ * prerequisite is satisfied (e.g. the host account is past due or lacks an
+ * active plan for the operation).
+ */
+export class ThreeCommonPaymentRequiredError extends ThreeCommonError {
+  /** @internal */
+  public constructor(init: ThreeCommonErrorInit) {
+    super(init)
+  }
+}
+
 /** 409 Conflict — request conflicts with current resource state. */
 export class ThreeCommonConflictError extends ThreeCommonError {
   /** @internal */

@@ -36,6 +36,7 @@ export function dispatchPrices(
     case 'listAutoPaginate':
       return client.prices.listAutoPaginate(args)
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':

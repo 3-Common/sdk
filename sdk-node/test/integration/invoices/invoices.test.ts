@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 
 import { ThreeCommon } from '@/client'
-import { ThreeCommonNotFoundError } from '@/errors'
+import { ThreeCommonConflictError, ThreeCommonNotFoundError } from '@/errors'
 
 import { setupMockServer, TEST_BASE_URL } from '../../helpers/mock-server'
 
@@ -160,9 +160,99 @@ describe('invoices.finalize', () => {
     expect(issued.number).toBe('INV-0001')
   })
 
+  it('omits the sendEmail query param when not requested', async () => {
+    let url = ''
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/finalize`, ({ request }) => {
+        url = request.url
+        return HttpResponse.json({ data: { ...sampleInvoice, status: 'open' } })
+      }),
+    )
+    const client = buildClient()
+    await client.invoices.finalize('inv_123')
+    expect(url).not.toContain('sendEmail')
+  })
+
+  it('forwards sendEmail=true as a query param', async () => {
+    let url = ''
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/finalize`, ({ request }) => {
+        url = request.url
+        return HttpResponse.json({ data: { ...sampleInvoice, status: 'open' } })
+      }),
+    )
+    const client = buildClient()
+    await client.invoices.finalize('inv_123', undefined, { sendEmail: true })
+    expect(url).toContain('sendEmail=true')
+  })
+
+  it('forwards sendEmail=false as a query param', async () => {
+    let url = ''
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/finalize`, ({ request }) => {
+        url = request.url
+        return HttpResponse.json({ data: { ...sampleInvoice, status: 'open' } })
+      }),
+    )
+    const client = buildClient()
+    await client.invoices.finalize('inv_123', undefined, { sendEmail: false })
+    expect(url).toContain('sendEmail=false')
+  })
+
+  it('accepts request options as the second argument (backward compatible) without adding a query', async () => {
+    let url = ''
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/finalize`, ({ request }) => {
+        url = request.url
+        return HttpResponse.json({ data: { ...sampleInvoice, status: 'open' } })
+      }),
+    )
+    const client = buildClient()
+    const issued = await client.invoices.finalize('inv_123', { maxRetries: 0 })
+    expect(issued.status).toBe('open')
+    expect(url).not.toContain('sendEmail')
+  })
+
   it('rejects empty id', async () => {
     const client = buildClient()
     await expect(client.invoices.finalize('')).rejects.toThrow(TypeError)
+  })
+})
+
+describe('invoices.send', () => {
+  it('POSTs to /send and returns the invoice', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_123/send`, () =>
+        HttpResponse.json({ data: { ...sampleInvoice, status: 'open', number: 'INV-0001' } }),
+      ),
+    )
+    const client = buildClient()
+    const sent = await client.invoices.send('inv_123')
+    expect(sent.status).toBe('open')
+    expect(sent.number).toBe('INV-0001')
+  })
+
+  it('surfaces a 409 for a draft or void invoice', async () => {
+    server.use(
+      http.post(`${TEST_BASE_URL}/v1/invoices/inv_draft/send`, () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'invoice_not_sendable',
+              message: 'Draft invoices must be finalized first',
+            },
+          },
+          { status: 409 },
+        ),
+      ),
+    )
+    const client = buildClient()
+    await expect(client.invoices.send('inv_draft')).rejects.toThrow(ThreeCommonConflictError)
+  })
+
+  it('rejects empty id', async () => {
+    const client = buildClient()
+    await expect(client.invoices.send('')).rejects.toThrow(TypeError)
   })
 })
 

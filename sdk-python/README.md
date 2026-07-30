@@ -42,11 +42,13 @@ import asyncio
 from threecommon import AsyncThreeCommon
 from threecommon.events import ListParams
 
+
 async def main() -> None:
     async with AsyncThreeCommon(api_key="3co_...") as client:
         result = await client.events.list(ListParams(status="open"))
         async for ev in client.events.list_auto_paginate(ListParams(status="open")):
             print(ev.name)
+
 
 asyncio.run(main())
 ```
@@ -59,17 +61,17 @@ The API key may also be supplied via the `THREECOMMON_API_KEY` environment varia
 from threecommon import ThreeCommon, RetryDelay
 
 client = ThreeCommon(
-    api_key="3co_...",                        # required (or via env var)
-    base_url="https://api.3common.com",       # default
-    api_version="2026-04-29",                 # pinned API version
-    timeout_seconds=30.0,                     # per-request deadline
-    max_retries=3,                            # automatic retries on 408/425/429/5xx
+    api_key="3co_...",  # required (or via env var)
+    base_url="https://api.3common.com",  # default
+    api_version="2026-04-29",  # pinned API version
+    timeout_seconds=30.0,  # per-request deadline
+    max_retries=3,  # automatic retries on 408/425/429/5xx
     retry_delay=RetryDelay(
         initial_seconds=0.5,
         max_seconds=8.0,
         jitter=True,
     ),
-    telemetry=True,                           # opt-out of anonymous telemetry
+    telemetry=True,  # opt-out of anonymous telemetry
 )
 ```
 

@@ -64,6 +64,17 @@ export interface InvoiceRetrieveParams {
   readonly fields?: string
 }
 
+/** Query parameters accepted by `POST /v1/invoices/{id}/finalize`. */
+export interface InvoiceFinalizeParams {
+  /**
+   * When `true`, email the customer as part of finalizing: an invoice left
+   * `open` gets a payment-link email (Pay button + invoice PDF), and a
+   * zero-dollar invoice that auto-pays on finalize gets its receipt. Requires
+   * a customer email on the invoice. Defaults to `false` (finalize only).
+   */
+  readonly sendEmail?: boolean
+}
+
 /** Body accepted by `POST /v1/invoices`. */
 export type InvoiceCreateBody =
   paths['/v1/invoices/']['post']['requestBody']['content']['application/json']

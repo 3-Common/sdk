@@ -1,0 +1,41 @@
+name: 402 Payment Required — create invoice while the host account is past due
+call:
+  resource: invoices
+  method: create
+  args:
+    body:
+      customerId: cnt_42
+      currency: USD
+      lineItems:
+        - description: Consulting
+          quantity: 1
+          unitAmount: 50000
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices
+  body:
+    customerId: cnt_42
+    currency: USD
+    lineItems:
+      - description: Consulting
+        quantity: 1
+        unitAmount: 50000
+mockResponse:
+  status: 402
+  headers:
+    x-request-id: req-inv-402-001
+  body:
+    error:
+      code: payment_required
+      message: The host account is past due and cannot issue new invoices
+      details:
+        reason: account_past_due
+expectedError:
+  type: ThreeCommonPaymentRequiredError
+  code: payment_required
+  httpStatus: 402
+  requestId: req-inv-402-001
+  details:
+    reason: account_past_due

@@ -75,6 +75,7 @@ export function dispatchContacts(
       return client.contacts.removePaymentMethod(id, methodId)
     }
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':
