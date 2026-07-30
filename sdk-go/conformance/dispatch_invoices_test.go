@@ -36,7 +36,17 @@ func dispatchInvoices(t *testing.T, api *client.API, ctx context.Context, sc sce
 		return api.Invoices.Update(ctx, id, buildInvoiceUpdateParams(body))
 	case "finalize":
 		id, _ := sc.Call.Args["id"].(string)
-		return api.Invoices.Finalize(ctx, id)
+		var fp *invoices.FinalizeParams
+		if params, ok := sc.Call.Args["params"].(map[string]any); ok {
+			fp = &invoices.FinalizeParams{}
+			if se, ok := params["sendEmail"].(bool); ok {
+				fp.SendEmail = &se
+			}
+		}
+		return api.Invoices.Finalize(ctx, id, fp)
+	case "send":
+		id, _ := sc.Call.Args["id"].(string)
+		return api.Invoices.Send(ctx, id)
 	case "void":
 		id, _ := sc.Call.Args["id"].(string)
 		var vp *invoices.VoidParams

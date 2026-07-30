@@ -113,16 +113,45 @@ func (c *Client) Update(ctx context.Context, id string, params *UpdateParams) (*
 }
 
 // Finalize transitions a draft invoice to open, assigns a sequential number,
-// and stamps issuedAt.
-func (c *Client) Finalize(ctx context.Context, id string) (*Invoice, error) {
+// and stamps issuedAt. Pass params with SendEmail set to also email the
+// customer their invoice (payment link, or a receipt for a zero-dollar
+// auto-pay) as part of finalizing; pass nil to finalize only.
+func (c *Client) Finalize(ctx context.Context, id string, params *FinalizeParams) (*Invoice, error) {
 	if err := requireID("Finalize", id); err != nil {
 		return nil, err
+	}
+
+	var query map[string]string
+	if params != nil && params.SendEmail != nil {
+		query = map[string]string{"sendEmail": strconv.FormatBool(*params.SendEmail)}
 	}
 
 	var env retrieveEnvelope
 	if err := c.backend.Do(ctx, core.Request{
 		Method: http.MethodPost,
 		Path:   "/invoices/" + url.PathEscape(id) + "/finalize",
+		Query:  query,
+		Out:    &env,
+	}); err != nil {
+		return nil, err
+	}
+	return &env.Data, nil
+}
+
+// Send emails the customer their invoice. An open (or payment_failed) invoice
+// gets a payment-link email (Pay button plus the invoice PDF); a paid invoice
+// gets its receipt. Re-callable, so it doubles as a resend. Rejects draft
+// invoices (finalize first) and void ones with a 409. Requires a customer
+// email on the invoice.
+func (c *Client) Send(ctx context.Context, id string) (*Invoice, error) {
+	if err := requireID("Send", id); err != nil {
+		return nil, err
+	}
+
+	var env retrieveEnvelope
+	if err := c.backend.Do(ctx, core.Request{
+		Method: http.MethodPost,
+		Path:   "/invoices/" + url.PathEscape(id) + "/send",
 		Out:    &env,
 	}); err != nil {
 		return nil, err

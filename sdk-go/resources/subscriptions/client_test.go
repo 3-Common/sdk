@@ -109,6 +109,25 @@ func TestRetrieve_HappyPath(t *testing.T) {
 	assert.Equal(t, "sub_123", got.ID)
 }
 
+func TestRetrieve_DecodesNextCycleDiscount(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{"data":{"id":"sub_123","status":"active","nextCycleDiscount":` +
+			`{"kind":"percent","value":100,"reason":"comped_cycle","sourceId":"src_1"}}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.Retrieve(context.Background(), "sub_123", nil)
+	require.NoError(t, err)
+	require.NotNil(t, got.NextCycleDiscount)
+	assert.Equal(t, "percent", got.NextCycleDiscount.Kind)
+	assert.InDelta(t, 100, got.NextCycleDiscount.Value, 0.001)
+	assert.Equal(t, "comped_cycle", got.NextCycleDiscount.Reason)
+	assert.Equal(t, "src_1", got.NextCycleDiscount.SourceID)
+}
+
 func TestRetrieve_AppliesFieldsParam(t *testing.T) {
 	t.Parallel()
 

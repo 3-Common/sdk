@@ -217,24 +217,84 @@ func TestFinalize_Posts(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "/v1/invoices/inv_1/finalize", r.URL.Path)
+		assert.Empty(t, r.URL.Query().Get("sendEmail"))
 		_, _ = w.Write([]byte(`{"data":{"id":"inv_1","status":"open","number":"INV-0001"}}`))
 	}))
 	defer srv.Close()
 
 	cl := newTestClient(t, srv)
-	got, err := cl.Finalize(context.Background(), "inv_1")
+	got, err := cl.Finalize(context.Background(), "inv_1", nil)
 	require.NoError(t, err)
 	assert.Equal(t, invoices.StatusOpen, got.Status)
 	require.NotNil(t, got.Number)
 	assert.Equal(t, "INV-0001", *got.Number)
 }
 
+func TestFinalize_SendEmail(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/v1/invoices/inv_1/finalize", r.URL.Path)
+		assert.Equal(t, "true", r.URL.Query().Get("sendEmail"))
+		_, _ = w.Write([]byte(`{"data":{"id":"inv_1","status":"open"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	sendEmail := true
+	got, err := cl.Finalize(context.Background(), "inv_1", &invoices.FinalizeParams{SendEmail: &sendEmail})
+	require.NoError(t, err)
+	assert.Equal(t, invoices.StatusOpen, got.Status)
+}
+
 func TestFinalize_RequiresID(t *testing.T) {
 	t.Parallel()
 	cl, _ := invoices.New(threecommon.Config{APIKey: "k"})
-	_, err := cl.Finalize(context.Background(), "")
+	_, err := cl.Finalize(context.Background(), "", nil)
 	var v *threecommon.ValidationError
 	require.True(t, errors.As(err, &v))
+}
+
+func TestSend_Posts(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/v1/invoices/inv_1/send", r.URL.Path)
+		_, _ = w.Write([]byte(`{"data":{"id":"inv_1","status":"open","number":"INV-0001"}}`))
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	got, err := cl.Send(context.Background(), "inv_1")
+	require.NoError(t, err)
+	assert.Equal(t, invoices.StatusOpen, got.Status)
+	require.NotNil(t, got.Number)
+	assert.Equal(t, "INV-0001", *got.Number)
+}
+
+func TestSend_RequiresID(t *testing.T) {
+	t.Parallel()
+	cl, _ := invoices.New(threecommon.Config{APIKey: "k"})
+	_, err := cl.Send(context.Background(), "")
+	var v *threecommon.ValidationError
+	require.True(t, errors.As(err, &v))
+}
+
+func TestSend_409Surfaces(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusConflict)
+		_, _ = io.WriteString(w, `{"error":{"code":"invoice_not_sendable","message":"finalize first"}}`)
+	}))
+	defer srv.Close()
+
+	cl := newTestClient(t, srv)
+	_, err := cl.Send(context.Background(), "inv_draft")
+	var cf *threecommon.ConflictError
+	require.True(t, errors.As(err, &cf))
+	assert.Equal(t, "invoice_not_sendable", cf.Code)
 }
 
 func TestVoid_WithReason(t *testing.T) {
@@ -429,7 +489,7 @@ func TestFinalize_404Surfaces(t *testing.T) {
 	defer srv.Close()
 
 	cl := newTestClient(t, srv)
-	_, err := cl.Finalize(context.Background(), "inv_missing")
+	_, err := cl.Finalize(context.Background(), "inv_missing", nil)
 
 	var nf *threecommon.NotFoundError
 	require.True(t, errors.As(err, &nf))

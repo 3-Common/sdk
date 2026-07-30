@@ -177,6 +177,8 @@ func mapErrorResponse(resp *Response, retryAfter time.Duration) error {
 		return &threecommon.RateLimitError{APIError: base, RetryAfter: retryAfter}
 	case resp.Status == http.StatusUnauthorized:
 		return &threecommon.AuthError{APIError: base}
+	case resp.Status == http.StatusPaymentRequired:
+		return &threecommon.PaymentRequiredError{APIError: base}
 	case resp.Status == http.StatusForbidden:
 		return &threecommon.PermissionError{APIError: base}
 	case resp.Status == http.StatusNotFound:
@@ -195,6 +197,8 @@ func defaultCodeForStatus(s int) string {
 	switch s {
 	case http.StatusUnauthorized:
 		return "unauthorized"
+	case http.StatusPaymentRequired:
+		return "payment_required"
 	case http.StatusForbidden:
 		return "forbidden"
 	case http.StatusNotFound:

@@ -85,6 +85,7 @@ type Contact struct {
 	LastName             string   `json:"lastName"`
 	FullName             string   `json:"fullName"`
 	Email                string   `json:"email"`
+	BillingEmail         string   `json:"billingEmail,omitempty"`
 	Phone                string   `json:"phone,omitempty"`
 	VendorID             string   `json:"vendorId"`
 	OrderSum             int64    `json:"orderSum"`
@@ -207,20 +208,22 @@ type ActivityListParams struct {
 
 // CreateParams is the body shape accepted by [Client.Create].
 type CreateParams struct {
-	Email     string `json:"email"`
-	FirstName string `json:"firstName,omitempty"`
-	LastName  string `json:"lastName,omitempty"`
-	Phone     string `json:"phone,omitempty"`
+	Email        string `json:"email"`
+	BillingEmail string `json:"billingEmail,omitempty"`
+	FirstName    string `json:"firstName,omitempty"`
+	LastName     string `json:"lastName,omitempty"`
+	Phone        string `json:"phone,omitempty"`
 }
 
 // ContactUpdate is the nested object inside [UpdateParams]. All four
 // non-phone fields are required by the API.
 type ContactUpdate struct {
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
-	Email     string  `json:"email"`
-	Phone     *string `json:"phone,omitempty"`
-	Status    Status  `json:"status"`
+	FirstName    string  `json:"firstName"`
+	LastName     string  `json:"lastName"`
+	Email        string  `json:"email"`
+	BillingEmail string  `json:"billingEmail,omitempty"`
+	Phone        *string `json:"phone,omitempty"`
+	Status       Status  `json:"status"`
 }
 
 // UpdateParams is the body shape accepted by [Client.Update]. The Contact

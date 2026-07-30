@@ -312,6 +312,10 @@ func assertExpectedError(t *testing.T, scenarioName string, want expectedError, 
 		var e *threecommon.PermissionError
 		require.True(t, errors.As(got, &e), "%s: want PermissionError, got %T", scenarioName, got)
 		assertAPIErrorFields(t, scenarioName, want, e.APIError)
+	case "ThreeCommonPaymentRequiredError":
+		var e *threecommon.PaymentRequiredError
+		require.True(t, errors.As(got, &e), "%s: want PaymentRequiredError, got %T", scenarioName, got)
+		assertAPIErrorFields(t, scenarioName, want, e.APIError)
 	case "ThreeCommonNotFoundError":
 		var e *threecommon.NotFoundError
 		require.True(t, errors.As(got, &e), "%s: want NotFoundError, got %T", scenarioName, got)
