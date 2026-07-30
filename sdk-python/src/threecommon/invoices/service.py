@@ -45,6 +45,12 @@ def _encode_retrieve_params(params: RetrieveParams | None) -> dict[str, str] | N
     return {"fields": params.fields}
 
 
+def _finalize_query(send_email: bool | None) -> dict[str, str] | None:
+    if send_email is None:
+        return None
+    return {"sendEmail": "true" if send_email else "false"}
+
+
 def _require_id(method: str, invoice_id: str) -> None:
     if not invoice_id:
         msg = f"invoices.{method}: id must be a non-empty string"
@@ -134,12 +140,33 @@ class InvoicesService:
         )
         return Invoice.model_validate(response["data"])
 
-    def finalize(self, invoice_id: str) -> Invoice:
-        """Finalize a draft invoice: assign a number, stamp ``issuedAt``, set status ``open``."""
+    def finalize(self, invoice_id: str, *, send_email: bool | None = None) -> Invoice:
+        """Finalize a draft invoice: assign a number, stamp ``issuedAt``, set status ``open``.
+
+        Pass ``send_email=True`` to also email the customer their invoice
+        (payment link, or a receipt for a zero-dollar auto-pay) as part of
+        finalizing.
+        """
         _require_id("finalize", invoice_id)
         response = self._http.request(
-            Request(method="POST", path=_action_path(invoice_id, "finalize"))
+            Request(
+                method="POST",
+                path=_action_path(invoice_id, "finalize"),
+                query=_finalize_query(send_email),
+            )
         )
+        return Invoice.model_validate(response["data"])
+
+    def send(self, invoice_id: str) -> Invoice:
+        """Email the customer their invoice.
+
+        An ``open`` (or ``payment_failed``) invoice gets a payment-link email;
+        a ``paid`` invoice gets its receipt. Re-callable, so it doubles as a
+        resend. Rejects ``draft`` invoices (finalize first) and ``void`` ones
+        with a ``409``. Requires a customer email on the invoice.
+        """
+        _require_id("send", invoice_id)
+        response = self._http.request(Request(method="POST", path=_action_path(invoice_id, "send")))
         return Invoice.model_validate(response["data"])
 
     def void(self, invoice_id: str, body: VoidBody | None = None) -> Invoice:
@@ -280,10 +307,21 @@ class AsyncInvoicesService:
         )
         return Invoice.model_validate(response["data"])
 
-    async def finalize(self, invoice_id: str) -> Invoice:
+    async def finalize(self, invoice_id: str, *, send_email: bool | None = None) -> Invoice:
         _require_id("finalize", invoice_id)
         response = await self._http.request(
-            Request(method="POST", path=_action_path(invoice_id, "finalize"))
+            Request(
+                method="POST",
+                path=_action_path(invoice_id, "finalize"),
+                query=_finalize_query(send_email),
+            )
+        )
+        return Invoice.model_validate(response["data"])
+
+    async def send(self, invoice_id: str) -> Invoice:
+        _require_id("send", invoice_id)
+        response = await self._http.request(
+            Request(method="POST", path=_action_path(invoice_id, "send"))
         )
         return Invoice.model_validate(response["data"])
 

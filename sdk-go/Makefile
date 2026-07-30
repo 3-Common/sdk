@@ -4,6 +4,8 @@ GO ?= go
 GOFLAGS ?= -trimpath
 PKGS ?= ./...
 
+RACE_LDFLAGS := $(if $(filter Darwin,$(shell uname -s)),-ldflags=-B=gobuildid,)
+
 OAPI_CODEGEN_VERSION := v2.5.0
 
 tools:
@@ -24,10 +26,10 @@ test:
 	$(GO) test $(GOFLAGS) $(PKGS)
 
 test-race:
-	$(GO) test -race $(GOFLAGS) $(PKGS)
+	$(GO) test -race $(RACE_LDFLAGS) $(GOFLAGS) $(PKGS)
 
 coverage:
-	$(GO) test -race -coverprofile=coverage.out -covermode=atomic $(PKGS)
+	$(GO) test -race $(RACE_LDFLAGS) -coverprofile=coverage.out -covermode=atomic $(PKGS)
 	go-test-coverage --config=.testcoverage.yml
 
 # Regenerate the typed OpenAPI bindings under generated/. Mirrors the Node

@@ -65,7 +65,7 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
           cache-dependency-path: sdk-go/go.sum
-      - run: go test -race -count=1 ./...
+      - run: go test -race -count=1 ${{ runner.os == 'macOS' && '-ldflags=-B=gobuildid' || '' }} ./...
 
   coverage:
     runs-on: ubuntu-latest

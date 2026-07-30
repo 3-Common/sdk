@@ -6,6 +6,7 @@ import {
   ThreeCommonConflictError,
   ThreeCommonError,
   ThreeCommonNotFoundError,
+  ThreeCommonPaymentRequiredError,
   ThreeCommonPermissionError,
   ThreeCommonRateLimitError,
   ThreeCommonServerError,
@@ -30,6 +31,17 @@ describe('errorFromResponse', () => {
     expect(err.code).toBe('unauthorized')
     expect(err.httpStatus).toBe(401)
     expect(err.requestId).toBe('req-test-001')
+  })
+
+  it('maps 402 to ThreeCommonPaymentRequiredError', () => {
+    const err = errorFromResponse({
+      ...baseArgs,
+      status: 402,
+      body: { error: { code: 'payment_required', message: 'Account past due' } },
+    })
+    expect(err).toBeInstanceOf(ThreeCommonPaymentRequiredError)
+    expect(err.code).toBe('payment_required')
+    expect(err.httpStatus).toBe(402)
   })
 
   it('maps 403 to ThreeCommonPermissionError', () => {
@@ -144,6 +156,7 @@ describe('errorFromResponse — edge cases', () => {
 
   it.each([
     [401, 'unauthorized'],
+    [402, 'payment_required'],
     [403, 'forbidden'],
     [404, 'not_found'],
     [409, 'conflict'],

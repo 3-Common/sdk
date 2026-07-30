@@ -42,7 +42,7 @@ func main() {
 	}
 	fmt.Printf("drafted %s — total %d USD\n", draft.ID, total)
 
-	issued, err := api.Invoices.Finalize(ctx, draft.ID)
+	issued, err := api.Invoices.Finalize(ctx, draft.ID, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

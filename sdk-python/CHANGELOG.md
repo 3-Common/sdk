@@ -5,6 +5,25 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### 0.13.0
+
+### Added
+
+- Invoice sending. The `client.invoices` surface gains `send` (emails the
+  customer their invoice via `POST /v1/invoices/{id}/send` — a payment-link
+  email for an `open`/`payment_failed` invoice or a receipt for a `paid` one;
+  re-callable as a resend, and rejects `draft`/`void` invoices with a `409`).
+  `finalize` gains a `send_email` keyword (`POST
+  /v1/invoices/{id}/finalize?sendEmail=true`) to email the customer in one
+  step. Both are available on the sync and async surfaces.
+- `PaymentRequiredError` for `402 Payment Required` responses (e.g. creating an
+  invoice or subscription while the host account is past due); previously a
+  `402` surfaced as a generic `ValidationError`.
+- `billing_email` on `Contact` and the `contacts.create` / `contacts.update`
+  bodies, and the read-only `next_cycle_discount` field (new
+  `SubscriptionDiscount` model) on `Subscription`, describing a one-time
+  discount staged for the next renewal.
+
 ### 0.12.0
 
 ### Added

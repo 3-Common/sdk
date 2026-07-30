@@ -36,6 +36,7 @@ export function dispatchProperties(
     case 'listActivity':
     case 'listActivityAutoPaginate':
     case 'finalize':
+    case 'send':
     case 'void':
     case 'recordPayment':
     case 'autoCharge':

@@ -5,6 +5,7 @@ export {
   ThreeCommonConflictError,
   ThreeCommonConnectionError,
   ThreeCommonNotFoundError,
+  ThreeCommonPaymentRequiredError,
   ThreeCommonPermissionError,
   ThreeCommonRateLimitError,
   ThreeCommonServerError,

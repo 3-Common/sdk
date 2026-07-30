@@ -1,0 +1,28 @@
+name: 409 Conflict — send a draft invoice (must be finalized first)
+call:
+  resource: invoices
+  method: send
+  args:
+    id: inv_draft
+client:
+  maxRetries: 0
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_draft/send
+mockResponse:
+  status: 409
+  headers:
+    x-request-id: req-inv-send-409-draft
+  body:
+    error:
+      code: invoice_not_sendable
+      message: Invoice inv_draft is a draft; finalize it before sending
+      details:
+        currentStatus: draft
+expectedError:
+  type: ThreeCommonConflictError
+  code: invoice_not_sendable
+  httpStatus: 409
+  requestId: req-inv-send-409-draft
+  details:
+    currentStatus: draft

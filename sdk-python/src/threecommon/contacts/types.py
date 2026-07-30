@@ -66,6 +66,9 @@ class Contact(_BaseModel):
     last_name: str = Field(serialization_alias="lastName", validation_alias="lastName")
     full_name: str = Field(serialization_alias="fullName", validation_alias="fullName")
     email: str
+    billing_email: str | None = Field(
+        default=None, serialization_alias="billingEmail", validation_alias="billingEmail"
+    )
     phone: str | None = None
     vendor_id: str = Field(serialization_alias="vendorId", validation_alias="vendorId")
     order_sum: int = Field(serialization_alias="orderSum", validation_alias="orderSum")
@@ -230,6 +233,9 @@ class CreateBody(_BaseModel):
     """Body accepted by ``POST /v1/contacts``."""
 
     email: str
+    billing_email: str | None = Field(
+        default=None, serialization_alias="billingEmail", validation_alias="billingEmail"
+    )
     first_name: str | None = Field(
         default=None, serialization_alias="firstName", validation_alias="firstName"
     )
@@ -245,6 +251,9 @@ class ContactUpdate(_BaseModel):
     first_name: str = Field(serialization_alias="firstName", validation_alias="firstName")
     last_name: str = Field(serialization_alias="lastName", validation_alias="lastName")
     email: str
+    billing_email: str | None = Field(
+        default=None, serialization_alias="billingEmail", validation_alias="billingEmail"
+    )
     phone: str | None = None
     status: ContactStatus
 

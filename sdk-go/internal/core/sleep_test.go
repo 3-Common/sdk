@@ -67,6 +67,7 @@ func TestDefaultCodeForStatus(t *testing.T) {
 
 	cases := map[int]string{
 		401: "unauthorized",
+		402: "payment_required",
 		403: "forbidden",
 		404: "not_found",
 		409: "conflict",

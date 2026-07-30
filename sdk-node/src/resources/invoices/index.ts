@@ -6,6 +6,7 @@ export type {
   Invoice,
   InvoiceCreateBody,
   InvoiceCurrency,
+  InvoiceFinalizeParams,
   InvoiceLineItem,
   InvoiceListParams,
   InvoicePayment,

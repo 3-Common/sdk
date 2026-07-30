@@ -1,0 +1,31 @@
+name: send invoice — happy path
+call:
+  resource: invoices
+  method: send
+  args:
+    id: inv_123
+expectedRequest:
+  method: POST
+  path: /v1/invoices/inv_123/send
+  headers:
+    authorization: 'Bearer 3co_test'
+  headersAbsent:
+    - content-type
+mockResponse:
+  status: 200
+  body:
+    data:
+      id: inv_123
+      hostId: hst_1
+      customerId: cnt_42
+      customerEmail: guest@example.com
+      currency: USD
+      status: open
+      number: INV-0001
+      total: 50000
+      amountDue: 50000
+      amountPaid: 0
+expectedResult:
+  id: inv_123
+  status: open
+  number: INV-0001
