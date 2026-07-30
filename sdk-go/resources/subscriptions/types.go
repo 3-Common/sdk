@@ -52,8 +52,14 @@ type TaxID struct {
 // (e.g. a comped "free cycle"), consumed at that renewal. Read-only; absent
 // when the next cycle bills normally.
 type NextCycleDiscount struct {
-	// Kind is "percent" or "amount".
-	Kind     string  `json:"kind"`
+	// Kind is "percent" or "amount" and determines how Value is interpreted.
+	Kind string `json:"kind"`
+	// Value is the discount magnitude, interpreted per Kind:
+	//   - Kind == "percent": a percentage from 0 to 100 (e.g. 100 is a
+	//     fully-free/comped cycle, 25 is 25% off), the same scale as
+	//     Subscription.TaxRate.
+	//   - Kind == "amount": a flat discount in the invoice currency's minor
+	//     units (cents for USD; e.g. 500 is $5.00 off).
 	Value    float64 `json:"value"`
 	Reason   string  `json:"reason,omitempty"`
 	SourceID string  `json:"sourceId,omitempty"`
