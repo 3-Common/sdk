@@ -6,6 +6,11 @@ import "time"
 // API key.
 type AuthError struct{ *APIError }
 
+// PaymentRequiredError is returned for 402 Payment Required — the request
+// cannot proceed until a payment or billing prerequisite is satisfied (e.g.
+// the host account is past due or lacks an active plan for the operation).
+type PaymentRequiredError struct{ *APIError }
+
 // PermissionError is returned for 403 Forbidden — the API key lacks the scope
 // required by the endpoint.
 type PermissionError struct{ *APIError }

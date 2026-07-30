@@ -92,6 +92,30 @@ def test_retrieve_uses_envelope(httpx_mock: HTTPXMock) -> None:
     assert sub.contact_id == "cnt_42"
 
 
+def test_retrieve_decodes_next_cycle_discount(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/subscriptions/sub_123",
+        json={
+            "data": {
+                **SAMPLE,
+                "nextCycleDiscount": {
+                    "kind": "percent",
+                    "value": 100,
+                    "reason": "comped_cycle",
+                    "sourceId": "src_1",
+                },
+            }
+        },
+    )
+    with _make_sync() as c:
+        sub = c.subscriptions.retrieve("sub_123")
+    assert sub.next_cycle_discount is not None
+    assert sub.next_cycle_discount.kind == "percent"
+    assert sub.next_cycle_discount.value == 100
+    assert sub.next_cycle_discount.reason == "comped_cycle"
+    assert sub.next_cycle_discount.source_id == "src_1"
+
+
 def test_retrieve_passes_fields(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/subscriptions/sub_1?fields=id%2Cstatus",

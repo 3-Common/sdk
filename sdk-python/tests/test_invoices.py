@@ -7,6 +7,7 @@ from pytest_httpx import HTTPXMock
 
 from threecommon import (
     AsyncThreeCommon,
+    ConflictError,
     NotFoundError,
     ThreeCommon,
     ValidationError,
@@ -164,6 +165,59 @@ def test_finalize_validates_id() -> None:
         c.invoices.finalize("")
 
 
+def test_finalize_send_email_true(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/invoices/inv_123/finalize?sendEmail=true",
+        method="POST",
+        match_content=b"",
+        json={"data": {**SAMPLE, "status": "open"}},
+    )
+    with _make_sync() as c:
+        inv = c.invoices.finalize("inv_123", send_email=True)
+    assert inv.status == "open"
+
+
+def test_finalize_send_email_false(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/invoices/inv_123/finalize?sendEmail=false",
+        method="POST",
+        json={"data": {**SAMPLE, "status": "open"}},
+    )
+    with _make_sync() as c:
+        inv = c.invoices.finalize("inv_123", send_email=False)
+    assert inv.status == "open"
+
+
+def test_send_posts(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/invoices/inv_123/send",
+        method="POST",
+        match_content=b"",
+        json={"data": {**SAMPLE, "status": "open", "number": "INV-0001"}},
+    )
+    with _make_sync() as c:
+        inv = c.invoices.send("inv_123")
+    assert inv.status == "open"
+    assert inv.number == "INV-0001"
+
+
+def test_send_validates_id() -> None:
+    with _make_sync() as c, pytest.raises(ValidationError):
+        c.invoices.send("")
+
+
+def test_send_409_surfaces(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/invoices/inv_draft/send",
+        method="POST",
+        status_code=409,
+        json={"error": {"code": "invoice_not_sendable", "message": "finalize first"}},
+    )
+    with _make_sync() as c, pytest.raises(ConflictError) as exc:
+        c.invoices.send("inv_draft")
+    assert exc.value.code == "invoice_not_sendable"
+
+
 def test_void_with_reason(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         url="http://test.local/v1/invoices/inv_123/void",
@@ -247,6 +301,30 @@ async def test_async_finalize(httpx_mock: HTTPXMock) -> None:
     async with _make_async() as c:
         inv = await c.invoices.finalize("inv_1")
     assert inv.status == "open"
+
+
+@pytest.mark.asyncio
+async def test_async_finalize_send_email(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/invoices/inv_1/finalize?sendEmail=true",
+        method="POST",
+        json={"data": {**SAMPLE, "id": "inv_1", "status": "open"}},
+    )
+    async with _make_async() as c:
+        inv = await c.invoices.finalize("inv_1", send_email=True)
+    assert inv.status == "open"
+
+
+@pytest.mark.asyncio
+async def test_async_send(httpx_mock: HTTPXMock) -> None:
+    httpx_mock.add_response(
+        url="http://test.local/v1/invoices/inv_1/send",
+        method="POST",
+        json={"data": {**SAMPLE, "id": "inv_1", "status": "paid"}},
+    )
+    async with _make_async() as c:
+        inv = await c.invoices.send("inv_1")
+    assert inv.status == "paid"
 
 
 @pytest.mark.asyncio

@@ -32,6 +32,7 @@ from threecommon import (
     AuthError,
     ConflictError,
     NotFoundError,
+    PaymentRequiredError,
     PermissionError,
     RateLimitError,
     ServerError,
@@ -68,6 +69,7 @@ SCENARIOS = _load_scenarios()
 
 _TYPED_ERRORS: dict[str, type[APIError]] = {
     "ThreeCommonAuthError": AuthError,
+    "ThreeCommonPaymentRequiredError": PaymentRequiredError,
     "ThreeCommonPermissionError": PermissionError,
     "ThreeCommonNotFoundError": NotFoundError,
     "ThreeCommonValidationError": ValidationError,

@@ -103,6 +103,12 @@ func TestClient_MapsTypedErrors(t *testing.T) {
 			require.True(t, errors.As(err, &e))
 			assert.Equal(t, "unauthorized", e.Code)
 		}},
+		{402, `{"error":{"code":"payment_required","message":"past due"}}`, func(t *testing.T, err error) {
+			t.Helper()
+			var e *threecommon.PaymentRequiredError
+			require.True(t, errors.As(err, &e))
+			assert.Equal(t, "payment_required", e.Code)
+		}},
 		{403, `{"error":{"code":"forbidden","message":"no scope"}}`, func(t *testing.T, err error) {
 			t.Helper()
 			var e *threecommon.PermissionError

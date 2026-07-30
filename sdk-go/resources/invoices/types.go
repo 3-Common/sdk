@@ -136,6 +136,16 @@ type RetrieveParams struct {
 	Fields string
 }
 
+// FinalizeParams are the query options accepted by [Client.Finalize]. May be
+// nil to finalize only.
+type FinalizeParams struct {
+	// SendEmail, when non-nil and true, emails the customer as part of
+	// finalizing: an invoice left open gets a payment-link email; a
+	// zero-dollar invoice that auto-pays on finalize gets its receipt.
+	// Requires a customer email on the invoice.
+	SendEmail *bool
+}
+
 // CreateParams is the body shape accepted by [Client.Create].
 type CreateParams struct {
 	CustomerID     string     `json:"customerId"`
