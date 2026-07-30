@@ -62,8 +62,12 @@ jobs:
 
       - name: Upgrade npm for trusted publishing (needs >= 11.5.1)
         working-directory: .
+        # Pin to the 11.x line: it satisfies the >= 11.5.1 trusted-publishing
+        # floor while still supporting Node 20 (this job's runtime, matching the
+        # package's `engines`). `npm@latest` is now 12.x, which requires Node
+        # >= 22 and fails to install here.
         run: |
-          npm install -g npm@latest
+          npm install -g npm@^11.5.1
           npm --version
 
       - name: Configure npm
